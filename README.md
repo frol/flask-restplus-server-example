@@ -39,7 +39,7 @@ Dependencies
 
 ### Build Dependencies
 
-I use (`pyinvoke`)[http://pyinvoke.org] with custom tasks to maintain easy and
+I use [`pyinvoke`](http://pyinvoke.org) with custom tasks to maintain easy and
 nice command-line interface. Thus, it is required to have `invoke` Python
 package installed, and optionally you may want to install `colorlog`, so your
 life become colorful.
@@ -68,6 +68,9 @@ It is very easy to start exploring the example using Docker:
 ```bash
 $ docker run -it --rm --publish 5000:5000 frolvlad/flask-restplus-server-example
 ```
+
+[![](https://badge.imagelayers.io/frolvlad/flask-restplus-server-example:latest.svg)](https://imagelayers.io/?images=frolvlad/flask-restplus-server-example:latest 'Get your own badge on imagelayers.io')
+
 
 ### From sources
 
