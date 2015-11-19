@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title></title>
+</head>
+<body>
+  {% if user %}
+    <p>You are {{ user.username }}</p>
+  {% else %}
+    <p>You are not authenticated</p>
+  {% endif %}
+
+  <p>Type any username:</p>
+  <form method="post" action="/auth/">
+    <input type="text" name="username">
+    <input type="submit">
+  </form>
+</body>
+</html>

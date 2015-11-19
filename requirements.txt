@@ -1,0 +1,24 @@
+#Flask>=0.11
+https://github.com/mitsuhiko/flask/archive/master.zip
+
+#flask-restful>0.3.4
+# Master is broken, see #534: https://github.com/flask-restful/flask-restful/issues/534
+#https://github.com/flask-restful/flask-restful/archive/master.zip
+https://github.com/frol/flask-restful/archive/patch-1.zip
+
+#flask-restplus>=0.8.1
+https://github.com/noirbizarre/flask-restplus/archive/master.zip
+
+Flask-SQLAlchemy==2.1
+Flask-Alembic==1.2.1
+werkzeug==0.11.2
+
+flask-marshmallow==0.6.2
+marshmallow-sqlalchemy==0.6.0
+webargs
+apispec
+
+Flask-Bcrypt==0.7.1
+Flask-OAuthlib==0.9.2
+Flask-Login==0.3.2
+permission==0.4.1
