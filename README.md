@@ -25,8 +25,7 @@ publish it.
 Dependencies
 ------------
 
-Project Dependencies
-~~~~~~~~~~~~~~~~~~~~
+### Project Dependencies
 
 * flask-restplus (flask, flask-restful)
 * sqlalchemy (+ flask-sqlalchemy)
@@ -38,16 +37,14 @@ Project Dependencies
 * flask-login
 * Swagger-UI
 
-Build Dependencies
-~~~~~~~~~~~~~~~~~~
+### Build Dependencies
 
 I use (`pyinvoke`)[http://pyinvoke.org] with custom tasks to maintain easy and
 nice command-line interface. Thus, it is required to have `invoke` Python
 package installed, and optionally you may want to install `colorlog`, so your
 life become colorful.
 
-Patched Dependencies
-~~~~~~~~~~~~~~~~~~~~
+### Patched Dependencies
 
 * flask-restplus: patched to handle marshmallow schemes and webargs input 
   parameters ([GH #9](https://github.com/noirbizarre/flask-restplus/issues/9)),
@@ -64,8 +61,7 @@ Patched Dependencies
 Installation
 ------------
 
-Using Docker
-~~~~~~~~~~~~
+### Using Docker
 
 It is very easy to start exploring the example using Docker:
 
@@ -73,9 +69,7 @@ It is very easy to start exploring the example using Docker:
 $ docker run -it --rm --publish 5000:5000 frolvlad/flask-restplus-server-example
 ```
 
-
-From sources
-~~~~~~~~~~~~
+### From sources
 
 #### Clone the Project
 
