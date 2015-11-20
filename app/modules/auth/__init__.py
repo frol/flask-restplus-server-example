@@ -1,3 +1,5 @@
+from app.extensions import login_manager
+
 from . import models, views, providers
 
 
@@ -14,7 +16,7 @@ def load_user_from_request(request):
             user = oauth.user
     return user
 
-def init_app(app, login_manager):
+def init_app(app, **kwargs):
     # Bind Flask-Login for current_user
     login_manager.request_loader(load_user_from_request)
     

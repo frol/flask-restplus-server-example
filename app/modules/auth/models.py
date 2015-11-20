@@ -15,7 +15,7 @@ from datetime import datetime, timedelta
 from flask.ext.login import current_user
 from flask.ext.sqlalchemy import SQLAlchemy
 
-from app import db
+from app.extensions import db
 
 
 class OAuth2Client(db.Model):

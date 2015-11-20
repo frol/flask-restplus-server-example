@@ -1,7 +1,8 @@
 import logging
 from six import itervalues
 
-from marshmallow import fields, validate, Schema
+from flask.ext.marshmallow import Schema, base_fields
+from marshmallow import validate
 from webargs import core
 from webargs.flaskparser import parser as flask_parser, FlaskParser
 
@@ -68,7 +69,7 @@ class JSONParameters(Parameters):
             kwargs.update(dict(
                 _parser=jsonlist_flask_parser,
                 _parameters={
-                    'body': fields.Nested(self, many=True, required=True, location='json')
+                    'body': base_fields.Nested(self, many=True, required=True, location='json')
                 }
             ))
         return super(JSONParameters, self).__call__(func, **kwargs)
@@ -94,12 +95,12 @@ class PatchJSONParameters(JSONParameters):
         OP_REMOVE,
         OP_REPLACE,
     )
-    op = fields.String(required=True)
+    op = base_fields.String(required=True)
     
     PATH_CHOICES = None
-    path = fields.String(required=True)
+    path = base_fields.String(required=True)
     
-    value = fields.Raw(required=False)
+    value = base_fields.Raw(required=False)
 
     def __init__(self, *args, **kwargs):
         super(PatchJSONParameters, self).__init__(*args, many=True, **kwargs)

@@ -1,8 +1,6 @@
+# encoding: utf-8
 
-from flask.ext import restplus
-from werkzeug import cached_property
-
-from app import api, marshmallow
+from flask.ext.marshmallow import base_fields
 
 from flask_restplus_patched import Schema, ModelSchema
 from .models import User
@@ -34,4 +32,4 @@ class DetailedUserSchema(BaseUserSchema):
         
 class UserSignupFormSchema(Schema):
     
-    recaptcha_server_key = marshmallow.String(required=True)
+    recaptcha_server_key = base_fields.String(required=True)

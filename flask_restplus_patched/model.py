@@ -2,11 +2,10 @@ from functools import wraps
 import logging
 
 from apispec.ext.marshmallow.swagger import schema2jsonschema
-from flask_restplus.model import ApiModel as OriginalApiModel
+from flask.ext import marshmallow
 from werkzeug import cached_property
 
-#from flask.ext import marshmallow
-from app import marshmallow
+from flask_restplus.model import ApiModel as OriginalApiModel
 
 
 log = logging.getLogger(__name__)
@@ -61,8 +60,9 @@ class Schema(APISchema, marshmallow.Schema):
     pass
 
 
-class ModelSchema(APISchema, marshmallow.ModelSchema):
-    pass
+if marshmallow.has_sqla:
+    class ModelSchema(APISchema, marshmallow.sqla.ModelSchema):
+        pass
    
 
 class ApiModel(OriginalApiModel):

@@ -1,8 +1,8 @@
-from flask.ext import restful
+from flask.ext import restful, marshmallow
 from flask.ext.restplus import Api as OriginalApi
 from flask_restplus.utils import merge
-from marshmallow import Schema
 from werkzeug import cached_property
+
 
 from .model import ApiModel
 from .swagger import Swagger
@@ -30,7 +30,7 @@ class Api(OriginalApi):
         """
         Register a model
         """
-        if isinstance(model, Schema):
+        if isinstance(model, marshmallow.Schema):
             api_model = ApiModel(model)
             api_model.__apidoc__ = kwargs
             api_model.__apidoc__['name'] = name = name or model.__class__.__name__

@@ -1,29 +1,29 @@
 import logging
 
 from flask.ext.login import current_user
-from flask_restplus_patched import abort
 from permission import Rule, Permission
+from werkzeug.exceptions import Unauthorized, Forbidden
 
-from app import api
-from app.auth.providers import AUTHENTICATION_REQUIRED_MESSAGE
-
-
-PERMISSION_DENIED_MESSAGE = "You don't have the permission to access the requested resource."
+from app.extensions import api
 
 
 log = logging.getLogger(__name__)
 
 
-class Deny403Mixin(object):
+class DenyAbortMixin(object):
     """
-    A helper permissions mixin raising HTTP 403 Error on deny.
+    A helper permissions mixin raising an HTTP Error (specified in
+    ``DENY_ABORT_CODE``) on deny.
 
     NOTE: Apply this mixin before Rule class so it can override NotImplemented
     deny method.
     """
 
+    DENY_ABORT_HTTP_CODE = Forbidden.code
+    DENY_ABORT_MESSAGE = None
+
     def deny(self):
-        return abort(code=403, message=PERMISSION_DENIED_MESSAGE)
+        return abort(code=self.DENY_ABORT_HTTP_CODE, message=self.DENY_ABORT_MESSAGE)
 
 
 class BaseAPIRule(Rule):
@@ -56,7 +56,7 @@ class BaseAPIRule(Rule):
                 return base_class()
 
 
-class WriteAccessRule(Deny403Mixin, BaseAPIRule):
+class WriteAccessRule(DenyAbortMixin, BaseAPIRule):
     """
     Ensure that the current_user has has write access.
     """
@@ -65,20 +65,20 @@ class WriteAccessRule(Deny403Mixin, BaseAPIRule):
         return not current_user.is_readonly
 
 
-class ActivatedUserRoleRule(BaseAPIRule):
+class ActivatedUserRoleRule(DenyAbortMixin, BaseAPIRule):
     """
     Ensure that the current_user is activated.
     """
 
     def check(self):
-        # NOTE: is_active implies is_authenticated
+        # Do not override DENY_ABORT_HTTP_CODE because inherited classes will
+        # better use HTTP 403/Forbidden code on denial.
+        self.DENY_ABORT_HTTP_CODE = Unauthorized.code
+        # NOTE: `is_active` implies `is_authenticated`.
         return current_user.is_active
 
-    def deny(self):
-        return abort(code=401, message=AUTHENTICATION_REQUIRED_MESSAGE)
 
-
-class AdminRoleRule(Deny403Mixin, ActivatedUserRoleRule):
+class AdminRoleRule(ActivatedUserRoleRule):
     """
     Ensure that the current_user has an Admin role.
     """
@@ -98,7 +98,7 @@ class AdminRoleRule(Deny403Mixin, ActivatedUserRoleRule):
         return True
 
 
-class OwnerRoleRule(Deny403Mixin, ActivatedUserRoleRule):
+class OwnerRoleRule(ActivatedUserRoleRule):
     """
     Ensure that the current_user has an Owner access to the given object.
     """
@@ -113,7 +113,7 @@ class OwnerRoleRule(Deny403Mixin, ActivatedUserRoleRule):
         return self._obj.check_owner(current_user)
 
 
-class SupervisorRoleRule(Deny403Mixin, ActivatedUserRoleRule):
+class SupervisorRoleRule(ActivatedUserRoleRule):
     """
     Ensure that the current_user has a Supervisor access to the given object.
     """

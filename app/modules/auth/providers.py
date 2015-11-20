@@ -11,16 +11,10 @@ More details are available here:
 """
 
 from flask.ext.oauthlib.provider import OAuth2Provider, OAuth2RequestValidator
+from werkzeug.exceptions import Unauthorized
 
-from app import api
+from app.extensions import api
 from .models import OAuth2Client, OAuth2Grant, OAuth2Token
-
-
-AUTHENTICATION_REQUIRED_MESSAGE = (
-    "The server could not verify that you are authorized to access the URL requested. "
-    "You either supplied the wrong credentials (e.g. a bad password), or your browser "
-    "doesn't understand how to supply the credentials required."
-)
 
 
 class CustomOAuth2RequestValidator(OAuth2RequestValidator):
@@ -36,10 +30,11 @@ class CustomOAuth2RequestValidator(OAuth2RequestValidator):
     
     def _usergetter(self, username, password, client, request):
         # Avoid circular dependencies
-        from app.users.models import User
+        from app.modules.users.models import User
         return User.find_with_password(username, password)
 
     def client_authentication_required(self, request, *args, **kwargs):
+        # XXX: patched version
         # TODO: implement it better in oauthlib, but for now we excluded
         # password flow from `client_secret` requirement.
         grant_types = ('authorization_code', 'refresh_token')
@@ -55,4 +50,4 @@ oauth2 = CustomOAuth2Provider()
 
 @oauth2.invalid_response
 def _invalid_response_handler(req):
-    return api.abort(code=401, message=AUTHENTICATION_REQUIRED_MESSAGE)
+    return api.abort(code=Unauthorized.code)

@@ -9,6 +9,41 @@ class BaseConfig(object):
     
     DEBUG = False
 
+    AUTHORIZATIONS = {
+        'oauth2': {
+            'type': 'oauth2',
+            'scopes': [
+                {
+                    'scope': 'users:read',
+                    'description': "Read users",
+                },
+                {
+                    'scope': 'users:write',
+                    'description': "Write users",
+                },
+            ],
+            'grantTypes': {
+                'password': {
+                    'tokenName': 'access_token',
+                },
+                # TODO: implement Implicit Grant for third-party apps
+                #'implicit': {
+                #    'loginEndpoint': {
+                #        'url': '/auth/oauth2/authorize',
+                #    },
+                #    'tokenName': 'access_token',
+                #},
+            },
+            'flow': 'password',
+            'tokenUrl': '/auth/oauth2/token',
+        }
+    }
+
+    ENABLED_MODULES = (
+        'auth',
+        'users',
+    )
+
     # TODO: consider if these are relevant for this project
     SQLALCHEMY_TRACK_MODIFICATIONS = True
     CSRF_ENABLED = True

@@ -1,8 +1,7 @@
 from six import itervalues
 
 from flask_restplus_patched import Parameters, JSONParameters, PatchJSONParameters
-
-from app import marshmallow
+from flask.ext.marshmallow import base_fields
 
 from . import schemas
 from .models import User
@@ -10,16 +9,16 @@ from .models import User
 
 class PaginationParameters(Parameters):
 
-    limit = marshmallow.Integer(default=20, missing=20)
-    offset = marshmallow.Integer(default=0, missing=0)
+    limit = base_fields.Integer(default=20, missing=20)
+    offset = base_fields.Integer(default=0, missing=0)
 
 
 class AddUserParameters(JSONParameters, schemas.BaseUserSchema):
     
-    username = marshmallow.String(description="Example: root", required=True)
-    email = marshmallow.Email(description="Example: root@gmail.com", required=True)
-    password = marshmallow.String(description="No rules yet", required=True)
-    recaptcha_key = marshmallow.String(
+    username = base_fields.String(description="Example: root", required=True)
+    email = base_fields.Email(description="Example: root@gmail.com", required=True)
+    password = base_fields.String(description="No rules yet", required=True)
+    recaptcha_key = base_fields.String(
         description=(
             "See `/users/signup_form` for details. It is required for everybody, except admins"
         ),

@@ -10,12 +10,13 @@ More details are available here:
 * http://lepture.com/en/2013/create-oauth-server
 """
 
-from flask import Blueprint, session, request, render_template, redirect, url_for, jsonify
+from flask import Blueprint, request, render_template, jsonify
 from flask.ext.login import current_user
-from werkzeug.security import gen_salt
+from werkzeug import security
+from werkzeug.exceptions import Unauthorized
 
-from app import db
-from app.users.models import User
+from app.extensions import db, api
+from app.modules.users.models import User
 
 from .models import OAuth2Client
 from . import providers
@@ -31,14 +32,14 @@ def client():
     ``client_id`` and ``client_secret``.
     """
     if not current_user.is_authenticated:
-        return redirect(url_for('auth.login'))
+        return api.abort(code=Unauthorized.code)
     # XXX: remove hard-codings
     # TODO: reconsider using gen_salt
     # TODO: develop sensible scopes
     # TODO: consider moving `db` operations into OAuth2Client class implementation
     client_instance = OAuth2Client(
-        client_id=gen_salt(40),
-        client_secret=gen_salt(50),
+        client_id=security.gen_salt(40),
+        client_secret=security.gen_salt(50),
         _redirect_uris=' '.join([
             'http://localhost:8000/authorized',
             'http://127.0.0.1:8000/authorized',
@@ -88,7 +89,7 @@ def authorize(*args, **kwargs):
     """
     # TODO: improve implementation
     if not current_user.is_authenticated:
-        return redirect(url_for('auth.login'))
+        return api.abort(code=Unauthorized.code)
     if request.method == 'GET':
         client_id = kwargs.get('client_id')
         client = OAuth2Client.query.filter_by(client_id=client_id).first()

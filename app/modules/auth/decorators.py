@@ -1,5 +1,5 @@
-from app import DefaultHTTPErrorSchema
-from app.users import permissions
+from app.extensions.api import DefaultHTTPErrorSchema
+from app.modules.users import permissions
 
 from . import providers
 
