@@ -2,7 +2,7 @@ import logging
 
 from flask.ext.login import current_user
 from permission import Rule, Permission
-from werkzeug.exceptions import Unauthorized, Forbidden
+from werkzeug import exceptions as http_exceptions
 
 from app.extensions import api
 
@@ -19,7 +19,7 @@ class DenyAbortMixin(object):
     deny method.
     """
 
-    DENY_ABORT_HTTP_CODE = Forbidden.code
+    DENY_ABORT_HTTP_CODE = http_exceptions.Forbidden.code
     DENY_ABORT_MESSAGE = None
 
     def deny(self):
@@ -73,7 +73,7 @@ class ActivatedUserRoleRule(DenyAbortMixin, BaseAPIRule):
     def check(self):
         # Do not override DENY_ABORT_HTTP_CODE because inherited classes will
         # better use HTTP 403/Forbidden code on denial.
-        self.DENY_ABORT_HTTP_CODE = Unauthorized.code
+        self.DENY_ABORT_HTTP_CODE = http_exceptions.Unauthorized.code
         # NOTE: `is_active` implies `is_authenticated`.
         return current_user.is_active
 

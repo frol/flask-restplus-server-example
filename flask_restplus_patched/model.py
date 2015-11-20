@@ -65,6 +65,11 @@ if marshmallow.has_sqla:
         pass
    
 
+class DefaultHTTPErrorSchema(Schema):
+    status = marshmallow.base_fields.Integer()
+    message = marshmallow.base_fields.String()
+
+
 class ApiModel(OriginalApiModel):
 
     def __init__(self, model):

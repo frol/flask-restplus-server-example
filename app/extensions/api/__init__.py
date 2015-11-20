@@ -33,14 +33,6 @@ api_v1 = Api(
 )
 
 
-# TODO: remove or move this to a common/misc module
-from flask_restplus_patched import Schema
-from flask.ext.marshmallow import base_fields
-class DefaultHTTPErrorSchema(Schema):
-    status = base_fields.Integer()
-    message = base_fields.String()
-
-
 def init_app(app, **kwargs):
     if app.debug:
         @app.route('/swaggerui/<path:path>')

@@ -6,7 +6,8 @@ import logging
 
 from flask.ext.login import current_user
 from flask.ext.restplus import Resource
-from werkzeug.exceptions import Forbidden, NotFound, Conflict, UnprocessableEntity
+from flask_restplus_patched import DefaultHTTPErrorSchema
+from werkzeug import exceptions as http_exceptions
 
 from app.extensions import api
 from app.modules.auth.decorators import login_required
@@ -46,16 +47,21 @@ class Users(Resource):
         """
         # Check reCAPTCHA if necessary
         recaptcha_key = args.pop('recaptcha_key', None)
-        if recaptcha_key is None:
-            with permissions.AdminRolePermission():
-                pass
-        elif recaptcha_key != 'secret_key':
-            api.abort(code=Forbidden.code, message="CAPTCHA key is incorrect")
+        captcha_is_valid = False
+        if not recaptcha_key:
+            no_captcha_permission = permissions.AdminRolePermission()
+            if no_captcha_permission.check():
+                captcha_is_valid = True
+        elif recaptcha_key == 'secret_key':
+            captcha_is_valid = True
+
+        if not captcha_is_valid:
+            api.abort(code=http_exceptions.Forbidden.code, message="CAPTCHA key is incorrect.")
         
         new_user = User.create(**args)
         # TODO: handle errors better
         if new_user is None:
-            api.abort(code=Conflict.code, message="Could not create a new user.")
+            api.abort(code=http_exceptions.Conflict.code, message="Could not create a new user.")
         
         return new_user
 
@@ -76,7 +82,7 @@ class UserSignupForm(Resource):
 
 
 @namespace.route('/<int:user_id>')
-@api.DefaultHTTPErrorSchema(api.api_v1, code=NotFound.code, description="User not found")
+@DefaultHTTPErrorSchema(api.api_v1, code=http_exceptions.NotFound.code, description="User not found")
 class UserByID(Resource):
     """
     Manipulations with a specific user.
@@ -123,7 +129,7 @@ class UserByID(Resource):
             processing_status (bool) - True if operation was handled, otherwise False.
         """
         if 'value' not in operation:
-            api.abort(code=UnprocessableEntity.code, message="value is required")
+            api.abort(code=http_exceptions.UnprocessableEntity.code, message="value is required")
 
         if operation['op'] == parameters.PatchUserDetailsParameters.OP_TEST:
             if operation['path'] == '/current_password':
@@ -133,7 +139,7 @@ class UserByID(Resource):
                     and
                     not user.verify_password(state['current_password'])
                 ):
-                    api.abort(code=Forbidden.code, message="Wrong password")
+                    api.abort(code=http_exceptions.Forbidden.code, message="Wrong password")
                 return True
         
         elif operation['op'] == parameters.PatchUserDetailsParameters.OP_REPLACE:

@@ -12,14 +12,12 @@ More details are available here:
 
 from flask import Blueprint, request, render_template, jsonify
 from flask.ext.login import current_user
-from werkzeug import security
-from werkzeug.exceptions import Unauthorized
+from werkzeug import security, exceptions as http_exceptions
 
-from app.extensions import db, api
+from app.extensions import db, api, oauth2
 from app.modules.users.models import User
 
 from .models import OAuth2Client
-from . import providers
 
 
 auth_blueprint = Blueprint('auth', __name__, url_prefix='/auth')
@@ -32,7 +30,7 @@ def client():
     ``client_id`` and ``client_secret``.
     """
     if not current_user.is_authenticated:
-        return api.abort(code=Unauthorized.code)
+        return api.abort(code=http_exceptions.Unauthorized.code)
     # XXX: remove hard-codings
     # TODO: reconsider using gen_salt
     # TODO: develop sensible scopes
@@ -59,7 +57,7 @@ def client():
     )
 
 @auth_blueprint.route('/oauth2/token', methods=['GET', 'POST'])
-@providers.oauth2.token_handler
+@oauth2.token_handler
 def access_token(*args, **kwargs):
     """
     This endpoint is for exchanging/refreshing an access token.
@@ -73,7 +71,7 @@ def access_token(*args, **kwargs):
     return None
 
 @auth_blueprint.route('/oauth2/revoke', methods=['POST'])
-@providers.oauth2.revoke_handler
+@oauth2.revoke_handler
 def revoke_token():
     """
     This endpoint allows a user to revoke their access token.
@@ -81,7 +79,7 @@ def revoke_token():
     pass
 
 @auth_blueprint.route('/oauth2/authorize', methods=['GET', 'POST'])
-@providers.oauth2.authorize_handler
+@oauth2.authorize_handler
 def authorize(*args, **kwargs):
     """
     This endpoint asks user if he grants access to his data to the requesting
@@ -89,7 +87,7 @@ def authorize(*args, **kwargs):
     """
     # TODO: improve implementation
     if not current_user.is_authenticated:
-        return api.abort(code=Unauthorized.code)
+        return api.abort(code=http_exceptions.Unauthorized.code)
     if request.method == 'GET':
         client_id = kwargs.get('client_id')
         client = OAuth2Client.query.filter_by(client_id=client_id).first()

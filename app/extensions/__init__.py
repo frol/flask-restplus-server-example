@@ -11,6 +11,9 @@ marshmallow = Marshmallow()
 
 from . import api
 
+from .auth import OAuth2Provider
+oauth2 = OAuth2Provider()
+
 
 def init_app(app):
     for extension in (
@@ -18,6 +21,7 @@ def init_app(app):
         login_manager,
         marshmallow,
         api,
+        oauth2,
     ):
         extension.init_app(app)
 
