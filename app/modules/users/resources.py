@@ -7,17 +7,15 @@ import logging
 from flask.ext.login import current_user
 from flask.ext.restplus import Resource
 from flask_restplus_patched import DefaultHTTPErrorSchema
-from werkzeug import exceptions as http_exceptions
 
-from app.extensions import api
-from app.modules.auth.decorators import login_required
+from app.extensions.api import api_v1, abort, http_exceptions
 
 from . import permissions, schemas, parameters
 from .models import db, User
 
 
 log = logging.getLogger(__name__)
-namespace = api.api_v1.namespace('users', description="Users")
+namespace = api_v1.namespace('users', description="Users")
 
 
 @namespace.route('/')
@@ -26,10 +24,10 @@ class Users(Resource):
     Manipulations with users.
     """
 
-    @login_required(api.api_v1, scopes=['users:read'])
-    @permissions.AdminRolePermission(api.api_v1)
-    @parameters.PaginationParameters(api.api_v1)
-    @schemas.BaseUserSchema(api.api_v1, many=True)
+    @api_v1.login_required(scopes=['users:read'])
+    @api_v1.permission_required(permissions.AdminRolePermission())
+    @api_v1.parameters(parameters.PaginationParameters())
+    @api_v1.response(schemas.BaseUserSchema(many=True))
     def get(self, args):
         """
         List of users.
@@ -39,8 +37,8 @@ class Users(Resource):
         """
         return User.query.all()[args['offset']: args['offset'] + args['limit']]
 
-    @parameters.AddUserParameters(api.api_v1)
-    @schemas.DetailedUserSchema(api.api_v1)
+    @api_v1.parameters(parameters.AddUserParameters())
+    @api_v1.response(schemas.DetailedUserSchema())
     def post(self, args):
         """
         Create a new user.
@@ -56,12 +54,12 @@ class Users(Resource):
             captcha_is_valid = True
 
         if not captcha_is_valid:
-            api.abort(code=http_exceptions.Forbidden.code, message="CAPTCHA key is incorrect.")
+            abort(code=http_exceptions.Forbidden.code, message="CAPTCHA key is incorrect.")
         
         new_user = User.create(**args)
         # TODO: handle errors better
         if new_user is None:
-            api.abort(code=http_exceptions.Conflict.code, message="Could not create a new user.")
+            abort(code=http_exceptions.Conflict.code, message="Could not create a new user.")
         
         return new_user
 
@@ -69,7 +67,7 @@ class Users(Resource):
 @namespace.route('/signup_form')
 class UserSignupForm(Resource):
 
-    @schemas.UserSignupFormSchema(api.api_v1)
+    @api_v1.response(schemas.UserSignupFormSchema())
     def get(self):
         """
         Get signup form keys.
@@ -82,24 +80,27 @@ class UserSignupForm(Resource):
 
 
 @namespace.route('/<int:user_id>')
-@DefaultHTTPErrorSchema(api.api_v1, code=http_exceptions.NotFound.code, description="User not found")
+@api_v1.response(
+    code=http_exceptions.NotFound.code,
+    description="User not found",
+)
 class UserByID(Resource):
     """
     Manipulations with a specific user.
     """
 
-    @login_required(api.api_v1, scopes=['users:read'])
-    @permissions.AdminRolePermission(api.api_v1)
-    @schemas.DetailedUserSchema(api.api_v1)
+    @api_v1.login_required(scopes=['users:read'])
+    @api_v1.permission_required(permissions.AdminRolePermission())
+    @api_v1.response(schemas.DetailedUserSchema())
     def get(self, user_id):
         """
         Get user details by ID.
         """
         return User.query.get_or_404(user_id)
 
-    @login_required(api.api_v1, scopes=['users:write'])
-    @parameters.PatchUserDetailsParameters(api.api_v1)
-    @schemas.DetailedUserSchema(api.api_v1)
+    @api_v1.login_required(scopes=['users:write'])
+    @api_v1.parameters(parameters.PatchUserDetailsParameters())
+    @api_v1.response(schemas.DetailedUserSchema())
     def patch(self, args, user_id):
         """
         Patch user details by ID.
@@ -129,7 +130,7 @@ class UserByID(Resource):
             processing_status (bool) - True if operation was handled, otherwise False.
         """
         if 'value' not in operation:
-            api.abort(code=http_exceptions.UnprocessableEntity.code, message="value is required")
+            abort(code=http_exceptions.UnprocessableEntity.code, message="value is required")
 
         if operation['op'] == parameters.PatchUserDetailsParameters.OP_TEST:
             if operation['path'] == '/current_password':
@@ -139,7 +140,7 @@ class UserByID(Resource):
                     and
                     not user.verify_password(state['current_password'])
                 ):
-                    api.abort(code=http_exceptions.Forbidden.code, message="Wrong password")
+                    abort(code=http_exceptions.Forbidden.code, message="Wrong password")
                 return True
         
         elif operation['op'] == parameters.PatchUserDetailsParameters.OP_REPLACE:
@@ -193,8 +194,8 @@ class UserMe(Resource):
     Useful reference to the authenticated user itself.
     """
 
-    @login_required(api.api_v1, scopes=['users:read'])
-    @schemas.DetailedUserSchema(api.api_v1)
+    @api_v1.login_required(scopes=['users:read'])
+    @api_v1.response(schemas.DetailedUserSchema())
     def get(self):
         """
         Get current user details.

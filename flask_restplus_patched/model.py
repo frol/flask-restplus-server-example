@@ -3,6 +3,7 @@ import logging
 
 from apispec.ext.marshmallow.swagger import schema2jsonschema
 from flask.ext import marshmallow
+from marshmallow import SchemaOpts
 from werkzeug import cached_property
 
 from flask_restplus.model import ApiModel as OriginalApiModel
@@ -11,63 +12,32 @@ from flask_restplus.model import ApiModel as OriginalApiModel
 log = logging.getLogger(__name__)
 
 
-class APISchema(object):
+class SchemaMixin(object):
    
-    def __init__(self, api=None, code=200, description=None, **kwargs):
-        super(APISchema, self).__init__(**kwargs)
-        self._code = code
-        self._description = description
-        self.init_api(api)
-
-    def init_api(self, api):
-        self._api = api
-
     def __deepcopy__(self, memo):
-        # XXX: Flask-RESTplus makes unnecessary data copying.
+        # XXX: Flask-RESTplus makes unnecessary data copying, while
+        # marshmallow.Schema doesn't support deepcopyng.
         return self
 
-    def __call__(self, func):
 
-        # XXX: This decorator should also support classes.
-        # XXX: This decorator should also handle different response codes.
-        if self._code == 200:
-            @wraps(func)
-            def decorator(*args, **kwargs):
-                return self.dump(func(*args, **kwargs)).data
-            serialized_func = decorator
-        else:
-            serialized_func = func
-
-        if self._api:
-            model = self._api.model(model=self)
-            serialized_func = self._api.doc(
-                responses={
-                    self._code: (self._description, [model] if self.many else model),
-                }
-            )(serialized_func)
-        elif self._api is None:
-            log.warning(
-                "API Schema %r is applied to %r but documentation won't be "
-                "available in Swagger spec because you haven't passed `api` "
-                "instance. Pass `False` as api instance to suppress this "
-                "warning.", self, func
-            )
-
-        return serialized_func
-
-
-class Schema(APISchema, marshmallow.Schema):
+class Schema(SchemaMixin, marshmallow.Schema):
     pass
 
 
 if marshmallow.has_sqla:
-    class ModelSchema(APISchema, marshmallow.sqla.ModelSchema):
+    class ModelSchema(SchemaMixin, marshmallow.sqla.ModelSchema):
         pass
-   
+
 
 class DefaultHTTPErrorSchema(Schema):
-    status = marshmallow.base_fields.Integer()
+    status = marshmallow.base_fields.Integer(default=111)
     message = marshmallow.base_fields.String()
+
+    def __init__(self, http_code, **kwargs):
+        # XXX: I'm still looking for a better way since there are several
+        # places with copies of `_declared_fields`: `fields`, `declared_fields`
+        self._declared_fields['status'].default = http_code
+        super(DefaultHTTPErrorSchema, self).__init__(**kwargs)
 
 
 class ApiModel(OriginalApiModel):
@@ -78,4 +48,6 @@ class ApiModel(OriginalApiModel):
 
     @cached_property
     def __schema__(self):
+        import logging
+        logging.warn("__schema__ field: %s", self['__schema__'].fields.get('status'))
         return schema2jsonschema(self['__schema__'])

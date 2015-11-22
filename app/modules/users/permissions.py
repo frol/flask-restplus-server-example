@@ -1,10 +1,9 @@
 import logging
 
 from flask.ext.login import current_user
-from permission import Rule, Permission
-from werkzeug import exceptions as http_exceptions
+from permission import Rule as BaseRule, Permission
 
-from app.extensions import api
+from app.extensions.api import abort, http_exceptions
 
 
 log = logging.getLogger(__name__)
@@ -26,37 +25,19 @@ class DenyAbortMixin(object):
         return abort(code=self.DENY_ABORT_HTTP_CODE, message=self.DENY_ABORT_MESSAGE)
 
 
-class BaseAPIRule(Rule):
-    """
-    Base API permissions rule.
-    """
-
-    def __init__(self, api=None, **kwargs):
-        self.init_api(api)
-        super(BaseAPIRule, self).__init__(**kwargs)
-
-    def init_api(self, api):
-        self._api = api
-        if hasattr(self, 'rules_list'):
-            for rules in self.rules_list:
-                for rule_check, rule_deny in rules:
-                    if rule_check.__self__ != self:
-                        rule_check.__self__.init_api(api=self._api)
+class Rule(BaseRule):
 
     def base(self):
         # XXX: it handles only the first appropriate Rule base class
+        # TODO: PR this case to permission project
         for base_class in self.__class__.__bases__:
-            if issubclass(base_class, BaseAPIRule):
-                if base_class == BaseAPIRule:
-                    continue
-                return base_class(api=self._api)
             if issubclass(base_class, Rule):
-                if base_class == Rule:
+                if base_class == Rule or base_class == BaseRule:
                     continue
                 return base_class()
 
 
-class WriteAccessRule(DenyAbortMixin, BaseAPIRule):
+class WriteAccessRule(DenyAbortMixin, Rule):
     """
     Ensure that the current_user has has write access.
     """
@@ -65,7 +46,7 @@ class WriteAccessRule(DenyAbortMixin, BaseAPIRule):
         return not current_user.is_readonly
 
 
-class ActivatedUserRoleRule(DenyAbortMixin, BaseAPIRule):
+class ActivatedUserRoleRule(DenyAbortMixin, Rule):
     """
     Ensure that the current_user is activated.
     """
@@ -136,25 +117,8 @@ class SupervisorRoleRule(ActivatedUserRoleRule):
         return True
 
 
-class BaseAPIPermission(Permission):
 
-    def __init__(self, api=None, **kwargs):
-        """
-        WARNING: When overload __init__ keep ``api`` argument the first
-        argument no mater what.
-        """
-        super(BaseAPIPermission, self).__init__(**kwargs)
-        self.init_api(api)
-
-    def init_api(self, api):
-        self._api = api
-
-    def check(self):
-        self.rule.init_api(self._api)
-        return super(BaseAPIPermission, self).check()
-
-
-class WriteAccessPermission(BaseAPIPermission):
+class WriteAccessPermission(Permission):
     """
     Require a non-readonly user to perform an action.
     """
@@ -163,26 +127,10 @@ class WriteAccessPermission(BaseAPIPermission):
         return WriteAccessRule()
 
 
-class RolePermission(BaseAPIPermission):
+class RolePermission(Permission):
     """
-    Helper class injecting Flask-RESTplus (swagger) documentation.
+    This class is aiming to help distinguish all role-type permissions.
     """
-    
-    def __call__(self, *args, **kwargs):
-        protected_func = super(RolePermission, self).__call__(*args, **kwargs)
-        protected_func.__role_permission_applied__ = True
-        if self._api:
-            protected_func = self._api.doc(
-                description="**PERMISSIONS: %s**\n\n" % self.__doc__
-            )(protected_func)
-        elif self._api is None:
-            log.warning(
-                "Role Permission %r is applied to %r but documentation won't "
-                "be available in Swagger spec because you haven't passed "
-                "`api` instance. Pass `False` as api instance to suppress "
-                "this warning.", self, protected_func
-            )
-        return protected_func
 
 
 class ActivatedUserRolePermission(RolePermission):
@@ -199,10 +147,10 @@ class AdminRolePermission(RolePermission):
     Admin role is required.
     """
     
-    def __init__(self, api=None, password_required=False, password=None, **kwargs):
+    def __init__(self, password_required=False, password=None, **kwargs):
         self._password_required = password_required
         self._password = password
-        super(AdminRolePermission, self).__init__(api=api, **kwargs)
+        super(AdminRolePermission, self).__init__(**kwargs)
 
     def rule(self):
         return AdminRoleRule(
@@ -216,9 +164,9 @@ class SupervisorRolePermission(AdminRolePermission):
     Supervisor/Admin may execute this action.
     """
     
-    def __init__(self, api=None, obj=None, password_required=False, password=None, **kwargs):
+    def __init__(self, obj=None, password_required=False, password=None, **kwargs):
         self._obj = obj
-        super(SupervisorRolePermission, self).__init__(api=api, **kwargs)
+        super(SupervisorRolePermission, self).__init__(**kwargs)
 
     def rule(self):
         return SupervisorRoleRule(
