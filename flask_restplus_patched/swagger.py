@@ -19,7 +19,7 @@ class Swagger(OriginalSwagger):
         else:
             default_in = 'query'
 
-        parameters = fields2parameters(fields, default_in=default_in, required=True)
+        parameters = fields2parameters(fields, default_in=default_in, required=True, dump=False)
         # XXX: We use virtual 'body' argument due to the limitations of webargs:
         # https://github.com/sloria/webargs/issues/81
         # Here we drop 'body' argument, so Swagger spec will use a JSON list as

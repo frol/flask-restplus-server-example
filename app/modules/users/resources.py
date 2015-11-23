@@ -9,6 +9,7 @@ from flask.ext.restplus import Resource
 from flask_restplus_patched import DefaultHTTPErrorSchema
 
 from app.extensions.api import api_v1, abort, http_exceptions
+from app.extensions.api.parameters import PaginationParameters
 
 from . import permissions, schemas, parameters
 from .models import db, User
@@ -26,7 +27,7 @@ class Users(Resource):
 
     @api_v1.login_required(scopes=['users:read'])
     @api_v1.permission_required(permissions.AdminRolePermission())
-    @api_v1.parameters(parameters.PaginationParameters())
+    @api_v1.parameters(PaginationParameters())
     @api_v1.response(schemas.BaseUserSchema(many=True))
     def get(self, args):
         """
@@ -39,6 +40,8 @@ class Users(Resource):
 
     @api_v1.parameters(parameters.AddUserParameters())
     @api_v1.response(schemas.DetailedUserSchema())
+    @api_v1.response(code=http_exceptions.Forbidden.code)
+    @api_v1.response(code=http_exceptions.Conflict.code)
     def post(self, args):
         """
         Create a new user.
@@ -82,7 +85,7 @@ class UserSignupForm(Resource):
 @namespace.route('/<int:user_id>')
 @api_v1.response(
     code=http_exceptions.NotFound.code,
-    description="User not found",
+    description="User not found.",
 )
 class UserByID(Resource):
     """
@@ -101,6 +104,7 @@ class UserByID(Resource):
     @api_v1.login_required(scopes=['users:write'])
     @api_v1.parameters(parameters.PatchUserDetailsParameters())
     @api_v1.response(schemas.DetailedUserSchema())
+    @api_v1.response(code=http_exceptions.UnprocessableEntity.code)
     def patch(self, args, user_id):
         """
         Patch user details by ID.

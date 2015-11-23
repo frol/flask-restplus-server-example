@@ -1,16 +1,10 @@
 from six import itervalues
 
-from flask_restplus_patched import Parameters, JSONParameters, PatchJSONParameters
+from flask_restplus_patched import JSONParameters, PatchJSONParameters
 from flask.ext.marshmallow import base_fields
 
 from . import schemas
 from .models import User
-
-
-class PaginationParameters(Parameters):
-
-    limit = base_fields.Integer(default=20, missing=20)
-    offset = base_fields.Integer(default=0, missing=0)
 
 
 class AddUserParameters(JSONParameters, schemas.BaseUserSchema):

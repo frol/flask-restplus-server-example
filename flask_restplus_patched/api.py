@@ -67,28 +67,37 @@ class Api(OriginalApi):
                 name='%dHTTPErrorSchema' % code,
                 model=DefaultHTTPErrorSchema(http_code=code)
             )
+        if description is None:
+            if code in http_exceptions.default_exceptions:
+                description = http_exceptions.default_exceptions[code].description
 
-        def decorator(func):
-            if code == 200:
-                # XXX: This decorator should also support classes, i.e.
-                # auto-applying itself to all methods.
-                @wraps(func)
-                def decorator(*args, **kwargs):
-                    return model.dump(func(*args, **kwargs)).data
-                decorated_func = decorator
+        def decorator(func_or_class):
+            if code in http_exceptions.default_exceptions:
+                # If the code is handled by raising an exception, it will
+                # produce a response later, so we don't need to apply a dump
+                # wrapper.
+                decorated_func_or_class = func_or_class
             else:
-                # Other exit codes will raise exception and will produce
-                # response later, so we don't need to apply anything extra.
-                decorated_func = func
+                def dump_wrapper(func):
+                    def dump_decorator(*args, **kwargs):
+                        return model.dump(func(*args, **kwargs)).data
+                    return dump_decorator
+
+                if isinstance(func_or_class, type):
+                    # Make a copy of `method_decorators` as otherwise we will
+                    # modify the behaviour of all flask-restful.Resource-based
+                    # classes
+                    func_or_class.method_decorators = (
+                        [dump_wrapper] + func_or_class.method_decorators
+                    )
+                    decorated_func_or_class = func_or_class
+                else:
+                    decorated_func_or_class = wraps(func_or_class)(dump_wrapper(func_or_class))
 
             if isinstance(model, ApiModel):
                 api_model = model
             else:
                 api_model = self.model(model=model)
-
-            import logging
-            logging.warn("API_MODEL: %s", api_model['__schema__'].fields)
-            logging.error("API_MODEL schema: %s", api_model.__schema__)
 
             return self.doc(
                 responses={
@@ -97,7 +106,7 @@ class Api(OriginalApi):
                         [api_model] if getattr(model, 'many', False) else api_model
                     ),
                 }
-            )(decorated_func)
+            )(decorated_func_or_class)
 
         return decorator
 

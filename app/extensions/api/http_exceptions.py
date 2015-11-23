@@ -1,5 +1,5 @@
 from flask_restplus_patched import Api, abort as restplus_abort
-from werkzeug.exceptions import Unauthorized, Forbidden, NotFound, UnprocessableEntity
+from werkzeug.exceptions import Unauthorized, Forbidden, NotFound, Conflict, UnprocessableEntity
 
 
 API_DEFAULT_HTTP_CODE_MESSAGES = {
@@ -13,6 +13,7 @@ API_DEFAULT_HTTP_CODE_MESSAGES = {
         "You don't have the permission to access the requested resource."
     ),
     NotFound.code: NotFound.description,
+    Conflict.code: Conflict.description,
     UnprocessableEntity.code: UnprocessableEntity.description,
 }
 
