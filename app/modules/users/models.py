@@ -1,13 +1,19 @@
-from flask.ext.bcrypt import generate_password_hash, check_password_hash
 import sqlalchemy
+from sqlalchemy_utils import types as column_types, Timestamp
 
 from app.extensions import db
 
 
-class User(db.Model):
+class User(db.Model, Timestamp):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(length=80), unique=True, nullable=False)
-    password = db.Column(db.String(length=128), nullable=False)
+    password = db.Column(
+        column_types.PasswordType(
+            max_length=128,
+            schemes=('bcrypt', )
+        ),
+        nullable=False
+    )
     email = db.Column(db.String(length=120), unique=True, nullable=False)
 
     first_name = db.Column(db.String(length=30), default='', nullable=False)
@@ -25,11 +31,28 @@ class User(db.Model):
 
     static_roles = db.Column(db.Integer, default=0, nullable=False)
 
-    def __init__(self, **kwargs):
-        password = kwargs.pop('password', None)
-        super(User, self).__init__(**kwargs)
-        if password is not None:
-            self.set_password(password)
+    def _get_is_static_role_property(key_name, static_role):
+        """
+        A helper function that aims to provide a property getter and setter
+        for static roles.
+        """
+        @property
+        def _is_static_role_property(self):
+            return self.has_static_role(static_role)
+
+        @_is_static_role_property.setter
+        def _is_static_role_property(self, value):
+            if value:
+                self.set_static_role(static_role)
+            else:
+                self.unset_static_role(static_role)
+
+        _is_static_role_property.fget.__name__ = key_name
+        return _is_static_role_property
+
+    is_active = _get_is_static_role_property('is_active', SR_ACTIVATED)
+    is_readonly = _get_is_static_role_property('is_readonly', SR_READONLY)
+    is_admin = _get_is_static_role_property('is_admin', SR_ADMIN)
 
     def __repr__(self):
         return (
@@ -46,38 +69,18 @@ class User(db.Model):
             )
         )
 
-    def save(self):
-        db.session.merge(self)
-        try:
-            db.session.commit()
-        except sqlalchemy.exc.IntegrityError:
-            db.session.rollback()
-            raise
-
-    def verify_password(self, password):
-        return check_password_hash(self.password, password)
-
-    def set_password(self, password, commit=True):
-        self.password = generate_password_hash(password)
-        if commit and self.id:
-            self.save()
-
     def has_static_role(self, role):
         return (self.static_roles & role) != 0
 
-    def set_static_role(self, role, commit=True):
+    def set_static_role(self, role):
         if self.has_static_role(role):
             return
         self.static_roles |= role
-        if commit and self.id:
-            self.save()
 
-    def unset_static_role(self, role, commit=True):
+    def unset_static_role(self, role):
         if not self.has_static_role(role):
             return
         self.static_roles ^= role
-        if commit and self.id:
-            self.save()
 
     def check_owner(self, user):
         return self.id == user.id
@@ -90,34 +93,11 @@ class User(db.Model):
     def is_anonymous(self):
         return False
 
-    @property
-    def is_active(self):
-        return self.has_static_role(self.SR_ACTIVATED)
-
-    @property
-    def is_readonly(self):
-        return self.has_static_role(self.SR_READONLY)
-
-    @property
-    def is_admin(self):
-        return self.has_static_role(self.SR_ADMIN)
-
-    @classmethod
-    def create(cls, username, password, email, **kwargs):
-        new_user = cls(username=username, password=password, email=email, **kwargs)
-        db.session.add(new_user)
-        try:
-            db.session.commit()
-        except sqlalchemy.exc.IntegrityError:
-            db.session.rollback()
-            return None
-        return new_user
-
     @classmethod
     def find_with_password(cls, username, password):
         user = cls.query.filter_by(username=username).first()
         if not user:
             return None
-        if user.verify_password(password):
+        if user.password == password:
             return user
         return None

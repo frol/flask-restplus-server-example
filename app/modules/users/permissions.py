@@ -75,7 +75,7 @@ class AdminRoleRule(ActivatedUserRoleRule):
         if self._password_required:
             if not self._password:
                 return False
-            return current_user.verify_password(self._password)
+            return current_user.password == self._password
         return True
 
 
@@ -113,7 +113,7 @@ class SupervisorRoleRule(ActivatedUserRoleRule):
         if self._password_required:
             if not self._password:
                 return False
-            return current_user.verify_password(self._password)
+            return current_user.password == self._password
         return True
 
 

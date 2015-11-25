@@ -31,3 +31,7 @@ def init_app(app):
             self.directory = directory
             self.configure_args = kwargs
     app.extensions['migrate'] = AlembicDatabaseMigrationConfig(db, compare_type=True)
+
+    from sqlalchemy_utils import force_auto_coercion, force_instant_defaults
+    force_auto_coercion()
+    force_instant_defaults()

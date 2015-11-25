@@ -10,9 +10,6 @@ More details are available here:
 * http://lepture.com/en/2013/create-oauth-server
 """
 
-from datetime import datetime, timedelta
-
-from flask.ext.login import current_user
 from flask.ext.sqlalchemy import SQLAlchemy
 
 from app.extensions import db
@@ -96,23 +93,6 @@ class OAuth2Grant(db.Model):
     def find(cls, client_id, code):
         return cls.query.filter_by(client_id=client_id, code=code).first()
 
-    @classmethod
-    def create(cls, client_id, code, request, *args, **kwargs):
-        # TODO: review expiration time
-        # decide the expires time yourself
-        expires = datetime.utcnow() + timedelta(seconds=100)
-        grant = cls(
-            client_id=client_id,
-            code=code['code'],
-            redirect_uri=request.redirect_uri,
-            _scopes=' '.join(request.scopes),
-            user=current_user,
-            expires=expires
-        )
-        db.session.add(grant)
-        db.session.commit()
-        return grant
-
 
 class OAuth2Token(db.Model):
     __tablename__ = 'oauth2_token'
@@ -149,26 +129,3 @@ class OAuth2Token(db.Model):
             return cls.query.filter_by(access_token=access_token).first()
         elif refresh_token:
             return cls.query.filter_by(refresh_token=refresh_token).first()
-
-    @classmethod
-    def create(cls, token, request, *args, **kwargs):
-        # make sure that every client has only one token connected to a user
-        db.session.query(OAuth2Token).filter_by(
-            client_id=request.client.client_id,
-            user_id=request.user.id
-        ).delete()
-        
-        expires_in = token.pop('expires_in')
-        expires = datetime.utcnow() + timedelta(seconds=expires_in)
-
-        tok = OAuth2Token(
-            access_token=token['access_token'],
-            refresh_token=token.get('refresh_token'),
-            token_type=token['token_type'],
-            _scopes=token['scope'],
-            expires=expires,
-            client_id=request.client.client_id,
-            user_id=request.user.id,
-        )
-        db.session.add(tok)
-        db.session.commit()

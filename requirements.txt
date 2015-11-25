@@ -9,16 +9,22 @@ https://github.com/frol/flask-restful/archive/patch-1.zip
 #flask-restplus>=0.8.1
 https://github.com/noirbizarre/flask-restplus/archive/master.zip
 
+SQLAlchemy==1.0.9
+SQLAlchemy-Utils==0.31.3
 Flask-SQLAlchemy==2.1
+Alembic==0.8.3
 Flask-Alembic==1.2.1
 werkzeug==0.11.2
 
 flask-marshmallow==0.6.2
 marshmallow-sqlalchemy==0.6.0
-webargs
-apispec
+webargs==1.1.1
+apispec==0.4.2
 
-Flask-Bcrypt==0.7.1
+bcrypt==2.0
+passlib==1.6.5
 Flask-OAuthlib==0.9.2
 Flask-Login==0.3.2
 permission==0.4.1
+
+arrow==0.7.0

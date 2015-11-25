@@ -7,6 +7,7 @@ import logging
 from flask.ext.login import current_user
 from flask.ext.restplus import Resource
 from flask_restplus_patched import DefaultHTTPErrorSchema
+import sqlalchemy
 
 from app.extensions.api import api_v1, abort, http_exceptions
 from app.extensions.api.parameters import PaginationParameters
@@ -59,9 +60,13 @@ class Users(Resource):
         if not captcha_is_valid:
             abort(code=http_exceptions.Forbidden.code, message="CAPTCHA key is incorrect.")
         
-        new_user = User.create(**args)
-        # TODO: handle errors better
-        if new_user is None:
+        new_user = User(**args)
+        db.session.add(new_user)
+        try:
+            db.session.commit()
+        except sqlalchemy.exc.IntegrityError as e:
+            db.session.rollback()
+            # TODO: handle errors better
             abort(code=http_exceptions.Conflict.code, message="Could not create a new user.")
         
         return new_user
@@ -140,9 +145,9 @@ class UserByID(Resource):
             if operation['path'] == '/current_password':
                 state['current_password'] = operation['value']
                 if (
-                    not current_user.verify_password(state['current_password'])
+                    not current_user.password == state['current_password']
                     and
-                    not user.verify_password(state['current_password'])
+                    not user.password == state['current_password']
                 ):
                     abort(code=http_exceptions.Forbidden.code, message="Wrong password")
                 return True
@@ -152,42 +157,21 @@ class UserByID(Resource):
             field_name = operation['path'][1:]
             field_value = operation['value']
             
-            if field_name in ('is_active', 'is_readonly', 'is_admin'):
-                
-                if field_name == 'is_admin':
-                    with permissions.AdminRolePermission(
-                            password_required=True,
-                            password=state['current_password']
-                    ):
-                        static_role = user.SR_ADMIN
-                
-                elif field_name == 'is_active':
-                    with permissions.SupervisorRolePermission(
-                            obj=user,
-                            password_required=True,
-                            password=state['current_password']
-                    ):
-                        static_role = user.SR_ACTIVE
-                
-                elif field_name == 'is_readonly':
-                    with permissions.SupervisorRolePermission(
-                            obj=user,
-                            password_required=True,
-                            password=state['current_password']
-                    ):
-                        static_role = user.SR_READONLY
-                
-                if field_value:
-                    user.set_static_role(static_role, commit=False)
-                
-                else:
-                    user.unset_static_role(static_role, commit=False)
-            
-            elif field_name == 'password':
-                user.set_password(field_value, commit=False)
-            
-            else:
-                setattr(user, field_name, field_value)
+            if field_name in {'is_active', 'is_readonly'}:
+                with permissions.SupervisorRolePermission(
+                    obj=user,
+                    password_required=True,
+                    password=state['current_password']
+                ):
+                    pass
+            elif field_name == 'is_admin':
+                with permissions.AdminRolePermission(
+                    password_required=True,
+                    password=state['current_password']
+                ):
+                    pass
+
+            setattr(user, field_name, field_value)
             return True
         return False
 

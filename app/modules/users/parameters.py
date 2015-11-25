@@ -7,7 +7,7 @@ from . import schemas
 from .models import User
 
 
-class AddUserParameters(JSONParameters, schemas.BaseUserSchema):
+class AddUserParameters(schemas.BaseUserSchema):
     
     username = base_fields.String(description="Example: root", required=True)
     email = base_fields.Email(description="Example: root@gmail.com", required=True)
@@ -19,8 +19,12 @@ class AddUserParameters(JSONParameters, schemas.BaseUserSchema):
         required=False
     )
 
-    class Meta:
-        exclude = ('id', )
+    class Meta(schemas.BaseUserSchema.Meta):
+        fields = schemas.BaseUserSchema.Meta.fields + (
+            'email',
+            'password',
+            'recaptcha_key',
+        )
 
 
 class PatchUserDetailsParameters(PatchJSONParameters):
