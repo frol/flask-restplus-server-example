@@ -19,7 +19,8 @@ werkzeug==0.11.2
 flask-marshmallow==0.6.2
 marshmallow-sqlalchemy==0.6.0
 webargs==1.1.1
-apispec==0.4.2
+#apispec>0.4.2 - See https://github.com/marshmallow-code/apispec/issues/37
+https://github.com/frol/apispec/archive/fix-nested-field2property.zip
 
 bcrypt==2.0
 passlib==1.6.5

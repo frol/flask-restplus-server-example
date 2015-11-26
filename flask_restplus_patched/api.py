@@ -1,5 +1,6 @@
 from functools import wraps
 
+from flask import jsonify
 from flask.ext import restful, marshmallow
 from flask.ext.marshmallow import base_fields
 from flask.ext.restplus import Api as OriginalApi
@@ -17,6 +18,10 @@ class Api(OriginalApi):
     @cached_property
     def __schema__(self):
         return Swagger(self).as_dict()
+
+    def init_app(self, app):
+        super(Api, self).init_app(app)
+        app.errorhandler(http_exceptions.UnprocessableEntity.code)(handle_validation_error)
 
     def _handle_api_doc(self, cls, doc):
         if doc is False:
@@ -116,10 +121,19 @@ class Api(OriginalApi):
 
 
 # This function is moved out from Api class
-def abort(code=500, message=None, **kwargs):
+def abort(code=http_exceptions.InternalServerError.code, message=None, **kwargs):
     '''Properly abort the current request'''
     if message or kwargs and 'status' not in kwargs:
         kwargs['status'] = code
     if message:
         kwargs['message'] = str(message)
     restful.abort(code, **kwargs)
+
+
+# Return validation errors as JSON
+def handle_validation_error(err):
+    exc = err.data['exc']
+    return jsonify({
+        'code': http_exceptions.UnprocessableEntity.code,
+        'errors': exc.messages
+    }), http_exceptions.UnprocessableEntity.code

@@ -53,4 +53,7 @@ class PatchJSONParameters(JSONParameters):
         self.fields['op'].validators.append(validate.OneOf(self.OPERATION_CHOICES))
         if not self.PATH_CHOICES:
             raise ValueError("%s.PATH_CHOICES has to be set" % self.__class__.__name__)
-        self.fields['path'].validators.append(validate.OneOf(self.PATH_CHOICES))
+        # Make a copy of `validators` as otherwise we will modify the behaviour
+        # of all `marshmallow.Schema`-based classes
+        self.fields['path'].validators = \
+            self.fields['path'].validators + [validate.OneOf(self.PATH_CHOICES)]
