@@ -1,4 +1,8 @@
-from six import itervalues
+# encoding: utf-8
+"""
+Input arguments (Parameters) for User resources RESTful API
+===========================================================
+"""
 
 from flask_restplus_patched import Parameters, PatchJSONParameters
 from flask.ext.marshmallow import base_fields

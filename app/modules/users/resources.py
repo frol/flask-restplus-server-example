@@ -1,7 +1,9 @@
 # encoding: utf-8
 """
-Users API resources
+RESTful API User resources
+==========================
 """
+
 import logging
 
 from flask.ext.login import current_user
@@ -147,6 +149,7 @@ class UserByID(Resource):
             processing_status (bool) - True if operation was handled, otherwise False.
         """
         if 'value' not in operation:
+            # TODO: handle errors better
             abort(code=http_exceptions.UnprocessableEntity.code, message="value is required")
 
         if operation['op'] == parameters.PatchUserDetailsParameters.OP_TEST:
