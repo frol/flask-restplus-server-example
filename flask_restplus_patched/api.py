@@ -55,7 +55,11 @@ class Api(OriginalApi):
                 _parameters = parameters.fields
 
             parametrized_func = _parser.use_args(_parameters)(func)
-            return self.doc(params=_parameters)(parametrized_func)
+            return self.doc(params=_parameters)(
+                self.response(code=http_exceptions.UnprocessableEntity.code)(
+                    parametrized_func
+                )
+            )
 
         return decorator
 
