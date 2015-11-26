@@ -21,6 +21,14 @@ class BaseConfig(object):
                     'scope': 'users:write',
                     'description': "Write users",
                 },
+                {
+                    'scope': 'teams:read',
+                    'description': "Read teams",
+                },
+                {
+                    'scope': 'teams:write',
+                    'description': "Write teams",
+                },
             ],
             'grantTypes': {
                 'password': {

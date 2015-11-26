@@ -1,4 +1,12 @@
+# encoding: utf-8
+"""
+Serialization schemas for Team resources RESTful API
+====================================================
+"""
+
 from flask_restplus_patched import ModelSchema
+
+from app.modules.users.schemas import BaseUserSchema
 
 from .models import Team
 
@@ -24,3 +32,7 @@ class DetailedTeamSchema(BaseTeamSchema):
             Team.created.key,
             Team.updated.key,
         )
+
+
+class BaseTeamMemberSchema(BaseUserSchema):
+    pass
