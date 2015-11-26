@@ -19,7 +19,9 @@ I had to patch Flask-RESTplus (see `flask_restplus_patched` folder), so it can
 handle Marshmallow schemas and Webargs arguments.
 
 This is still work-in-progress project, but it already has some value, so I
-publish it.
+publish it. Here is how it looks at this point of time:
+
+![Flask RESTplus Example API](https://raw.githubusercontent.com/frol/flask-restplus-server-example/master/docs/static/Flask_RESTplus_Example_API.png)
 
 
 Dependencies
