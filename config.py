@@ -42,6 +42,7 @@ class BaseConfig(object):
     ENABLED_MODULES = (
         'auth',
         'users',
+        'teams',
     )
 
     # TODO: consider if these are relevant for this project
