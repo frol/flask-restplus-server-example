@@ -158,7 +158,7 @@ class TeamByID(Resource):
                 if user is None:
                     abort(
                         code=http_exceptions.UnprocessableEntity.code,
-                        message="User with id %d does not exist" % _user_id
+                        message="User with id %s does not exist" % field_value
                     )
                 team.members.append(user)
                 return True
@@ -170,7 +170,7 @@ class TeamByID(Resource):
                 if user is None:
                     abort(
                         code=http_exceptions.UnprocessableEntity.code,
-                        message="User with id %d does not exist" % _user_id
+                        message="User with id %s does not exist" % field_value
                     )
                 team.members.remove(user)
                 return True
@@ -220,7 +220,7 @@ class TeamMembers(Resource):
                 if user is None:
                     abort(
                         code=http_exceptions.NotFound.code,
-                        message="User with id %d does not exist" % _user_id
+                        message="User with id %d does not exist" % args['user_id']
                     )
                 team.members.append(user)
                 db.session.merge(team)
@@ -252,7 +252,7 @@ class TeamMemberByID(Resource):
     @api_v1.response(code=http_exceptions.Conflict.code)
     def delete(self, args, team_id):
         """
-        Add a new member to a team.
+        Remove a member from a team.
         """
         team = Team.query.get_or_404(team_id)
 
@@ -262,7 +262,7 @@ class TeamMemberByID(Resource):
                 if user is None:
                     abort(
                         code=http_exceptions.NotFound.code,
-                        message="User with id %d does not exist" % user_id
+                        message="User with id %d does not exist" % args['user_id']
                     )
                 team.members.remove(user)
                 db.session.merge(team)
