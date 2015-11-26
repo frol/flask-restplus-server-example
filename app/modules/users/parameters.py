@@ -1,13 +1,13 @@
 from six import itervalues
 
-from flask_restplus_patched import JSONParameters, PatchJSONParameters
+from flask_restplus_patched import Parameters, PatchJSONParameters
 from flask.ext.marshmallow import base_fields
 
 from . import schemas
 from .models import User
 
 
-class AddUserParameters(schemas.BaseUserSchema):
+class AddUserParameters(Parameters, schemas.BaseUserSchema):
     
     username = base_fields.String(description="Example: root", required=True)
     email = base_fields.Email(description="Example: root@gmail.com", required=True)

@@ -109,7 +109,7 @@ class UserByID(Resource):
     @api_v1.login_required(scopes=['users:write'])
     @api_v1.parameters(parameters.PatchUserDetailsParameters())
     @api_v1.response(schemas.DetailedUserSchema())
-    @api_v1.response(code=http_exceptions.UnprocessableEntity.code)
+    @api_v1.response(code=http_exceptions.Conflict.code)
     def patch(self, args, user_id):
         """
         Patch user details by ID.
@@ -125,7 +125,15 @@ class UserByID(Resource):
                         log.info("User patching has ignored unknown operation %s", operation)
                                     
                 db.session.merge(user)
-                db.session.commit()
+                try:
+                    db.session.commit()
+                except sqlalchemy.exc.IntegrityError as e:
+                    db.session.rollback()
+                    # TODO: handle errors better
+                    abort(
+                        code=http_exceptions.Conflict.code,
+                        message="Could not update user details."
+                    )
         return user
 
     def _process_patch_operation(self, operation, user, state):
@@ -142,14 +150,16 @@ class UserByID(Resource):
             abort(code=http_exceptions.UnprocessableEntity.code, message="value is required")
 
         if operation['op'] == parameters.PatchUserDetailsParameters.OP_TEST:
+            # User has to provide the admin/supervisor password (if the current
+            # user has an admin or a supervisor role) or the current password
+            # of the user that is edited.
             if operation['path'] == '/current_password':
-                state['current_password'] = operation['value']
-                if (
-                    not current_user.password == state['current_password']
-                    and
-                    not user.password == state['current_password']
-                ):
+                current_password = operation['value']
+                if (not current_user.password == current_password and
+                    not user.password == current_password):
                     abort(code=http_exceptions.Forbidden.code, message="Wrong password")
+
+                state['current_password'] = current_password
                 return True
         
         elif operation['op'] == parameters.PatchUserDetailsParameters.OP_REPLACE:
@@ -157,6 +167,9 @@ class UserByID(Resource):
             field_name = operation['path'][1:]
             field_value = operation['value']
             
+            # Some fields require extra permissions to be changed.
+            # Current user has to have at least a Supervisor role to change
+            # 'is_active' and 'is_readonly' property
             if field_name in {'is_active', 'is_readonly'}:
                 with permissions.SupervisorRolePermission(
                     obj=user,
@@ -164,6 +177,7 @@ class UserByID(Resource):
                     password=state['current_password']
                 ):
                     pass
+            # Current user has to have an Admin role to change 'is_admin' property
             elif field_name == 'is_admin':
                 with permissions.AdminRolePermission(
                     password_required=True,
