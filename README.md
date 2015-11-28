@@ -29,16 +29,22 @@ Dependencies
 
 ### Project Dependencies
 
-* flask-restplus (flask, flask-restful)
-* sqlalchemy (+ flask-sqlalchemy) - Database ORM.
-* sqlalchemy-utils - for nice custom fields (e.g., PasswordField).
-* alembic (+ flask-alembic) - for DB migrations.
-* marshmallow / webargs / apispec (+ marshmallow-sqlalchemy, flask-marshmallow) - for parameters and definitions.
-* oauthlib (+ flask-oauthlib) - for authentication.
-* flask-login - for `current_user` integration only.
-* bcrypt - for password hashing (used as a backend by sqlalchemy-utils.PasswordField).
-* permission - for authorization.
-* Swagger-UI - for interactive RESTful API documentation.
+* **flask-restplus** (*flask*, *flask-restful*)
+* **sqlalchemy** (+ *flask-sqlalchemy*) - Database ORM.
+* **sqlalchemy-utils** - for nice custom fields (e.g., PasswordField).
+* **alembic** (+ *flask-alembic*) - for DB migrations.
+* **marshmallow** (+ *marshmallow-sqlalchemy*, *flask-marshmallow*) - for
+  schema definitions. (*supported by the patched Flask-RESTplus*)
+* **webargs** - for parameters (input arguments). (*supported by the patched
+  Flask-RESTplus*)
+* **apispec** - for *marshmallow* and *webargs* introspection. (*integrated
+  into the patched Flask-RESTplus*)
+* **oauthlib** (+ *flask-oauthlib*) - for authentication.
+* **flask-login** - for `current_user` integration only.
+* **bcrypt** - for password hashing (used as a backend by
+  *sqlalchemy-utils.PasswordField*).
+* **permission** - for authorization.
+* **Swagger-UI** - for interactive RESTful API documentation.
 
 ### Build Dependencies
 
@@ -49,13 +55,14 @@ life become colorful.
 
 ### Patched Dependencies
 
-* flask-restplus: patched to handle marshmallow schemes and webargs input 
-  parameters ([GH #9](https://github.com/noirbizarre/flask-restplus/issues/9)),
-  and to handle PATCH method as it is described in
+* **flask-restplus(** is patched to handle marshmallow schemas and webargs
+  input parameters
+  ([GH #9](https://github.com/noirbizarre/flask-restplus/issues/9)),
+  and to be able to implement and document PATCH method as it is described in
   [RFC 6902](http://tools.ietf.org/html/rfc6902)
   ([GH #11](https://github.com/noirbizarre/flask-restplus/issues/11))
-* swagger-ui: applied
-  JSON Editor
+* **swagger-ui** (*the bundle is included in this repo*) just includes several
+  pull-requests: JSON Editor
   ([PR #1589](https://github.com/swagger-api/swagger-ui/pull/1589)),
   and Resource Owner Password Credentials Grant OAuth2 (Password Flow)
   ([PR #1574](https://github.com/swagger-api/swagger-ui/pull/1574))
