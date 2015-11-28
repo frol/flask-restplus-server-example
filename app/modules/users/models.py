@@ -83,7 +83,7 @@ class User(db.Model, Timestamp):
         self.static_roles ^= role
 
     def check_owner(self, user):
-        return self.id == user.id
+        return self == user
 
     @property
     def is_authenticated(self):

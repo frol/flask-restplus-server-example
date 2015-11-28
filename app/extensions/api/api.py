@@ -15,7 +15,7 @@ class Api(BaseApi):
             from app.extensions import oauth2
             from app.modules.users import permissions
 
-            if getattr(func, '__role_permission_applied', False):
+            if getattr(func, '_role_permission_applied', False):
                 protected_func = func
             else:
                 protected_func = self.permission_required(
@@ -40,10 +40,15 @@ class Api(BaseApi):
             # Avoid circilar dependency
             from app.modules.users import permissions
 
-            protected_func = permission(func)
+            if getattr(permission, '_partial', False):
+                # We don't apply partial permissions, we only use them for
+                # documentation purposes.
+                protected_func = func
+            else:
+                protected_func = permission(func)
 
             if isinstance(permission, permissions.RolePermission):
-                protected_func.__role_permission_applied = True
+                protected_func._role_permission_applied = True
 
             permission_description = permission.__doc__.strip()
             return self.doc(

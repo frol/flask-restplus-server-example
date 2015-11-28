@@ -59,31 +59,48 @@ class ActivatedUserRoleRule(DenyAbortMixin, Rule):
         return current_user.is_active
 
 
+class PasswordRequiredRule(DenyAbortMixin, Rule):
+    """
+    Ensure that the current user has provided a correct password.
+    """
+
+    def __init__(self, password, **kwargs):
+        super(PasswordRequiredRule, self).__init__(**kwargs)
+        self._password = password
+
+    def check(self):
+        return current_user.password == self._password
+
+
 class AdminRoleRule(ActivatedUserRoleRule):
     """
     Ensure that the current_user has an Admin role.
     """
 
-    def __init__(self, password_required=False, password=None, *args, **kwargs):
-        super(AdminRoleRule, self).__init__(*args, **kwargs)
-        self._password_required = password_required
-        self._password = password
- 
     def check(self):
-        if not current_user.is_admin:
+        return current_user.is_admin
+
+
+class SupervisorRoleRule(ActivatedUserRoleRule):
+    """
+    Ensure that the current_user has a Supervisor access to the given object.
+    """
+
+    def __init__(self, obj, password_required=False, password=None, **kwargs):
+        super(SupervisorRoleRule, self).__init__(**kwargs)
+        self._obj = obj
+
+    def check(self):
+        if not hasattr(self._obj, 'check_supervisor'):
             return False
-        if self._password_required:
-            if not self._password:
-                return False
-            return current_user.password == self._password
-        return True
+        return self._obj.check_supervisor(current_user)
 
 
 class OwnerRoleRule(ActivatedUserRoleRule):
     """
     Ensure that the current_user has an Owner access to the given object.
     """
- 
+
     def __init__(self, obj, **kwargs):
         super(OwnerRoleRule, self).__init__(**kwargs)
         self._obj = obj
@@ -94,28 +111,50 @@ class OwnerRoleRule(ActivatedUserRoleRule):
         return self._obj.check_owner(current_user)
 
 
-class SupervisorRoleRule(ActivatedUserRoleRule):
+class PartialPermissionDeniedRule(Rule):
     """
-    Ensure that the current_user has a Supervisor access to the given object.
+    Helper rule that must fail on every check since it should never be checked.
     """
-
-    def __init__(self, obj, password_required=False, password=None, *args, **kwargs):
-        super(SupervisorRoleRule, self).__init__(**kwargs)
-        self._obj = obj
-        self._password_required = password_required
-        self._password = password
 
     def check(self):
-        if not hasattr(self._obj, 'check_supervisor'):
-            return False
-        if not self._obj.check_supervisor(current_user):
-            return False
-        if self._password_required:
-            if not self._password:
-                return False
-            return current_user.password == self._password
-        return True
+        raise RuntimeError("Partial permissions are not intended to be checked")
 
+
+class PasswordRequiredPermissionMixin(object):
+
+    def __init__(self, password_required=False, password=None, **kwargs):
+        """
+        Args:
+            password_required (bool) - in some cases you may need to ask
+                users for a password to allow certain actions, enforce this
+                requirement by setting this :bool:`True`.
+            password (str) - pass a user-specified password here.
+        """
+        self._password_required = password_required
+        self._password = password
+        super(PasswordRequiredPermissionMixin, self).__init__()
+
+    def rule(self):
+        _rule = super(PasswordRequiredPermissionMixin, self).rule()
+        if self._password_required:
+            _rule &= PasswordRequiredRule(self._password)
+        return _rule
+
+
+class PartialPermissionMixin(object):
+
+    def __init__(self, partial=False, **kwargs):
+        """
+        Args:
+            partial (bool) - it is mostly useful for documentation purposes.
+        """
+        self._partial = partial
+        super(PartialPermissionMixin, self).__init__()
+
+    def rule(self):
+        if self._partial:
+            return PartialPermissionDeniedRule()
+        return super(PartialPermissionMixin, self).rule()
 
 
 class WriteAccessPermission(Permission):
@@ -142,44 +181,52 @@ class ActivatedUserRolePermission(RolePermission):
         return ActivatedUserRoleRule()
 
 
-class AdminRolePermission(RolePermission):
+class AdminRolePermission(PasswordRequiredPermissionMixin, PartialPermissionMixin, RolePermission):
     """
     Admin role is required.
     """
-    
-    def __init__(self, password_required=False, password=None, **kwargs):
-        self._password_required = password_required
-        self._password = password
-        super(AdminRolePermission, self).__init__(**kwargs)
 
     def rule(self):
-        return AdminRoleRule(
-            password_required=self._password_required,
-            password=self._password
-        )
+        return AdminRoleRule()
 
 
-class SupervisorRolePermission(AdminRolePermission):
+class SupervisorRolePermission(
+    PasswordRequiredPermissionMixin, PartialPermissionMixin, RolePermission
+):
     """
     Supervisor/Admin may execute this action.
     """
-    
-    def __init__(self, obj=None, password_required=False, password=None, **kwargs):
+
+    def __init__(self, obj=None, **kwargs):
+        """
+        Args:
+            obj (object) - any object can be passed here, which will be asked
+                via ``check_supervisor(current_user)`` method whether a current
+                user has enough permissions to perform an action on the given
+                object.
+        """
         self._obj = obj
         super(SupervisorRolePermission, self).__init__(**kwargs)
 
     def rule(self):
-        return SupervisorRoleRule(
-            obj=self._obj,
-            password_required=self._password_required,
-            password=self._password
-        ) | super(SupervisorRolePermission, self).rule()
+        return SupervisorRoleRule(obj=self._obj) | AdminRoleRule()
 
 
-class OwnerRolePermission(SupervisorRolePermission):
+class OwnerRolePermission(PasswordRequiredPermissionMixin, PartialPermissionMixin, RolePermission):
     """
     Owner/Supervisor/Admin may execute this action.
     """
 
+    def __init__(self, obj=None, **kwargs):
+        """
+        Args:
+            obj (object) - any object can be passed here, which will be asked
+                via ``check_owner(current_user)`` method whether a current user
+                has enough permissions to perform an action on the given
+                object.
+        """
+        self._obj = obj
+        super(OwnerRolePermission, self).__init__(**kwargs)
+
     def rule(self):
-        return OwnerRoleRule(self._obj) | super(OwnerRolePermission, self).rule()
+        return OwnerRoleRule(obj=self._obj) | SupervisorRoleRule(obj=self._obj) | AdminRoleRule()

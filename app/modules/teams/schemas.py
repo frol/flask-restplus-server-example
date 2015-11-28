@@ -5,13 +5,20 @@ Serialization schemas for Team resources RESTful API
 """
 
 from flask_restplus_patched import ModelSchema
+from flask.ext.marshmallow import base_fields
 
 from app.modules.users.schemas import BaseUserSchema
 
-from .models import Team
+from .models import Team, TeamMember
 
 
 class BaseTeamSchema(ModelSchema):
+
+    members = base_fields.Nested(
+        'BaseTeamMemberSchema',
+        exclude=(TeamMember.team.key, ),
+        many=True
+    )
 
     class Meta:
         model = Team
@@ -34,5 +41,15 @@ class DetailedTeamSchema(BaseTeamSchema):
         )
 
 
-class BaseTeamMemberSchema(BaseUserSchema):
-    pass
+class BaseTeamMemberSchema(ModelSchema):
+
+    team = base_fields.Nested(BaseTeamSchema, exclude=(Team.members.key, ))
+    user = base_fields.Nested(BaseUserSchema)
+
+    class Meta:
+        model = TeamMember
+        fields = (
+            TeamMember.team.key,
+            TeamMember.user.key,
+            TeamMember.is_leader.key,
+        )

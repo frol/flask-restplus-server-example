@@ -24,10 +24,10 @@ class PatchTeamDetailsParameters(PatchJSONParameters):
     PATH_CHOICES = tuple(
         '/%s' % field for field in (
             Team.title.key,
-            Team.members.key,
         )
     )
 
 
 class AddTeamMemberParameters(Parameters):
     user_id = base_fields.Integer(required=True)
+    is_leader = base_fields.Boolean(required=False)

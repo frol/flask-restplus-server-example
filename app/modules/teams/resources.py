@@ -16,7 +16,7 @@ from app.modules.users import permissions
 from app.modules.users.models import User
 
 from . import parameters, schemas
-from .models import Team
+from .models import Team, TeamMember
 
 
 log = logging.getLogger(__name__)
@@ -71,17 +71,18 @@ class TeamByID(Resource):
     """
 
     @api_v1.login_required(scopes=['teams:read'])
+    @api_v1.permission_required(permissions.OwnerRolePermission(partial=True))
     @api_v1.response(schemas.DetailedTeamSchema())
-    @api_v1.response(code=http_exceptions.Forbidden.code)
     def get(self, team_id):
         """
         Get team details by ID.
         """
         team = Team.query.get_or_404(team_id)
-        with permissions.SupervisorRolePermission(obj=team):
+        with permissions.OwnerRolePermission(obj=team):
             return team
 
     @api_v1.login_required(scopes=['teams:write'])
+    @api_v1.permission_required(permissions.OwnerRolePermission(partial=True))
     @api_v1.parameters(parameters.PatchTeamDetailsParameters())
     @api_v1.response(schemas.DetailedTeamSchema())
     @api_v1.response(code=http_exceptions.Conflict.code)
@@ -111,6 +112,7 @@ class TeamByID(Resource):
         return user
 
     @api_v1.login_required(scopes=['teams:write'])
+    @api_v1.permission_required(permissions.OwnerRolePermission(partial=True))
     @api_v1.response(code=http_exceptions.Conflict.code)
     def delete(self, team_id):
         """
@@ -152,30 +154,6 @@ class TeamByID(Resource):
         field_name = operation['path'][1:]
         field_value = operation['value']
 
-        if operation['op'] == parameters.PatchTeamDetailsParameters.OP_ADD:
-            if field_name == Team.members.key:
-                user = User.query.get(field_value)
-                if user is None:
-                    abort(
-                        code=http_exceptions.UnprocessableEntity.code,
-                        message="User with id %s does not exist" % field_value
-                    )
-                team.members.append(user)
-                return True
-            return False
-
-        if operation['op'] == parameters.PatchTeamDetailsParameters.OP_DELETE:
-            if field_name == Team.members.key:
-                user = User.query.get(field_value)
-                if user is None:
-                    abort(
-                        code=http_exceptions.UnprocessableEntity.code,
-                        message="User with id %s does not exist" % field_value
-                    )
-                team.members.remove(user)
-                return True
-            return False
-
         if operation['op'] == parameters.PatchTeamDetailsParameters.OP_REPLACE:
             setattr(team, field_name, field_value)
             return True
@@ -194,18 +172,19 @@ class TeamMembers(Resource):
     """
 
     @api_v1.login_required(scopes=['teams:read'])
+    @api_v1.permission_required(permissions.OwnerRolePermission(partial=True))
     @api_v1.parameters(PaginationParameters())
     @api_v1.response(schemas.BaseTeamMemberSchema(many=True))
-    @api_v1.response(code=http_exceptions.Forbidden.code)
     def get(self, args, team_id):
         """
         Get team members by team ID.
         """
         team = Team.query.get_or_404(team_id)
-        with permissions.SupervisorRolePermission(obj=team):
+        with permissions.OwnerRolePermission(obj=team):
             return team.members[args['offset']: args['offset'] + args['limit']]
 
     @api_v1.login_required(scopes=['teams:write'])
+    @api_v1.permission_required(permissions.OwnerRolePermission(partial=True))
     @api_v1.parameters(parameters.AddTeamMemberParameters())
     @api_v1.response(code=http_exceptions.Conflict.code)
     def post(self, args, team_id):
@@ -216,14 +195,15 @@ class TeamMembers(Resource):
 
         with permissions.OwnerRolePermission(obj=team):
             with permissions.WriteAccessPermission():
-                user = User.query.get(args['user_id'])
+                user_id = args.pop('user_id')
+                user = User.query.get(user_id)
                 if user is None:
                     abort(
                         code=http_exceptions.NotFound.code,
-                        message="User with id %d does not exist" % args['user_id']
+                        message="User with id %d does not exist" % user_id
                     )
-                team.members.append(user)
-                db.session.merge(team)
+                team_member = TeamMember(team=team, user=user, **args)
+                db.session.add(team_member)
 
         try:
             db.session.commit()
@@ -249,6 +229,7 @@ class TeamMemberByID(Resource):
     """
 
     @api_v1.login_required(scopes=['teams:write'])
+    @api_v1.permission_required(permissions.OwnerRolePermission(partial=True))
     @api_v1.response(code=http_exceptions.Conflict.code)
     def delete(self, args, team_id):
         """
@@ -258,14 +239,14 @@ class TeamMemberByID(Resource):
 
         with permissions.OwnerRolePermission(obj=team):
             with permissions.WriteAccessPermission():
-                user = User.query.get(args['user_id'])
-                if user is None:
+                user_id = args['user_id']
+                team_member = TeamMember.query.filter_by(team=team, user_id=user_id).one()
+                if team_member is None:
                     abort(
                         code=http_exceptions.NotFound.code,
-                        message="User with id %d does not exist" % args['user_id']
+                        message="User with id %d does not exist" % user_id
                     )
-                team.members.remove(user)
-                db.session.merge(team)
+                db.session.delete(team_member)
 
         try:
             db.session.commit()

@@ -61,7 +61,7 @@ class Users(Resource):
 
         if not captcha_is_valid:
             abort(code=http_exceptions.Forbidden.code, message="CAPTCHA key is incorrect.")
-        
+
         new_user = User(**args)
         db.session.add(new_user)
         try:
@@ -70,7 +70,7 @@ class Users(Resource):
             db.session.rollback()
             # TODO: handle errors better
             abort(code=http_exceptions.Conflict.code, message="Could not create a new user.")
-        
+
         return new_user
 
 
@@ -109,6 +109,7 @@ class UserByID(Resource):
         return User.query.get_or_404(user_id)
 
     @api_v1.login_required(scopes=['users:write'])
+    @api_v1.permission_required(permissions.OwnerRolePermission(partial=True))
     @api_v1.parameters(parameters.PatchUserDetailsParameters())
     @api_v1.response(schemas.DetailedUserSchema())
     @api_v1.response(code=http_exceptions.Conflict.code)
@@ -117,15 +118,15 @@ class UserByID(Resource):
         Patch user details by ID.
         """
         user = User.query.get_or_404(user_id)
-        
+
         with permissions.OwnerRolePermission(obj=user):
             with permissions.WriteAccessPermission():
                 state = {'current_password': None}
 
                 for operation in args['body']:
-                    if not self._process_patch_operation(operation, user=user, state=state): 
+                    if not self._process_patch_operation(operation, user=user, state=state):
                         log.info("User patching has ignored unknown operation %s", operation)
-                                    
+
                 db.session.merge(user)
                 try:
                     db.session.commit()
@@ -158,18 +159,19 @@ class UserByID(Resource):
             # of the user that is edited.
             if operation['path'] == '/current_password':
                 current_password = operation['value']
+
                 if (not current_user.password == current_password and
                     not user.password == current_password):
                     abort(code=http_exceptions.Forbidden.code, message="Wrong password")
 
                 state['current_password'] = current_password
                 return True
-        
+
         elif operation['op'] == parameters.PatchUserDetailsParameters.OP_REPLACE:
             assert operation['path'][0] == '/', "Path must always begin with /"
             field_name = operation['path'][1:]
             field_value = operation['value']
-            
+
             # Some fields require extra permissions to be changed.
             # Current user has to have at least a Supervisor role to change
             # 'is_active' and 'is_readonly' property
@@ -179,13 +181,16 @@ class UserByID(Resource):
                     password_required=True,
                     password=state['current_password']
                 ):
+                    # Access granted
                     pass
+
             # Current user has to have an Admin role to change 'is_admin' property
             elif field_name == 'is_admin':
                 with permissions.AdminRolePermission(
                     password_required=True,
                     password=state['current_password']
                 ):
+                    # Access granted
                     pass
 
             setattr(user, field_name, field_value)
