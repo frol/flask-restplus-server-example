@@ -55,7 +55,7 @@ life become colorful.
 
 ### Patched Dependencies
 
-* **flask-restplus(** is patched to handle marshmallow schemas and webargs
+* **flask-restplus** is patched to handle marshmallow schemas and webargs
   input parameters
   ([GH #9](https://github.com/noirbizarre/flask-restplus/issues/9)),
   and to be able to implement and document PATCH method as it is described in
