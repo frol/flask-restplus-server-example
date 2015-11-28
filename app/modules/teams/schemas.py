@@ -14,12 +14,6 @@ from .models import Team, TeamMember
 
 class BaseTeamSchema(ModelSchema):
 
-    members = base_fields.Nested(
-        'BaseTeamMemberSchema',
-        exclude=(TeamMember.team.key, ),
-        many=True
-    )
-
     class Meta:
         model = Team
         fields = (
@@ -33,6 +27,12 @@ class BaseTeamSchema(ModelSchema):
 
 class DetailedTeamSchema(BaseTeamSchema):
 
+    members = base_fields.Nested(
+        'BaseTeamMemberSchema',
+        exclude=(TeamMember.team.key, ),
+        many=True
+    )
+
     class Meta(BaseTeamSchema.Meta):
         fields = BaseTeamSchema.Meta.fields + (
             Team.members.key,
@@ -43,7 +43,7 @@ class DetailedTeamSchema(BaseTeamSchema):
 
 class BaseTeamMemberSchema(ModelSchema):
 
-    team = base_fields.Nested(BaseTeamSchema, exclude=(Team.members.key, ))
+    team = base_fields.Nested(BaseTeamSchema)
     user = base_fields.Nested(BaseUserSchema)
 
     class Meta:
