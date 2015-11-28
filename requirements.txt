@@ -6,10 +6,8 @@ https://github.com/mitsuhiko/flask/archive/master.zip
 #https://github.com/flask-restful/flask-restful/archive/master.zip
 https://github.com/frol/flask-restful/archive/patch-1.zip
 
-#flask-restplus>=0.8.1
-# Master is waiting for merge PR #99: https://github.com/noirbizarre/flask-restplus/pull/99
-#https://github.com/noirbizarre/flask-restplus/archive/master.zip
-https://github.com/frol/flask-restplus/archive/fix-add_specs-switch.zip
+#flask-restplus>0.8.1
+https://github.com/noirbizarre/flask-restplus/archive/master.zip
 
 SQLAlchemy==1.0.9
 SQLAlchemy-Utils==0.31.3
