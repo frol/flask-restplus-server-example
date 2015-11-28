@@ -30,14 +30,15 @@ Dependencies
 ### Project Dependencies
 
 * flask-restplus (flask, flask-restful)
-* sqlalchemy (+ flask-sqlalchemy)
-* alembic (+ flask-alembic)
-* marshmallow / webargs (+ marshmallow-sqlalchemy, flask-marshmallow)
-* oauthlib (+ flask-oauthlib)
-* bcrypt (+ flask-bcrypt)
-* permission
-* flask-login
-* Swagger-UI
+* sqlalchemy (+ flask-sqlalchemy) - Database ORM.
+* sqlalchemy-utils - for nice custom fields (e.g., PasswordField).
+* alembic (+ flask-alembic) - for DB migrations.
+* marshmallow / webargs / apispec (+ marshmallow-sqlalchemy, flask-marshmallow) - for parameters and definitions.
+* oauthlib (+ flask-oauthlib) - for authentication.
+* flask-login - for `current_user` integration only.
+* bcrypt - for password hashing (used as a backend by sqlalchemy-utils.PasswordField).
+* permission - for authorization.
+* Swagger-UI - for interactive RESTful API documentation.
 
 ### Build Dependencies
 
