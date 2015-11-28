@@ -174,3 +174,13 @@ $ invoke app.env.enter
 Database schema migration is handled via `app.db.*` tasks group. The most
 common migration commands are `app.db.upgrade` (it is automatically run on
 `app.run`), and `app.db.migrate` (creates a new migration).
+
+
+Useful Links
+============
+
+* "[The big Picture](https://identityserver.github.io/Documentation/docs/overview/bigPicture.html)" -
+  short yet complete idea about how the modern apps should talk.
+* "[Please. Don't PATCH Like An Idiot.](http://williamdurand.fr/2014/02/14/please-do-not-patch-like-an-idiot/)"
+* "[Best Practices for Designing a Pragmatic RESTful API](http://www.vinaysahni.com/best-practices-for-a-pragmatic-restful-api)"
+* "[My take on RESTful authentication](https://facundoolano.wordpress.com/2013/12/23/my-take-on-restful-authentication/)"
