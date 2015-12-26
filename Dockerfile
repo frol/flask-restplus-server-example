@@ -3,13 +3,11 @@ FROM frolvlad/alpine-python3
 COPY requirements.txt /opt/www/
 COPY tasks /opt/www/tasks
 
-RUN apk add --update -t build_dependencies musl-dev gcc python3-dev libffi-dev && \
-    ln -s pip3 /usr/bin/pip && \
+RUN apk add --no-cache --virtual=build_dependencies musl-dev gcc python3-dev libffi-dev && \
     pip install invoke colorlog && \
     cd /opt/www && \
     invoke app.dependencies.install && \
-    apk del build_dependencies && \
-    rm /var/cache/apk/*
+    apk del build_dependencies
 
 COPY . /opt/www/
 
