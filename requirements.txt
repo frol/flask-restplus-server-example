@@ -1,13 +1,9 @@
 #Flask>=0.11
 https://github.com/mitsuhiko/flask/archive/master.zip
 
-#flask-restful>0.3.4
-# Master is broken, see #534: https://github.com/flask-restful/flask-restful/issues/534
-#https://github.com/flask-restful/flask-restful/archive/master.zip
-https://github.com/frol/flask-restful/archive/patch-1.zip
+flask-restful==0.3.5
 
-#flask-restplus>0.8.1
-https://github.com/noirbizarre/flask-restplus/archive/master.zip
+flask-restplus==0.8.6
 
 SQLAlchemy==1.0.9
 SQLAlchemy-Utils==0.31.3
@@ -19,8 +15,7 @@ werkzeug==0.11.2
 flask-marshmallow==0.6.2
 marshmallow-sqlalchemy==0.6.0
 webargs==1.1.1
-#apispec>0.4.2 - See https://github.com/marshmallow-code/apispec/issues/37
-https://github.com/frol/apispec/archive/fix-nested-field2property.zip
+apispec==0.5.0
 
 bcrypt==2.0
 passlib==1.6.5

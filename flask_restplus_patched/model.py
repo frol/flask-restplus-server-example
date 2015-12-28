@@ -2,7 +2,7 @@ from apispec.ext.marshmallow.swagger import fields2jsonschema
 from flask.ext import marshmallow
 from werkzeug import cached_property
 
-from flask_restplus.model import ApiModel as OriginalApiModel
+from flask_restplus.model import Model as OriginalModel
 
 
 
@@ -32,11 +32,11 @@ class DefaultHTTPErrorSchema(Schema):
         self.fields['status'].default = http_code
 
 
-class ApiModel(OriginalApiModel):
+class Model(OriginalModel):
 
-    def __init__(self, model):
-        # XXX: It is not a very elegant solution.
-        super(ApiModel, self).__init__({'__schema__': model})
+    def __init__(self, name, model):
+        # XXX: Wrapping with __schema__ is not a very elegant solution.
+        super(Model, self).__init__(name, {'__schema__': model})
 
     @cached_property
     def __schema__(self):

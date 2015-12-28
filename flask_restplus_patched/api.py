@@ -8,7 +8,7 @@ from flask_restplus.utils import merge
 from webargs.flaskparser import parser as flask_parser
 from werkzeug import cached_property, exceptions as http_exceptions
 
-from .model import ApiModel, DefaultHTTPErrorSchema
+from .model import Model, DefaultHTTPErrorSchema
 from .swagger import Swagger
 from .webargsparser import jsonlist_flask_parser
 
@@ -40,9 +40,10 @@ class Api(OriginalApi):
         Register a model
         """
         if isinstance(model, marshmallow.Schema):
-            api_model = ApiModel(model)
+            if not name:
+                name = model.__class__.__name__
+            api_model = Model(name, model)
             api_model.__apidoc__ = kwargs
-            api_model.__apidoc__['name'] = name = name or model.__class__.__name__
             self.models[name] = api_model
             return api_model
         return super(Api, self).model(name, model, **kwargs)
@@ -103,7 +104,7 @@ class Api(OriginalApi):
                 else:
                     decorated_func_or_class = wraps(func_or_class)(dump_wrapper(func_or_class))
 
-            if isinstance(model, ApiModel):
+            if isinstance(model, Model):
                 api_model = model
             else:
                 api_model = self.model(model=model)
