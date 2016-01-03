@@ -155,7 +155,7 @@ Docstring:
   Run DDOTS RESTful API Server.
 
 Options:
-  -d, --[no-]debug
+  -d, --[no-]development
   -h STRING, --host=STRING
   -i, --[no-]install-dependencies
   -p, --port

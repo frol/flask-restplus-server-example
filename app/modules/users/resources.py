@@ -1,14 +1,14 @@
 # encoding: utf-8
+# pylint: disable=no-self-use,too-few-public-methods,invalid-name
 """
 RESTful API User resources
-==========================
+--------------------------
 """
 
 import logging
 
-from flask.ext.login import current_user
-from flask.ext.restplus import Resource
-from flask_restplus_patched import DefaultHTTPErrorSchema
+from flask_login import current_user
+from flask_restplus import Resource
 import sqlalchemy
 
 from app.extensions.api import api_v1, abort, http_exceptions
@@ -63,10 +63,12 @@ class Users(Resource):
             abort(code=http_exceptions.Forbidden.code, message="CAPTCHA key is incorrect.")
 
         new_user = User(**args)
+
+        # pylint: disable=no-member
         db.session.add(new_user)
         try:
             db.session.commit()
-        except sqlalchemy.exc.IntegrityError as e:
+        except sqlalchemy.exc.IntegrityError:
             db.session.rollback()
             # TODO: handle errors better
             abort(code=http_exceptions.Conflict.code, message="Could not create a new user.")
@@ -127,10 +129,11 @@ class UserByID(Resource):
                     if not self._process_patch_operation(operation, user=user, state=state):
                         log.info("User patching has ignored unknown operation %s", operation)
 
+                # pylint: disable=no-member
                 db.session.merge(user)
                 try:
                     db.session.commit()
-                except sqlalchemy.exc.IntegrityError as e:
+                except sqlalchemy.exc.IntegrityError:
                     db.session.rollback()
                     # TODO: handle errors better
                     abort(
@@ -160,8 +163,7 @@ class UserByID(Resource):
             if operation['path'] == '/current_password':
                 current_password = operation['value']
 
-                if (not current_user.password == current_password and
-                    not user.password == current_password):
+                if current_user.password != current_password and user.password != current_password:
                     abort(code=http_exceptions.Forbidden.code, message="Wrong password")
 
                 state['current_password'] = current_password

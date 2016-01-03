@@ -1,6 +1,12 @@
+# encoding: utf-8
+# pylint: disable=too-few-public-methods,invalid-name,abstract-method,method-hidden
+"""
+RESTful API permissions
+-----------------------
+"""
 import logging
 
-from flask.ext.login import current_user
+from flask_login import current_user
 from permission import Rule as BaseRule, Permission
 
 from app.extensions.api import abort, http_exceptions
@@ -22,10 +28,18 @@ class DenyAbortMixin(object):
     DENY_ABORT_MESSAGE = None
 
     def deny(self):
+        """
+        Abort HTTP request by raising HTTP error exception with a specified
+        HTTP code.
+        """
         return abort(code=self.DENY_ABORT_HTTP_CODE, message=self.DENY_ABORT_MESSAGE)
 
 
 class Rule(BaseRule):
+    """
+    Experimental base Rule class that helps to automatically handle inherited
+    rules.
+    """
 
     def base(self):
         # XXX: it handles only the first appropriate Rule base class
@@ -86,14 +100,14 @@ class SupervisorRoleRule(ActivatedUserRoleRule):
     Ensure that the current_user has a Supervisor access to the given object.
     """
 
-    def __init__(self, obj, password_required=False, password=None, **kwargs):
+    def __init__(self, obj, **kwargs):
         super(SupervisorRoleRule, self).__init__(**kwargs)
         self._obj = obj
 
     def check(self):
         if not hasattr(self._obj, 'check_supervisor'):
             return False
-        return self._obj.check_supervisor(current_user)
+        return self._obj.check_supervisor(current_user) is True
 
 
 class OwnerRoleRule(ActivatedUserRoleRule):
@@ -108,7 +122,16 @@ class OwnerRoleRule(ActivatedUserRoleRule):
     def check(self):
         if not hasattr(self._obj, 'check_owner'):
             return False
-        return self._obj.check_owner(current_user)
+        return self._obj.check_owner(current_user) is True
+
+
+class AllowAllRule(Rule):
+    """
+    Helper rule that always grants access.
+    """
+
+    def check(self):
+        return True
 
 
 class PartialPermissionDeniedRule(Rule):
@@ -121,8 +144,14 @@ class PartialPermissionDeniedRule(Rule):
 
 
 class PasswordRequiredPermissionMixin(object):
+    """
+    Helper rule mixin that ensure that user password is correct if
+    `password_required` is set to True.
+    """
 
     def __init__(self, password_required=False, password=None, **kwargs):
+        # pylint: disable=unused-argument
+        # NOTE: kwargs is required since it is a mixin
         """
         Args:
             password_required (bool) - in some cases you may need to ask
@@ -141,22 +170,6 @@ class PasswordRequiredPermissionMixin(object):
         return _rule
 
 
-class PartialPermissionMixin(object):
-
-    def __init__(self, partial=False, **kwargs):
-        """
-        Args:
-            partial (bool) - it is mostly useful for documentation purposes.
-        """
-        self._partial = partial
-        super(PartialPermissionMixin, self).__init__()
-
-    def rule(self):
-        if self._partial:
-            return PartialPermissionDeniedRule()
-        return super(PartialPermissionMixin, self).rule()
-
-
 class WriteAccessPermission(Permission):
     """
     Require a non-readonly user to perform an action.
@@ -168,8 +181,21 @@ class WriteAccessPermission(Permission):
 
 class RolePermission(Permission):
     """
-    This class is aiming to help distinguish all role-type permissions.
+    This class aims to help distinguish all role-type permissions.
     """
+
+    def __init__(self, partial=False, **kwargs):
+        """
+        Args:
+            partial (bool) - it is mostly useful for documentation purposes.
+        """
+        self._partial = partial
+        super(RolePermission, self).__init__(**kwargs)
+
+    def rule(self):
+        if self._partial:
+            return PartialPermissionDeniedRule()
+        return AllowAllRule()
 
 
 class ActivatedUserRolePermission(RolePermission):
@@ -181,18 +207,16 @@ class ActivatedUserRolePermission(RolePermission):
         return ActivatedUserRoleRule()
 
 
-class AdminRolePermission(PasswordRequiredPermissionMixin, PartialPermissionMixin, RolePermission):
+class AdminRolePermission(PasswordRequiredPermissionMixin, RolePermission):
     """
     Admin role is required.
     """
 
     def rule(self):
-        return AdminRoleRule()
+        return AdminRoleRule() & super(AdminRolePermission, self).rule()
 
 
-class SupervisorRolePermission(
-    PasswordRequiredPermissionMixin, PartialPermissionMixin, RolePermission
-):
+class SupervisorRolePermission(PasswordRequiredPermissionMixin, RolePermission):
     """
     Supervisor/Admin may execute this action.
     """
@@ -209,10 +233,13 @@ class SupervisorRolePermission(
         super(SupervisorRolePermission, self).__init__(**kwargs)
 
     def rule(self):
-        return SupervisorRoleRule(obj=self._obj) | AdminRoleRule()
+        return (
+            (SupervisorRoleRule(obj=self._obj) | AdminRoleRule())
+            & super(SupervisorRolePermission, self).rule()
+        )
 
 
-class OwnerRolePermission(PasswordRequiredPermissionMixin, PartialPermissionMixin, RolePermission):
+class OwnerRolePermission(PasswordRequiredPermissionMixin, RolePermission):
     """
     Owner/Supervisor/Admin may execute this action.
     """
@@ -229,4 +256,7 @@ class OwnerRolePermission(PasswordRequiredPermissionMixin, PartialPermissionMixi
         super(OwnerRolePermission, self).__init__(**kwargs)
 
     def rule(self):
-        return OwnerRoleRule(obj=self._obj) | SupervisorRoleRule(obj=self._obj) | AdminRoleRule()
+        return (
+            (OwnerRoleRule(obj=self._obj) | SupervisorRoleRule(obj=self._obj) | AdminRoleRule())
+            & super(OwnerRolePermission, self).rule()
+        )

@@ -1,3 +1,8 @@
+# encoding: utf-8
+"""
+Auth module
+===========
+"""
 from app.extensions import login_manager, oauth2
 
 from . import models, views
@@ -17,8 +22,9 @@ def load_user_from_request(request):
     return user
 
 def init_app(app, **kwargs):
+    # pylint: disable=unused-argument
     # Bind Flask-Login for current_user
     login_manager.request_loader(load_user_from_request)
-    
-    # Mount authentication routes 
+
+    # Mount authentication routes
     app.register_blueprint(views.auth_blueprint)

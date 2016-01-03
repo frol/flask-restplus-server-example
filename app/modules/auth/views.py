@@ -11,16 +11,15 @@ More details are available here:
 """
 
 from flask import Blueprint, request, render_template, jsonify
-from flask.ext.login import current_user
+from flask_login import current_user
 from werkzeug import security, exceptions as http_exceptions
 
 from app.extensions import db, api, oauth2
-from app.modules.users.models import User
 
 from .models import OAuth2Client
 
 
-auth_blueprint = Blueprint('auth', __name__, url_prefix='/auth')
+auth_blueprint = Blueprint('auth', __name__, url_prefix='/auth') # pylint: disable=invalid-name
 
 
 @auth_blueprint.route('/oauth2/client')
@@ -49,6 +48,7 @@ def client():
         _default_scopes='users:read users:write email',
         user_id=current_user.id,
     )
+    # pylint: disable=no-member
     db.session.add(client_instance)
     db.session.commit()
     return jsonify(
@@ -59,6 +59,7 @@ def client():
 @auth_blueprint.route('/oauth2/token', methods=['GET', 'POST'])
 @oauth2.token_handler
 def access_token(*args, **kwargs):
+    # pylint: disable=unused-argument
     """
     This endpoint is for exchanging/refreshing an access token.
 
@@ -81,6 +82,7 @@ def revoke_token():
 @auth_blueprint.route('/oauth2/authorize', methods=['GET', 'POST'])
 @oauth2.authorize_handler
 def authorize(*args, **kwargs):
+    # pylint: disable=unused-argument
     """
     This endpoint asks user if he grants access to his data to the requesting
     application.
@@ -90,8 +92,8 @@ def authorize(*args, **kwargs):
         return api.abort(code=http_exceptions.Unauthorized.code)
     if request.method == 'GET':
         client_id = kwargs.get('client_id')
-        client = OAuth2Client.query.filter_by(client_id=client_id).first()
-        kwargs['client'] = client
+        oauth2_client = OAuth2Client.query.filter_by(client_id=client_id).first()
+        kwargs['client'] = oauth2_client
         kwargs['user'] = current_user
         # TODO: improve template design
         return render_template('authorize.html', **kwargs)

@@ -1,4 +1,11 @@
-from flask_restplus_patched import Api, abort as restplus_abort
+# encoding: utf-8
+# pylint: disable=wrong-import-order
+"""
+HTTP exceptions collection
+--------------------------
+"""
+
+from flask_restplus_patched import abort as restplus_abort
 from werkzeug.exceptions import Unauthorized, Forbidden, NotFound, Conflict, UnprocessableEntity
 
 
@@ -19,6 +26,7 @@ API_DEFAULT_HTTP_CODE_MESSAGES = {
 
 
 def abort(code, message=None, **kwargs):
+    # pylint: disable=unused-argument
     if message is None:
         message = API_DEFAULT_HTTP_CODE_MESSAGES.get(code)
     restplus_abort(code=code, message=message)

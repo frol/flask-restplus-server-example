@@ -1,0 +1,6 @@
+[MASTER]
+init-hook='sys.path.append(os.path.abspath(os.path.curdir))'
+docstring-min-length=5
+
+generated-members=query
+disable=locally-disabled,too-few-public-methods

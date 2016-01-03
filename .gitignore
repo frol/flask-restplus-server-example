@@ -44,6 +44,7 @@ coverage.xml
 docs/_build/
 
 # Project specific ignores
+*,cover
 *.swp
 *.bak
 local_config.py

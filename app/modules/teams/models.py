@@ -1,4 +1,8 @@
 # encoding: utf-8
+"""
+Team database models
+--------------------
+"""
 
 from sqlalchemy_utils import Timestamp
 
@@ -6,6 +10,10 @@ from app.extensions import db
 
 
 class TeamMember(db.Model):
+    """
+    Team-member database model.
+    """
+    # pylint: disable=no-member
     __tablename__ = 'team_member'
 
     team_id = db.Column(db.Integer, db.ForeignKey('team.id'), primary_key=True)
@@ -27,15 +35,22 @@ class TeamMember(db.Model):
 
 
 class Team(db.Model, Timestamp):
+    """
+    Team database model.
+    """
+    # pylint: disable=no-member
 
-    id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.Integer, primary_key=True) # pylint: disable=invalid-name
     title = db.Column(db.String(length=50), nullable=False)
 
     members = db.relationship('TeamMember')
 
     def check_owner(self, user):
+        """
+        This is a helper method for OwnerRolePermission integration.
+        """
         if db.session.query(
-            TeamMember.query.filter_by(team=self, is_leader=True, user=user).exists()
+                TeamMember.query.filter_by(team=self, is_leader=True, user=user).exists()
         ).scalar():
             return True
         return False

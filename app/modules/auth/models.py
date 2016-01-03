@@ -10,12 +10,16 @@ More details are available here:
 * http://lepture.com/en/2013/create-oauth-server
 """
 
-from flask.ext.sqlalchemy import SQLAlchemy
-
 from app.extensions import db
 
 
 class OAuth2Client(db.Model):
+    """
+    Model that stores (Client ID, Client Secret), and connect it to a specific
+    User.
+    """
+    # pylint: disable=no-member
+
     __tablename__ = 'oauth2_client'
 
     client_id = db.Column(db.String(length=40), primary_key=True)
@@ -56,9 +60,14 @@ class OAuth2Client(db.Model):
 
 
 class OAuth2Grant(db.Model):
+    """
+    Intermediate temporary helper for OAuth2 Grants.
+    """
+    # pylint: disable=no-member
+
     __tablename__ = 'oauth2_grant'
 
-    id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.Integer, primary_key=True) # pylint: disable=invalid-name
 
     user_id = db.Column(db.ForeignKey('user.id', ondelete='CASCADE'), index=True, nullable=False)
     user = db.relationship('User')
@@ -95,9 +104,14 @@ class OAuth2Grant(db.Model):
 
 
 class OAuth2Token(db.Model):
+    """
+    OAuth2 Access Tokens storage model.
+    """
+    # pylint: disable=no-member
+
     __tablename__ = 'oauth2_token'
 
-    id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.Integer, primary_key=True) # pylint: disable=invalid-name
     client_id = db.Column(
         db.String(length=40),
         db.ForeignKey('oauth2_client.client_id'),

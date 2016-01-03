@@ -5,8 +5,8 @@ flask-restful==0.3.5
 
 flask-restplus==0.8.6
 
-SQLAlchemy==1.0.9
-SQLAlchemy-Utils==0.31.3
+SQLAlchemy==1.0.11
+SQLAlchemy-Utils==0.31.4
 Flask-SQLAlchemy==2.1
 Alembic==0.8.3
 Flask-Alembic==1.2.1

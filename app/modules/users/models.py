@@ -1,11 +1,48 @@
-import sqlalchemy
+# encoding: utf-8
+"""
+User database models
+--------------------
+"""
 from sqlalchemy_utils import types as column_types, Timestamp
 
 from app.extensions import db
 
 
+def _get_is_static_role_property(role_name, static_role):
+    """
+    A helper function that aims to provide a property getter and setter
+    for static roles.
+
+    Args:
+        role_name (str)
+        static_role (int) - a bit mask for a specific role
+
+    Returns:
+        property_method (property) - preconfigured getter and setter property
+        for accessing role.
+    """
+    @property
+    def _is_static_role_property(self):
+        return self.has_static_role(static_role)
+
+    @_is_static_role_property.setter
+    def _is_static_role_property(self, value):
+        if value:
+            self.set_static_role(static_role)
+        else:
+            self.unset_static_role(static_role)
+
+    _is_static_role_property.fget.__name__ = role_name
+    return _is_static_role_property
+
+
 class User(db.Model, Timestamp):
-    id = db.Column(db.Integer, primary_key=True)
+    """
+    User database model.
+    """
+
+    # pylint: disable=no-member
+    id = db.Column(db.Integer, primary_key=True) # pylint: disable=invalid-name
     username = db.Column(db.String(length=80), unique=True, nullable=False)
     password = db.Column(
         column_types.PasswordType(
@@ -30,25 +67,6 @@ class User(db.Model, Timestamp):
     )
 
     static_roles = db.Column(db.Integer, default=0, nullable=False)
-
-    def _get_is_static_role_property(key_name, static_role):
-        """
-        A helper function that aims to provide a property getter and setter
-        for static roles.
-        """
-        @property
-        def _is_static_role_property(self):
-            return self.has_static_role(static_role)
-
-        @_is_static_role_property.setter
-        def _is_static_role_property(self, value):
-            if value:
-                self.set_static_role(static_role)
-            else:
-                self.unset_static_role(static_role)
-
-        _is_static_role_property.fget.__name__ = key_name
-        return _is_static_role_property
 
     is_active = _get_is_static_role_property('is_active', SR_ACTIVATED)
     is_readonly = _get_is_static_role_property('is_readonly', SR_READONLY)
@@ -95,6 +113,15 @@ class User(db.Model, Timestamp):
 
     @classmethod
     def find_with_password(cls, username, password):
+        """
+        Args:
+            username (str)
+            password (str) - plain-text password
+
+        Returns:
+            user (User) - if there is a user with a specified username and
+            password, None otherwise.
+        """
         user = cls.query.filter_by(username=username).first()
         if not user:
             return None

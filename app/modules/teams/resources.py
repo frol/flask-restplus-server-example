@@ -1,12 +1,13 @@
 # encoding: utf-8
+# pylint: disable=no-self-use
 """
 RESTful API Team resources
-==========================
+--------------------------
 """
 
 import logging
 
-from flask.ext.restplus import Resource
+from flask_restplus import Resource
 import sqlalchemy
 
 from app.extensions import db
@@ -19,8 +20,8 @@ from . import parameters, schemas
 from .models import Team, TeamMember
 
 
-log = logging.getLogger(__name__)
-namespace = api_v1.namespace('teams', description="Teams")
+log = logging.getLogger(__name__) # pylint: disable=invalid-name
+namespace = api_v1.namespace('teams', description="Teams") # pylint: disable=invalid-name
 
 
 @namespace.route('/')
@@ -50,10 +51,11 @@ class Teams(Resource):
         Create a new team.
         """
         team = Team(**args)
+        # pylint: disable=no-member
         db.session.add(team)
         try:
             db.session.commit()
-        except sqlalchemy.exc.IntegrityError as e:
+        except sqlalchemy.exc.IntegrityError:
             db.session.rollback()
             # TODO: handle errors better
             abort(code=http_exceptions.Conflict.code, message="Could not create a new team.")
@@ -92,16 +94,17 @@ class TeamByID(Resource):
         """
         team = Team.query.get_or_404(team_id)
 
+        # pylint: disable=no-member
         with permissions.OwnerRolePermission(obj=team):
             with permissions.WriteAccessPermission():
                 for operation in args['body']:
-                    if not self._process_patch_operation(operation, team=team, state=state):
+                    if not self._process_patch_operation(operation, team=team):
                         log.info("Team patching has ignored unknown operation %s", operation)
                 db.session.merge(team)
 
         try:
             db.session.commit()
-        except sqlalchemy.exc.IntegrityError as e:
+        except sqlalchemy.exc.IntegrityError:
             db.session.rollback()
             # TODO: handle errors better
             abort(
@@ -109,7 +112,7 @@ class TeamByID(Resource):
                 message="Could not update team details."
             )
 
-        return user
+        return team
 
     @api_v1.login_required(scopes=['teams:write'])
     @api_v1.permission_required(permissions.OwnerRolePermission(partial=True))
@@ -120,13 +123,14 @@ class TeamByID(Resource):
         """
         team = Team.query.get_or_404(team_id)
 
+        # pylint: disable=no-member
         with permissions.OwnerRolePermission(obj=team):
             with permissions.WriteAccessPermission():
                 db.session.delete(team)
 
         try:
             db.session.commit()
-        except sqlalchemy.exc.IntegrityError as e:
+        except sqlalchemy.exc.IntegrityError:
             db.session.rollback()
             # TODO: handle errors better
             abort(
@@ -136,7 +140,7 @@ class TeamByID(Resource):
 
         return None
 
-    def _process_patch_operation(self, operation, team, state):
+    def _process_patch_operation(self, operation, team):
         """
         Args:
             operation (dict) - one patch operation in RFC 6902 format.
@@ -193,6 +197,7 @@ class TeamMembers(Resource):
         """
         team = Team.query.get_or_404(team_id)
 
+        # pylint: disable=no-member
         with permissions.OwnerRolePermission(obj=team):
             with permissions.WriteAccessPermission():
                 user_id = args.pop('user_id')
@@ -207,7 +212,7 @@ class TeamMembers(Resource):
 
         try:
             db.session.commit()
-        except sqlalchemy.exc.IntegrityError as e:
+        except sqlalchemy.exc.IntegrityError:
             db.session.rollback()
             # TODO: handle errors better
             abort(
@@ -237,6 +242,7 @@ class TeamMemberByID(Resource):
         """
         team = Team.query.get_or_404(team_id)
 
+        # pylint: disable=no-member
         with permissions.OwnerRolePermission(obj=team):
             with permissions.WriteAccessPermission():
                 user_id = args['user_id']
@@ -250,7 +256,7 @@ class TeamMemberByID(Resource):
 
         try:
             db.session.commit()
-        except sqlalchemy.exc.IntegrityError as e:
+        except sqlalchemy.exc.IntegrityError:
             db.session.rollback()
             # TODO: handle errors better
             abort(
@@ -258,4 +264,4 @@ class TeamMemberByID(Resource):
                 message="Could not update team details."
             )
 
-        return user
+        return team

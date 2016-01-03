@@ -1,4 +1,6 @@
+# pylint: disable=too-few-public-methods,invalid-name,missing-docstring
 import os
+import tempfile
 
 
 class BaseConfig(object):
@@ -6,7 +8,7 @@ class BaseConfig(object):
     SQLALCHEMY_DATABASE_URI = 'sqlite:///%s' % (
         os.path.join(os.path.abspath(os.path.dirname(__file__)), "example.db")
     )
-    
+
     DEBUG = False
 
     AUTHORIZATIONS = {
@@ -67,3 +69,22 @@ class ProductionConfig(BaseConfig):
 
 class DevelopmentConfig(BaseConfig):
     DEBUG = True
+
+
+class TestingConfig(BaseConfig):
+    TESTING = True
+
+    SQLALCHEMY_DATABASE_URI = None
+
+    @classmethod
+    def init(cls):
+        cls.SQLALCHEMY_DATABASE_URI = 'sqlite:///%s' % (
+            tempfile.NamedTemporaryFile(
+                prefix='flask_restplus_example_server_db_',
+                suffix='.db'
+            ).name
+        )
+
+    @classmethod
+    def destroy(cls):
+        os.remove(cls.SQLALCHEMY_DATABASE_URI[len('sqlite:///'):])

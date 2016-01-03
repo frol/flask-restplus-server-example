@@ -1,11 +1,11 @@
 # encoding: utf-8
 """
 Input arguments (Parameters) for Team resources RESTful API
-===========================================================
+-----------------------------------------------------------
 """
 
+from flask_marshmallow import base_fields
 from flask_restplus_patched import Parameters, PatchJSONParameters
-from flask.ext.marshmallow import base_fields
 
 from . import schemas
 from .models import Team

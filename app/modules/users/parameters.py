@@ -1,18 +1,21 @@
 # encoding: utf-8
 """
 Input arguments (Parameters) for User resources RESTful API
-===========================================================
+-----------------------------------------------------------
 """
 
+from flask_marshmallow import base_fields
 from flask_restplus_patched import Parameters, PatchJSONParameters
-from flask.ext.marshmallow import base_fields
 
 from . import schemas
 from .models import User
 
 
 class AddUserParameters(Parameters, schemas.BaseUserSchema):
-    
+    """
+    New user creation (sign up) parameters.
+    """
+
     username = base_fields.String(description="Example: root", required=True)
     email = base_fields.Email(description="Example: root@gmail.com", required=True)
     password = base_fields.String(description="No rules yet", required=True)
@@ -32,6 +35,7 @@ class AddUserParameters(Parameters, schemas.BaseUserSchema):
 
 
 class PatchUserDetailsParameters(PatchJSONParameters):
+    # pylint: disable=no-member
     PATH_CHOICES = tuple(
         '/%s' % field for field in (
             'current_password',

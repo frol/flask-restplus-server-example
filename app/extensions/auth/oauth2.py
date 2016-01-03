@@ -1,4 +1,4 @@
-# coding: utf-8
+# encoding: utf-8
 """
 OAuth2 provider setup.
 
@@ -13,14 +13,15 @@ More details are available here:
 from datetime import datetime, timedelta
 import logging
 
-from flask.ext.login import current_user
-from flask.ext.oauthlib import provider
+from flask_login import current_user
+from flask_oauthlib import provider
+import sqlalchemy
 from werkzeug import exceptions as http_exceptions
 
 from app.extensions import api, db
 
 
-log = logging.getLogger(__name__)
+log = logging.getLogger(__name__) # pylint: disable=invalid-name
 
 
 class OAuth2RequestValidator(provider.OAuth2RequestValidator):
@@ -45,6 +46,7 @@ class OAuth2RequestValidator(provider.OAuth2RequestValidator):
         return User.find_with_password(username, password)
 
     def _tokensetter(self, token, request, *args, **kwargs):
+        # pylint: disable=method-hidden,unused-argument
         # TODO: review expiration time
         expires_in = token.pop('expires_in')
         expires = datetime.utcnow() + timedelta(seconds=expires_in)
@@ -58,16 +60,18 @@ class OAuth2RequestValidator(provider.OAuth2RequestValidator):
             client_id=request.client.client_id,
             user_id=request.user.id,
         )
+        # pylint: disable=no-member
         db.session.add(token_instance)
         try:
             db.session.commit()
-        except sqlalchemy.exc.IntegrityError as e:
+        except sqlalchemy.exc.IntegrityError:
             db.session.rollback()
             log.exception("Token-setter has failed.")
             return None
         return token_instance
 
-    def _grantsetter(cls, client_id, code, request, *args, **kwargs):
+    def _grantsetter(self, client_id, code, request, *args, **kwargs):
+        # pylint: disable=method-hidden,unused-argument
         # TODO: review expiration time
         # decide the expires time yourself
         expires = datetime.utcnow() + timedelta(seconds=100)
@@ -79,10 +83,11 @@ class OAuth2RequestValidator(provider.OAuth2RequestValidator):
             user=current_user,
             expires=expires
         )
+        # pylint: disable=no-member
         db.session.add(grant_instance)
         try:
             db.session.commit()
-        except sqlalchemy.exc.IntegrityError as e:
+        except sqlalchemy.exc.IntegrityError:
             db.session.rollback()
             log.exception("Grant-setter has failed.")
             return None
@@ -107,6 +112,7 @@ class OAuth2Provider(provider.OAuth2Provider):
         self._invalid_response = _saved_invalid_response
 
     def _invalid_response(self, req):
+        # pylint: disable=method-hidden,unused-argument,no-self-use
         api.abort(code=http_exceptions.Unauthorized.code)
 
     def init_app(self, app):

@@ -1,14 +1,23 @@
 # encoding: utf-8
+# pylint: disable=too-few-public-methods
+"""
+User schemas
+------------
+"""
 
-from flask.ext.marshmallow import base_fields
-
+from flask_marshmallow import base_fields
 from flask_restplus_patched import Schema, ModelSchema
+
 from .models import User
 
 
 class BaseUserSchema(ModelSchema):
+    """
+    Base user schema exposes only the most general fields.
+    """
 
     class Meta:
+        # pylint: disable=missing-docstring
         model = User
         fields = (
             User.id.key,
@@ -23,8 +32,12 @@ class BaseUserSchema(ModelSchema):
 
 
 class DetailedUserSchema(BaseUserSchema):
+    """
+    Detailed user schema exposes all useful fields.
+    """
 
     class Meta(BaseUserSchema.Meta):
+        # pylint: disable=no-member
         fields = BaseUserSchema.Meta.fields + (
             User.email.key,
             User.created.key,
@@ -34,7 +47,7 @@ class DetailedUserSchema(BaseUserSchema):
             User.is_admin.fget.__name__,
         )
 
-        
+
 class UserSignupFormSchema(Schema):
-    
+
     recaptcha_server_key = base_fields.String(required=True)

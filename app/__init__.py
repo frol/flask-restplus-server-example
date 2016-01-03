@@ -1,5 +1,4 @@
 # encoding: utf-8
-# pylint: disable=invalid-name
 """
 Example RESTful API Server.
 """
@@ -9,19 +8,21 @@ import os
 from flask import Flask
 
 
-def create_app(debug=None, **kwargs):
+CONFIG_NAME_MAPPER = {
+    'development': 'config.DevelopmentConfig',
+    'testing': 'config.TestingConfig',
+    'production': 'config.ProductionConfig',
+    'local': 'local_config.LocalConfig',
+}
+
+def create_app(flask_config='production', **kwargs):
+    """
+    Entry point to the Flask RESTful Server application.
+    """
     app = Flask(__name__, **kwargs)
 
-    config = {
-        'development': 'config.DevelopmentConfig',
-        'testing': 'config.TestingConfig',
-        'production': 'config.ProductionConfig',
-        'local': 'local_config.LocalConfig',
-    }
-    config_name = os.getenv('FLASK_CONFIGURATION', 'production')
-    app.config.from_object(config[config_name])
-    if debug is not None:
-        app.debug = debug
+    config_name = os.getenv('FLASK_CONFIG', flask_config)
+    app.config.from_object(CONFIG_NAME_MAPPER[config_name])
 
     if app.debug:
         logging.getLogger('flask_oauthlib').setLevel(logging.DEBUG)
@@ -34,7 +35,7 @@ def create_app(debug=None, **kwargs):
 
     from . import extensions
     extensions.init_app(app)
-    
+
     from . import modules
     modules.init_app(app)
 
