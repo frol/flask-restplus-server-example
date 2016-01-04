@@ -33,6 +33,7 @@ Dependencies
 
 ### Project Dependencies
 
+* **Python** 2.7, 3.3+ / pypy2 (2.5.0)
 * **flask-restplus** (*flask*, *flask-restful*)
 * **sqlalchemy** (+ *flask-sqlalchemy*) - Database ORM.
 * **sqlalchemy-utils** - for nice custom fields (e.g., PasswordField).
