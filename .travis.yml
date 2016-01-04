@@ -18,7 +18,7 @@ caches:
     - $HOME/.cache/pip
 
 script:
-  py.test --cov=all
+  py.test --cov=app
 
 after_success:
   coveralls
