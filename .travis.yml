@@ -1,4 +1,3 @@
-sudo: false
 language: python
 python:
   - "2.7"
@@ -8,16 +7,13 @@ python:
   - "nightly"
   - "pypy"
 
-env:
-  - PIP_DOWNLOAD_CACHE=$HOME/.cache/pip XDG_CACHE_HOME=$HOME/.cache
-
 install:
   - travis_retry pip install pylint
   - travis_retry pip install -r requirements.txt
   - travis_retry pip install -r tests/requirements.txt
   - travis_retry pip install pytest-cov coverage coveralls codacy-coverage
 
-caches:
+cache:
   directories:
     - $HOME/.cache/pip
 
@@ -26,4 +22,4 @@ script:
 
 after_success:
   - coveralls
-  - coverage xml && CODACY_PROJECT_TOKEN=5a2672bff6e24e859928afc1b95a3bba python-codacy-coverage -r coverage.xml
+  - coverage xml && python-codacy-coverage -r coverage.xml
