@@ -7,11 +7,15 @@ python:
   - "nightly"
   - "pypy"
 
+env:
+  - PIP_DOWNLOAD_CACHE=$HOME/.cache/pip
+  - XDG_CACHE_HOME=$HOME/.cache
+
 install:
   - travis_retry pip install pylint
   - travis_retry pip install -r requirements.txt
   - travis_retry pip install -r tests/requirements.txt
-  - travis_retry pip install pytest-cov coverage coveralls
+  - travis_retry pip install pytest-cov coverage coveralls codacy-coverage
 
 caches:
   directories:
