@@ -15,7 +15,7 @@ def enter(context, install_dependencies=True, upgrade_db=True):
         context.invoke_execute(context, 'app.dependencies.install')
     if upgrade_db:
         context.invoke_execute(context, 'app.db.upgrade')
- 
+
     import pprint
     import logging
 

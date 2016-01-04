@@ -77,8 +77,8 @@ else:
             'splice': "Allow a non-head revision as the 'head' to splice onto",
             'head': "Specify head revision or <branchname>@head to base new revision on",
             'sql': "Don't emit SQL to database - dump to standard output instead",
-            'autogenerate': "Populate revision script with andidate migration operatons, based on " \
-                            "comparison of database to model",
+            'autogenerate': "Populate revision script with andidate migration operatons, based " \
+                            "on comparison of database to model",
             'directory': "migration script directory",
         }
     )

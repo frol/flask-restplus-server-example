@@ -54,7 +54,7 @@ else:
         logger.addHandler(handler)
     handler.setFormatter(formatter)
 
- 
+
 from invoke import Collection
 from invoke.executor import Executor
 
