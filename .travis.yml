@@ -21,4 +21,5 @@ script:
   py.test --cov=app
 
 after_success:
-  coveralls
+  - coveralls
+  - coverage xml && CODACY_PROJECT_TOKEN=5a2672bff6e24e859928afc1b95a3bba python-codacy-coverage -r coverage.xml
