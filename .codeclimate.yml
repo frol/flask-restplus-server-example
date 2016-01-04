@@ -1,0 +1,13 @@
+engines:
+  duplication:
+    enabled: true
+    config:
+      languages:
+      - python
+  fixme:
+    enabled: true
+ratings:
+  paths:
+  - "app/**.py"
+exclude_paths:
+- tests/**/*
