@@ -8,8 +8,7 @@ python:
   - "pypy"
 
 env:
-  - PIP_DOWNLOAD_CACHE=$HOME/.cache/pip
-  - XDG_CACHE_HOME=$HOME/.cache
+  - PIP_DOWNLOAD_CACHE=$HOME/.cache/pip XDG_CACHE_HOME=$HOME/.cache
 
 install:
   - travis_retry pip install pylint
