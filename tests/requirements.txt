@@ -1,0 +1,6 @@
+pytest
+
+## Optional packages
+# pytest-xdist
+# pytest-cov
+# coverage
