@@ -26,8 +26,8 @@ oauth2 = OAuth2Provider()
 
 class AlembicDatabaseMigrationConfig(object):
     """
-    Helper to fill missing functions of Flask-Alembic package since we use
-    custom invoke tasks instead.
+    Helper config holder that provides missing functions of Flask-Alembic
+    package since we use custom invoke tasks instead.
     """
 
     def __init__(self, database, directory='migrations', **kwargs):

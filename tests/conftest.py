@@ -24,6 +24,13 @@ def flask_app():
 
     TestingConfig.destroy()
 
+@pytest.yield_fixture()
+def db(flask_app):
+    # pylint: disable=unused-argument,invalid-name
+    from app.extensions import db as db_instance
+    yield db_instance
+    db_instance.session.rollback() # pylint: disable=no-member
+
 
 class JSONResponse(Response):
 

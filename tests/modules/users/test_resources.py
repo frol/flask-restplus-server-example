@@ -1,5 +1,4 @@
 # pylint: disable=missing-docstring
-import json
 import pytest
 
 
@@ -30,13 +29,24 @@ def create_new_user(flask_app_client, data):
     assert {'id', 'username'} <= set(response.json.keys())
     return response.json['id']
 
-def test_new_user_creation(flask_app_client):
+def test_new_user_creation(flask_app_client, db):
+    # pylint: disable=invalid-name
     user_id = create_new_user(
         flask_app_client,
         data={
-            'username': "new_user1",
-            'email': "new_user1@email.com",
-            'password': "new_user1_password",
+            'username': "user1",
+            'email': "user1@email.com",
+            'password': "user1_password",
         }
     )
     assert isinstance(user_id, int)
+
+    from app.modules.users.models import User
+
+    user1_instance = User.query.get(user_id)
+    assert user1_instance.username == "user1"
+    assert user1_instance.email == "user1@email.com"
+    assert user1_instance.password == "user1_password"
+
+    db.session.delete(user1_instance)
+    db.session.commit()
