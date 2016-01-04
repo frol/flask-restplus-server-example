@@ -1,4 +1,5 @@
 # encoding: utf-8
+# pylint: disable=no-self-use
 """
 OAuth2 provider setup.
 
@@ -41,6 +42,7 @@ class OAuth2RequestValidator(provider.OAuth2RequestValidator):
         )
 
     def _usergetter(self, username, password, client, request):
+        # pylint: disable=method-hidden
         # Avoid circular dependencies
         from app.modules.users.models import User
         return User.find_with_password(username, password)

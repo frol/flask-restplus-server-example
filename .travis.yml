@@ -21,5 +21,6 @@ script:
   py.test --cov=app
 
 after_success:
+  - pylint app
   - coveralls
   - coverage xml && python-codacy-coverage -r coverage.xml
