@@ -21,6 +21,7 @@ pip-delete-this-directory.txt
 htmlcov/
 .tox/
 .coverage
+,cover
 .cache
 nosetests.xml
 coverage.xml
@@ -44,7 +45,7 @@ coverage.xml
 docs/_build/
 
 # Project specific ignores
-*,cover
 *.swp
 *.bak
 local_config.py
+static/
