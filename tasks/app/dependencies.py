@@ -82,15 +82,11 @@ def install_swagger_ui(context, force=False):
 
     log.info("Swagger UI is installed.")
 
-@task(
-    pre=(
-        install_python_dependencies,
-        install_swagger_ui,
-    )
-)
+@task
 def install(context):
     # pylint: disable=unused-argument
     """
     Install project dependencies.
     """
-    pass
+    install_python_dependencies(context)
+    install_swagger_ui(context)

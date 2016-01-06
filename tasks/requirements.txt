@@ -1,3 +1,4 @@
 invoke
 colorlog
 lockfile
+requests
