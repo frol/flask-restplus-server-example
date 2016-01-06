@@ -1,7 +1,8 @@
 FROM frolvlad/alpine-python3
 
-COPY app/requirements.txt /opt/www/app/
 COPY tasks /opt/www/tasks
+COPY config.py /opt/www/
+COPY app/requirements.txt /opt/www/app/
 
 RUN apk add --no-cache --virtual=build_dependencies musl-dev gcc python3-dev libffi-dev && \
     cd /opt/www && \
