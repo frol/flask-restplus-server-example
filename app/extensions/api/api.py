@@ -35,7 +35,8 @@ class Api(BaseApi):
             oauth_protected_func = oauth2.require_oauth(*scopes)(protected_func)
             return self.doc(
                 security=[
-                    {'oauth2': scopes}
+                    {'oauth2_password': scopes},
+                    {'oauth2_implicit': scopes},
                 ]
             )(
                 self.response(

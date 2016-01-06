@@ -5,48 +5,37 @@ import tempfile
 
 class BaseConfig(object):
     SECRET_KEY = 'this-really-needs-to-be-changed'
-    SQLALCHEMY_DATABASE_URI = 'sqlite:///%s' % (
-        os.path.join(os.path.abspath(os.path.dirname(__file__)), "example.db")
-    )
+
+    PROJECT_ROOT = os.path.abspath(os.path.dirname(__file__))
+
+    SQLALCHEMY_DATABASE_URI = 'sqlite:///%s' % (os.path.join(PROJECT_ROOT, "example.db"))
 
     DEBUG = False
 
     AUTHORIZATIONS = {
-        'oauth2': {
+        'oauth2_password': {
             'type': 'oauth2',
-            'scopes': [
-                {
-                    'scope': 'users:read',
-                    'description': "Read users",
-                },
-                {
-                    'scope': 'users:write',
-                    'description': "Write users",
-                },
-                {
-                    'scope': 'teams:read',
-                    'description': "Read teams",
-                },
-                {
-                    'scope': 'teams:write',
-                    'description': "Write teams",
-                },
-            ],
-            'grantTypes': {
-                'password': {
-                    'tokenName': 'access_token',
-                },
-                # TODO: implement Implicit Grant for third-party apps
-                #'implicit': {
-                #    'loginEndpoint': {
-                #        'url': '/auth/oauth2/authorize',
-                #    },
-                #    'tokenName': 'access_token',
-                #},
-            },
             'flow': 'password',
+            'scopes': {
+                'users:read': "Read users",
+                'users:write': "Write users",
+                'teams:read': "Read teams",
+                'teams:write': "Write teams",
+            },
             'tokenUrl': '/auth/oauth2/token',
-        }
+        },
+        # TODO: implement other grant types for third-party apps
+        #'oauth2_implicit': {
+        #    'type': 'oauth2',
+        #    'flow': 'implicit',
+        #    'scopes': {
+        #        'users:read': "Read users",
+        #        'users:write': "Write users",
+        #        'teams:read': "Read teams",
+        #        'teams:write': "Write teams",
+        #    },
+        #    'authorizationUrl': '/auth/oauth2/authorize',
+        #},
     }
 
     ENABLED_MODULES = (
@@ -57,6 +46,8 @@ class BaseConfig(object):
 
         'api',
     )
+
+    STATIC_ROOT = os.path.join(PROJECT_ROOT, 'static')
 
     # TODO: consider if these are relevant for this project
     SQLALCHEMY_TRACK_MODIFICATIONS = True
