@@ -21,7 +21,7 @@ def install_python_dependencies(context, force=False):
     Install Python dependencies listed in requirements.txt.
     """
     log.info("Installing project dependencies...")
-    context.run("pip install -r requirements.txt %s" % ('--upgrade' if force else ''))
+    context.run("pip install -r app/requirements.txt %s" % ('--upgrade' if force else ''))
     log.info("Project dependencies are installed.")
 
 @task

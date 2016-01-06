@@ -9,7 +9,7 @@ python:
 
 install:
   - travis_retry pip install pylint
-  - travis_retry pip install -r requirements.txt
+  - travis_retry pip install -r app/requirements.txt
   - travis_retry pip install -r tests/requirements.txt
   - travis_retry pip install pytest-cov coverage coveralls codacy-coverage
 

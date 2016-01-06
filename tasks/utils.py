@@ -5,9 +5,6 @@ Invoke tasks helper functions
 import logging
 import os
 
-import lockfile
-import requests
-
 
 log = logging.getLogger(__name__) # pylint: disable=invalid-name
 
@@ -26,6 +23,10 @@ def download_file(
     local file ``local_filepath`` in chunks and using a file lock to prevent
     a concurrent download of the same file.
     """
+    # Avoid unnecessary dependencies when the function is not used.
+    import lockfile
+    import requests
+
     log.debug("Checking file existance in '%s'", local_filepath)
     lock = lockfile.LockFile(local_filepath)
     try:
