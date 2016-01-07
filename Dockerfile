@@ -8,6 +8,7 @@ RUN apk add --no-cache --virtual=build_dependencies musl-dev gcc python3-dev lib
     cd /opt/www && \
     pip install -r tasks/requirements.txt && \
     invoke app.dependencies.install && \
+    rm -rf ~/.cache/pip && \
     apk del build_dependencies
 
 COPY . /opt/www/
