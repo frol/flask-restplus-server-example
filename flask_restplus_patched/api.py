@@ -135,6 +135,6 @@ def abort(code=http_exceptions.InternalServerError.code, message=None, **kwargs)
 def handle_validation_error(err):
     exc = err.data['exc']
     return jsonify({
-        'code': http_exceptions.UnprocessableEntity.code,
-        'errors': exc.messages
+        'status': http_exceptions.UnprocessableEntity.code,
+        'message': exc.messages
     }), http_exceptions.UnprocessableEntity.code

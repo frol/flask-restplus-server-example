@@ -16,13 +16,16 @@ def load_user_from_request(request):
     if hasattr(request, 'oauth'):
         user = request.oauth.user
     else:
-        is_valid, oauth = oauth2.verify_request([])
+        is_valid, oauth = oauth2.verify_request(scopes=[])
         if is_valid:
             user = oauth.user
     return user
 
 def init_app(app, **kwargs):
     # pylint: disable=unused-argument
+    """
+    Init auth module.
+    """
     # Bind Flask-Login for current_user
     login_manager.request_loader(load_user_from_request)
 

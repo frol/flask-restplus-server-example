@@ -102,13 +102,15 @@ class UserByID(Resource):
     """
 
     @api_v1.login_required(scopes=['users:read'])
-    @api_v1.permission_required(permissions.AdminRolePermission())
+    @api_v1.permission_required(permissions.OwnerRolePermission(partial=True))
     @api_v1.response(schemas.DetailedUserSchema())
     def get(self, user_id):
         """
         Get user details by ID.
         """
-        return User.query.get_or_404(user_id)
+        user = User.query.get(user_id)
+        with permissions.OwnerRolePermission(obj=user):
+            return user
 
     @api_v1.login_required(scopes=['users:write'])
     @api_v1.permission_required(permissions.OwnerRolePermission(partial=True))
@@ -130,8 +132,8 @@ class UserByID(Resource):
                         log.info("User patching has ignored unknown operation %s", operation)
 
                 # pylint: disable=no-member
-                db.session.merge(user)
                 try:
+                    db.session.merge(user)
                     db.session.commit()
                 except sqlalchemy.exc.IntegrityError:
                     db.session.rollback()

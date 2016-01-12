@@ -8,6 +8,19 @@ python:
   - "pypy"
 
 install:
+  - |
+      if [ "$TRAVIS_PYTHON_VERSION" = "pypy" ]; then
+        export PYENV_ROOT="$HOME/.pyenv"
+        if [ -f "$PYENV_ROOT/bin/pyenv" ]; then
+          cd "$PYENV_ROOT" && git pull
+        else
+          rm -rf "$PYENV_ROOT" && git clone --depth 1 https://github.com/yyuu/pyenv.git "$PYENV_ROOT"
+        fi
+        export PYPY_VERSION="4.0.1"
+        "$PYENV_ROOT/bin/pyenv" install "pypy-$PYPY_VERSION"
+        virtualenv --python="$PYENV_ROOT/versions/pypy-$PYPY_VERSION/bin/python" "$HOME/virtualenvs/pypy-$PYPY_VERSION"
+        source "$HOME/virtualenvs/pypy-$PYPY_VERSION/bin/activate"
+      fi
   - travis_retry pip install pylint
   - travis_retry pip install -r app/requirements.txt
   - travis_retry pip install -r tests/requirements.txt
@@ -16,6 +29,7 @@ install:
 cache:
   directories:
     - $HOME/.cache/pip
+    - $HOME/.pyenv
 
 script:
   py.test --cov=app

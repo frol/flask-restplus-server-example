@@ -1,19 +1,14 @@
 # encoding: utf-8
-# pylint: disable=redefined-outer-name,too-many-ancestors,missing-docstring
-import json
+# pylint: disable=redefined-outer-name,missing-docstring
 import pytest
 
-from flask import Response
-from werkzeug.utils import cached_property
+from tests import utils
 
 from app import create_app
 
 
 @pytest.yield_fixture(scope='session')
 def flask_app():
-    from config import TestingConfig
-    TestingConfig.init()
-
     app = create_app(flask_config='testing')
     from app.extensions import db
 
@@ -22,8 +17,6 @@ def flask_app():
         yield app
         db.drop_all()
 
-    TestingConfig.destroy()
-
 @pytest.yield_fixture()
 def db(flask_app):
     # pylint: disable=unused-argument,invalid-name
@@ -31,15 +24,55 @@ def db(flask_app):
     yield db_instance
     db_instance.session.rollback() # pylint: disable=no-member
 
-
-class JSONResponse(Response):
-
-    @cached_property
-    def json(self):
-        return json.loads(self.get_data(as_text=True))
-
+@pytest.fixture(scope='session')
+def flask_app_client(flask_app):
+    flask_app.test_client_class = utils.AutoAuthFlaskClient
+    flask_app.response_class = utils.JSONResponse
+    return flask_app.test_client()
 
 @pytest.yield_fixture(scope='session')
-def flask_app_client(flask_app):
-    flask_app.response_class = JSONResponse
-    yield flask_app.test_client()
+def regular_user(flask_app):
+    # pylint: disable=invalid-name,unused-argument,no-member
+    from app.extensions import db
+
+    regular_user_instance = utils.generate_user_instance(
+        username='regular_user'
+    )
+
+    db.session.add(regular_user_instance)
+    db.session.commit()
+    yield regular_user_instance
+    db.session.delete(regular_user_instance)
+    db.session.commit()
+
+@pytest.yield_fixture(scope='session')
+def readonly_user(flask_app):
+    # pylint: disable=invalid-name,unused-argument,no-member
+    from app.extensions import db
+
+    readonly_user_instance = utils.generate_user_instance(
+        username='readonly_user',
+        is_readonly=True
+    )
+
+    db.session.add(readonly_user_instance)
+    db.session.commit()
+    yield readonly_user_instance
+    db.session.delete(readonly_user_instance)
+    db.session.commit()
+
+@pytest.yield_fixture(scope='session')
+def admin_user(flask_app):
+    # pylint: disable=invalid-name,unused-argument,no-member
+    from app.extensions import db
+
+    admin_user_instance = utils.generate_user_instance(
+        username='admin_user',
+        is_admin=True
+    )
+
+    db.session.add(admin_user_instance)
+    db.session.commit()
+    yield admin_user_instance
+    db.session.delete(admin_user_instance)
+    db.session.commit()

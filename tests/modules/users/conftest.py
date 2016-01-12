@@ -1,16 +1,16 @@
 # encoding: utf-8
 # pylint: disable=missing-docstring
-from datetime import datetime
-
 import pytest
 
 from flask_login import current_user, login_user, logout_user
 
+from tests import utils
+
 from app.modules.users import models
 
 
-@pytest.fixture(autouse=True)
-def patch_User_password():
+@pytest.yield_fixture()
+def patch_User_password_scheme():
     # pylint: disable=invalid-name,protected-access
     """
     By default, the application uses ``bcrypt`` to store passwords securely.
@@ -23,31 +23,22 @@ def patch_User_password():
     password_field_context_config._init_scheme_list(('plaintext', ))
     password_field_context_config._init_records()
     password_field_context_config._init_default_schemes()
+    yield
+    password_field_context_config._init_scheme_list(('bcrypt', ))
+    password_field_context_config._init_records()
+    password_field_context_config._init_default_schemes()
 
 @pytest.fixture()
-def user_instance():
+def user_instance(patch_User_password_scheme):
     user_id = 1
-    _user_instance = models.User(
-        id=user_id,
-        username="username",
-        first_name="First Name",
-        middle_name="Middle Name",
-        last_name="Last Name",
-        password="password",
-        email="user@email.com",
-        created=datetime.now(),
-        updated=datetime.now(),
-        is_active=True,
-        is_readonly=False,
-        is_admin=False,
-    )
+    _user_instance = utils.generate_user_instance(user_id=user_id)
     _user_instance.get_id = lambda: user_id
     return _user_instance
 
 @pytest.yield_fixture()
-def authenticated_user_instance(flask_app):
+def authenticated_user_instance(flask_app, user_instance):
     with flask_app.test_request_context('/'):
-        login_user(user_instance())
+        login_user(user_instance)
         yield current_user
         logout_user()
 

@@ -1,4 +1,5 @@
 pytest
+mock
 
 ## Optional packages
 # pytest-xdist

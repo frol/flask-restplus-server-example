@@ -9,4 +9,7 @@ from . import models, resources
 
 def init_app(app, **kwargs):
     # pylint: disable=unused-argument
+    """
+    Init teams module.
+    """
     pass

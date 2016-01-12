@@ -66,7 +66,7 @@ def test_User_check_owner(user_instance):
     assert user_instance.check_owner(user_instance)
     assert not user_instance.check_owner(models.User())
 
-def test_User_find_with_password(db): # pylint: disable=unused-argument
+def test_User_find_with_password(patch_User_password_scheme, db): # pylint: disable=unused-argument
 
     def create_user(username, password):
         user = models.User(
