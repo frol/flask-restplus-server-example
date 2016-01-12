@@ -9,9 +9,6 @@ from app import create_app
 
 @pytest.yield_fixture(scope='session')
 def flask_app():
-    from config import TestingConfig
-    TestingConfig.init()
-
     app = create_app(flask_config='testing')
     from app.extensions import db
 
@@ -19,8 +16,6 @@ def flask_app():
         db.create_all()
         yield app
         db.drop_all()
-
-    TestingConfig.destroy()
 
 @pytest.yield_fixture()
 def db(flask_app):

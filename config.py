@@ -65,17 +65,5 @@ class DevelopmentConfig(BaseConfig):
 class TestingConfig(BaseConfig):
     TESTING = True
 
-    SQLALCHEMY_DATABASE_URI = None
-
-    @classmethod
-    def init(cls):
-        cls.SQLALCHEMY_DATABASE_URI = 'sqlite:///%s' % (
-            tempfile.NamedTemporaryFile(
-                prefix='flask_restplus_example_server_db_',
-                suffix='.db'
-            ).name
-        )
-
-    @classmethod
-    def destroy(cls):
-        os.remove(cls.SQLALCHEMY_DATABASE_URI[len('sqlite:///'):])
+    # Use in-memory SQLite database for testing
+    SQLALCHEMY_DATABASE_URI = 'sqlite://'
