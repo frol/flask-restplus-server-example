@@ -26,6 +26,10 @@ log = logging.getLogger(__name__) # pylint: disable=invalid-name
 
 
 class OAuth2RequestValidator(provider.OAuth2RequestValidator):
+    """
+    A project-specific implementation of OAuth2RequestValidator, which connects
+    our User and OAuth2* implementations together.
+    """
 
     def __init__(self):
         from app.modules.auth.models import OAuth2Client, OAuth2Grant, OAuth2Token
@@ -42,7 +46,7 @@ class OAuth2RequestValidator(provider.OAuth2RequestValidator):
         )
 
     def _usergetter(self, username, password, client, request):
-        # pylint: disable=method-hidden
+        # pylint: disable=method-hidden,unused-argument
         # Avoid circular dependencies
         from app.modules.users.models import User
         return User.find_with_password(username, password)
@@ -53,6 +57,7 @@ class OAuth2RequestValidator(provider.OAuth2RequestValidator):
         expires_in = token.pop('expires_in')
         expires = datetime.utcnow() + timedelta(seconds=expires_in)
 
+        # TODO: map token_type string to an integer id to save DB space and performance
         token_instance = self._token_class(
             access_token=token['access_token'],
             refresh_token=token.get('refresh_token'),
@@ -104,11 +109,14 @@ class OAuth2RequestValidator(provider.OAuth2RequestValidator):
 
 
 class OAuth2Provider(provider.OAuth2Provider):
+    """
+    A helper class which connects OAuth2RequestValidator with OAuh2Provider.
+    """
 
     def __init__(self, *args, **kwargs):
         # XXX: it would be great if flask-oauthlib won't override existing
         # methods, so we can implement `_invalid_response` as a method instead
-        # of lambda.
+        # of saving it and restoring.
         _saved_invalid_response = self._invalid_response
         super(OAuth2Provider, self).__init__(*args, **kwargs)
         self._invalid_response = _saved_invalid_response

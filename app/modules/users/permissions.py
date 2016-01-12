@@ -150,7 +150,6 @@ class PasswordRequiredPermissionMixin(object):
     """
 
     def __init__(self, password_required=False, password=None, **kwargs):
-        # pylint: disable=unused-argument
         # NOTE: kwargs is required since it is a mixin
         """
         Args:
@@ -161,7 +160,7 @@ class PasswordRequiredPermissionMixin(object):
         """
         self._password_required = password_required
         self._password = password
-        super(PasswordRequiredPermissionMixin, self).__init__()
+        super(PasswordRequiredPermissionMixin, self).__init__(**kwargs)
 
     def rule(self):
         _rule = super(PasswordRequiredPermissionMixin, self).rule()
@@ -187,7 +186,8 @@ class RolePermission(Permission):
     def __init__(self, partial=False, **kwargs):
         """
         Args:
-            partial (bool) - it is mostly useful for documentation purposes.
+            partial (bool) - True values is mostly useful for Swagger
+                documentation purposes.
         """
         self._partial = partial
         super(RolePermission, self).__init__(**kwargs)
