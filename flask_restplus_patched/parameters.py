@@ -42,18 +42,19 @@ class PatchJSONParameters(JSONParameters):
         OP_REPLACE,
     )
     op = base_fields.String(required=True)
-    
+
     PATH_CHOICES = None
     path = base_fields.String(required=True)
-    
+
     value = base_fields.Raw(required=False)
 
     def __init__(self, *args, **kwargs):
         super(PatchJSONParameters, self).__init__(*args, many=True, **kwargs)
-        self.fields['op'].validators.append(validate.OneOf(self.OPERATION_CHOICES))
         if not self.PATH_CHOICES:
             raise ValueError("%s.PATH_CHOICES has to be set" % self.__class__.__name__)
         # Make a copy of `validators` as otherwise we will modify the behaviour
         # of all `marshmallow.Schema`-based classes
+        self.fields['op'].validators = \
+            self.fields['op'].validators + [validate.OneOf(self.OPERATION_CHOICES)]
         self.fields['path'].validators = \
             self.fields['path'].validators + [validate.OneOf(self.PATH_CHOICES)]

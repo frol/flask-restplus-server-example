@@ -4,6 +4,7 @@ Team database models
 --------------------
 """
 
+from sqlalchemy.orm import validates
 from sqlalchemy_utils import Timestamp
 
 from app.extensions import db
@@ -44,6 +45,12 @@ class Team(db.Model, Timestamp):
     title = db.Column(db.String(length=50), nullable=False)
 
     members = db.relationship('TeamMember')
+
+    @validates('title')
+    def validate_title(self, key, title): # pylint: disable=unused-argument,no-self-use
+        if len(title) < 3:
+            raise ValueError("Title has to be at least 3 characters long.")
+        return title
 
     def check_owner(self, user):
         """
