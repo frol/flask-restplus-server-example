@@ -16,7 +16,7 @@ install:
       if [ "$TRAVIS_PYTHON_VERSION" = "pypy" ]; then
         export PYENV_ROOT="$HOME/.pyenv"
         if [ -f "$PYENV_ROOT/bin/pyenv" ]; then
-          cd "$PYENV_ROOT" && git pull
+          pushd "$PYENV_ROOT" && git pull && popd
         else
           rm -rf "$PYENV_ROOT" && git clone --depth 1 https://github.com/yyuu/pyenv.git "$PYENV_ROOT"
         fi
