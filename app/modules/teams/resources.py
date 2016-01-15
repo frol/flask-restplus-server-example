@@ -136,8 +136,6 @@ class TeamByID(Resource):
         # pylint: disable=no-member
         with permissions.OwnerRolePermission(obj=team):
             with permissions.WriteAccessPermission():
-                for member in team.members:
-                    db.session.delete(member)
                 db.session.delete(team)
 
         try:

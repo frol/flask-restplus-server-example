@@ -4,7 +4,7 @@ Team database models
 --------------------
 """
 
-from sqlalchemy.orm import validates
+from sqlalchemy.orm import validates, backref
 from sqlalchemy_utils import Timestamp
 
 from app.extensions import db
@@ -20,7 +20,10 @@ class TeamMember(db.Model):
     team_id = db.Column(db.Integer, db.ForeignKey('team.id'), primary_key=True)
     team = db.relationship('Team')
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), primary_key=True)
-    user = db.relationship('User', backref='teams_membership')
+    user = db.relationship(
+        'User',
+        backref=backref('teams_membership', cascade='delete, delete-orphan')
+    )
 
     is_leader = db.Column(db.Boolean, default=False, nullable=False)
 
@@ -44,7 +47,7 @@ class Team(db.Model, Timestamp):
     id = db.Column(db.Integer, primary_key=True) # pylint: disable=invalid-name
     title = db.Column(db.String(length=50), nullable=False)
 
-    members = db.relationship('TeamMember')
+    members = db.relationship('TeamMember', cascade='delete, delete-orphan')
 
     @validates('title')
     def validate_title(self, key, title): # pylint: disable=unused-argument,no-self-use
