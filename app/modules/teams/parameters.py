@@ -21,6 +21,11 @@ class CreateTeamParameters(Parameters, schemas.BaseTeamSchema):
 
 
 class PatchTeamDetailsParameters(PatchJSONParameters):
+    # pylint: disable=missing-docstring
+    OPERATION_CHOICES = (
+        PatchJSONParameters.OP_REPLACE,
+    )
+
     PATH_CHOICES = tuple(
         '/%s' % field for field in (
             Team.title.key,

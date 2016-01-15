@@ -50,15 +50,19 @@ class Teams(Resource):
         """
         Create a new team.
         """
-        team = Team(**args)
         # pylint: disable=no-member
-        db.session.add(team)
         try:
-            db.session.commit()
-        except sqlalchemy.exc.IntegrityError:
+            try:
+                team = Team(**args)
+            except ValueError as exception:
+                abort(code=http_exceptions.Conflict.code, message=str(exception))
+            db.session.add(team)
+            try:
+                db.session.commit()
+            except sqlalchemy.exc.IntegrityError:
+                abort(code=http_exceptions.Conflict.code, message="Could not create a new team.")
+        finally:
             db.session.rollback()
-            # TODO: handle errors better
-            abort(code=http_exceptions.Conflict.code, message="Could not create a new team.")
         return team
 
 
@@ -95,23 +99,29 @@ class TeamByID(Resource):
         team = Team.query.get_or_404(team_id)
 
         # pylint: disable=no-member
-        with permissions.OwnerRolePermission(obj=team):
-            with permissions.WriteAccessPermission():
-                for operation in args['body']:
-                    if not self._process_patch_operation(operation, team=team):
-                        log.info("Team patching has ignored unknown operation %s", operation)
-                db.session.merge(team)
-
         try:
-            db.session.commit()
-        except sqlalchemy.exc.IntegrityError:
-            db.session.rollback()
-            # TODO: handle errors better
-            abort(
-                code=http_exceptions.Conflict.code,
-                message="Could not update team details."
-            )
+            with permissions.OwnerRolePermission(obj=team):
+                with permissions.WriteAccessPermission():
+                    for operation in args['body']:
+                        try:
+                            if not self._process_patch_operation(operation, team=team):
+                                log.info(
+                                    "Team patching has ignored unknown operation %s",
+                                    operation
+                                )
+                        except ValueError as exception:
+                            abort(code=http_exceptions.Conflict.code, message=str(exception))
+                    db.session.merge(team)
 
+            try:
+                db.session.commit()
+            except sqlalchemy.exc.IntegrityError:
+                abort(
+                    code=http_exceptions.Conflict.code,
+                    message="Could not update team details."
+                )
+        finally:
+            db.session.rollback()
         return team
 
     @api_v1.login_required(scopes=['teams:write'])
@@ -126,6 +136,8 @@ class TeamByID(Resource):
         # pylint: disable=no-member
         with permissions.OwnerRolePermission(obj=team):
             with permissions.WriteAccessPermission():
+                for member in team.members:
+                    db.session.delete(member)
                 db.session.delete(team)
 
         try:
@@ -190,6 +202,7 @@ class TeamMembers(Resource):
     @api_v1.login_required(scopes=['teams:write'])
     @api_v1.permission_required(permissions.OwnerRolePermission(partial=True))
     @api_v1.parameters(parameters.AddTeamMemberParameters())
+    @api_v1.response(schemas.BaseTeamMemberSchema())
     @api_v1.response(code=http_exceptions.Conflict.code)
     def post(self, args, team_id):
         """
@@ -198,29 +211,32 @@ class TeamMembers(Resource):
         team = Team.query.get_or_404(team_id)
 
         # pylint: disable=no-member
-        with permissions.OwnerRolePermission(obj=team):
-            with permissions.WriteAccessPermission():
-                user_id = args.pop('user_id')
-                user = User.query.get(user_id)
-                if user is None:
-                    abort(
-                        code=http_exceptions.NotFound.code,
-                        message="User with id %d does not exist" % user_id
-                    )
-                team_member = TeamMember(team=team, user=user, **args)
-                db.session.add(team_member)
-
         try:
-            db.session.commit()
-        except sqlalchemy.exc.IntegrityError:
-            db.session.rollback()
-            # TODO: handle errors better
-            abort(
-                code=http_exceptions.Conflict.code,
-                message="Could not update team details."
-            )
+            with permissions.OwnerRolePermission(obj=team):
+                with permissions.WriteAccessPermission():
+                    user_id = args.pop('user_id')
+                    user = User.query.get(user_id)
+                    if user is None:
+                        abort(
+                            code=http_exceptions.NotFound.code,
+                            message="User with id %d does not exist" % user_id
+                        )
+                    try:
+                        team_member = TeamMember(team=team, user=user, **args)
+                    except ValueError as exception:
+                        abort(code=http_exceptions.Conflict.code, message=str(exception))
+                    db.session.add(team_member)
 
-        return None
+            try:
+                db.session.commit()
+            except sqlalchemy.exc.IntegrityError:
+                abort(
+                    code=http_exceptions.Conflict.code,
+                    message="Could not update team details."
+                )
+        finally:
+            db.session.rollback()
+        return team_member
 
 
 @namespace.route('/<int:team_id>/members/<int:user_id>')
@@ -236,7 +252,7 @@ class TeamMemberByID(Resource):
     @api_v1.login_required(scopes=['teams:write'])
     @api_v1.permission_required(permissions.OwnerRolePermission(partial=True))
     @api_v1.response(code=http_exceptions.Conflict.code)
-    def delete(self, args, team_id):
+    def delete(self, team_id, user_id):
         """
         Remove a member from a team.
         """
@@ -245,7 +261,6 @@ class TeamMemberByID(Resource):
         # pylint: disable=no-member
         with permissions.OwnerRolePermission(obj=team):
             with permissions.WriteAccessPermission():
-                user_id = args['user_id']
                 team_member = TeamMember.query.filter_by(team=team, user_id=user_id).one()
                 if team_member is None:
                     abort(
@@ -264,4 +279,4 @@ class TeamMemberByID(Resource):
                 message="Could not update team details."
             )
 
-        return team
+        return None
