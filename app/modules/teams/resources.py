@@ -40,7 +40,7 @@ class Teams(Resource):
         Returns a list of teams starting from ``offset`` limited by ``limit``
         parameter.
         """
-        return Team.query.all()[args['offset']: args['offset'] + args['limit']]
+        return Team.query.offset(args['offset']).limit(args['limit'])
 
     @api_v1.login_required(scopes=['teams:write'])
     @api_v1.parameters(parameters.CreateTeamParameters())
