@@ -37,7 +37,6 @@ class DetailedUserSchema(BaseUserSchema):
     """
 
     class Meta(BaseUserSchema.Meta):
-        # pylint: disable=no-member
         fields = BaseUserSchema.Meta.fields + (
             User.email.key,
             User.created.key,

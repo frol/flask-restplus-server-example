@@ -14,7 +14,6 @@ class TeamMember(db.Model):
     """
     Team-member database model.
     """
-    # pylint: disable=no-member
     __tablename__ = 'team_member'
 
     team_id = db.Column(db.Integer, db.ForeignKey('team.id'), primary_key=True)
@@ -42,7 +41,6 @@ class Team(db.Model, Timestamp):
     """
     Team database model.
     """
-    # pylint: disable=no-member
 
     id = db.Column(db.Integer, primary_key=True) # pylint: disable=invalid-name
     title = db.Column(db.String(length=50), nullable=False)

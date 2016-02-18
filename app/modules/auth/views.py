@@ -48,7 +48,6 @@ def client():
         _default_scopes='users:read users:write email',
         user_id=current_user.id,
     )
-    # pylint: disable=no-member
     db.session.add(client_instance)
     db.session.commit()
     return jsonify(

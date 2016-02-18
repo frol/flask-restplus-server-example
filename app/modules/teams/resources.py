@@ -50,7 +50,6 @@ class Teams(Resource):
         """
         Create a new team.
         """
-        # pylint: disable=no-member
         try:
             try:
                 team = Team(**args)
@@ -98,7 +97,6 @@ class TeamByID(Resource):
         """
         team = Team.query.get_or_404(team_id)
 
-        # pylint: disable=no-member
         try:
             with permissions.OwnerRolePermission(obj=team):
                 with permissions.WriteAccessPermission():
@@ -133,7 +131,6 @@ class TeamByID(Resource):
         """
         team = Team.query.get_or_404(team_id)
 
-        # pylint: disable=no-member
         with permissions.OwnerRolePermission(obj=team):
             with permissions.WriteAccessPermission():
                 db.session.delete(team)
@@ -208,7 +205,6 @@ class TeamMembers(Resource):
         """
         team = Team.query.get_or_404(team_id)
 
-        # pylint: disable=no-member
         try:
             with permissions.OwnerRolePermission(obj=team):
                 with permissions.WriteAccessPermission():
@@ -256,7 +252,6 @@ class TeamMemberByID(Resource):
         """
         team = Team.query.get_or_404(team_id)
 
-        # pylint: disable=no-member
         with permissions.OwnerRolePermission(obj=team):
             with permissions.WriteAccessPermission():
                 team_member = TeamMember.query.filter_by(team=team, user_id=user_id).one()

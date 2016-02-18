@@ -64,7 +64,6 @@ class Users(Resource):
 
         new_user = User(**args)
 
-        # pylint: disable=no-member
         db.session.add(new_user)
         try:
             db.session.commit()
@@ -131,7 +130,6 @@ class UserByID(Resource):
                     if not self._process_patch_operation(operation, user=user, state=state):
                         log.info("User patching has ignored unknown operation %s", operation)
 
-                # pylint: disable=no-member
                 try:
                     db.session.merge(user)
                     db.session.commit()

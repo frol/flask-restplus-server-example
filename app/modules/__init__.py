@@ -1,6 +1,12 @@
 # encoding: utf-8
 """
-Init all modules here
+Modules
+=======
+
+Modules enable logical resource separation.
+
+You may control enabled modules by modifying ``ENABLED_MODULES`` config
+variable.
 """
 
 

@@ -18,7 +18,6 @@ class OAuth2Client(db.Model):
     Model that stores (Client ID, Client Secret), and connect it to a specific
     User.
     """
-    # pylint: disable=no-member
 
     __tablename__ = 'oauth2_client'
 
@@ -63,7 +62,6 @@ class OAuth2Grant(db.Model):
     """
     Intermediate temporary helper for OAuth2 Grants.
     """
-    # pylint: disable=no-member
 
     __tablename__ = 'oauth2_grant'
 
@@ -107,7 +105,6 @@ class OAuth2Token(db.Model):
     """
     OAuth2 Access Tokens storage model.
     """
-    # pylint: disable=no-member
 
     __tablename__ = 'oauth2_token'
 

@@ -41,7 +41,6 @@ class User(db.Model, Timestamp):
     User database model.
     """
 
-    # pylint: disable=no-member
     id = db.Column(db.Integer, primary_key=True) # pylint: disable=invalid-name
     username = db.Column(db.String(length=80), unique=True, nullable=False)
     password = db.Column(

@@ -35,7 +35,6 @@ class AddUserParameters(Parameters, schemas.BaseUserSchema):
 
 
 class PatchUserDetailsParameters(PatchJSONParameters):
-    # pylint: disable=no-member
     PATH_CHOICES = tuple(
         '/%s' % field for field in (
             'current_password',

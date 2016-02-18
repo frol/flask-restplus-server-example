@@ -3,6 +3,10 @@
 """
 Extensions setup
 ================
+
+Extensions provide access to common resources of the application.
+
+Please, put new extension instantiations and initializations here.
 """
 
 from sqlalchemy_utils import force_auto_coercion, force_instant_defaults

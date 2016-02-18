@@ -67,7 +67,6 @@ class OAuth2RequestValidator(provider.OAuth2RequestValidator):
             client_id=request.client.client_id,
             user_id=request.user.id,
         )
-        # pylint: disable=no-member
         db.session.add(token_instance)
         try:
             db.session.commit()
@@ -90,7 +89,6 @@ class OAuth2RequestValidator(provider.OAuth2RequestValidator):
             user=current_user,
             expires=expires
         )
-        # pylint: disable=no-member
         db.session.add(grant_instance)
         try:
             db.session.commit()
