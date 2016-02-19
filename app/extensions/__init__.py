@@ -9,6 +9,9 @@ Extensions provide access to common resources of the application.
 Please, put new extension instantiations and initializations here.
 """
 
+from flask_cors import CORS
+cross_origin_resource_sharing = CORS()
+
 from sqlalchemy_utils import force_auto_coercion, force_instant_defaults
 force_auto_coercion()
 force_instant_defaults()
@@ -45,6 +48,7 @@ def init_app(app):
     Application extensions initialization.
     """
     for extension in (
+            cross_origin_resource_sharing,
             db,
             login_manager,
             marshmallow,

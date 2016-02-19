@@ -1,21 +1,20 @@
 #Flask>=0.11
 https://github.com/mitsuhiko/flask/archive/master.zip
 
-flask-restful==0.3.5
-
 flask-restplus==0.8.6
 
-SQLAlchemy==1.0.11
-SQLAlchemy-Utils==0.31.4
+Flask-Cors==2.1.2
+
+SQLAlchemy==1.0.12
+SQLAlchemy-Utils==0.31.6
 Flask-SQLAlchemy==2.1
-Alembic==0.8.3
-Flask-Alembic==1.2.1
-werkzeug==0.11.2
+Alembic==0.8.4
+werkzeug==0.11.4
 
 flask-marshmallow==0.6.2
-marshmallow-sqlalchemy==0.6.0
-webargs==1.1.1
-apispec==0.5.0
+marshmallow-sqlalchemy==0.8.0
+webargs==1.2.0
+apispec==0.7.0
 
 bcrypt==2.0
 passlib==1.6.5
