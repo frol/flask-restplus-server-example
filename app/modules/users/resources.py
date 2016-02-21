@@ -1,5 +1,5 @@
 # encoding: utf-8
-# pylint: disable=no-self-use,too-few-public-methods,invalid-name
+# pylint: disable=too-few-public-methods,invalid-name
 """
 RESTful API User resources
 --------------------------
@@ -126,7 +126,7 @@ class UserByID(Resource):
             with permissions.WriteAccessPermission():
                 state = {'current_password': None}
 
-                for operation in args['body']:
+                for operation in args:
                     if not self._process_patch_operation(operation, user=user, state=state):
                         log.info("User patching has ignored unknown operation %s", operation)
 

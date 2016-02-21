@@ -30,6 +30,18 @@ class TeamMember(db.Model):
         db.UniqueConstraint('team_id', 'user_id', name='_team_user_uc'),
     )
 
+    def __repr__(self):
+        return (
+            "<{class_name}("
+            "team_id={self.team_id}, "
+            "user_id=\"{self.user_id}\", "
+            "is_leader=\"{self.is_leader}\""
+            ")>".format(
+                class_name=self.__class__.__name__,
+                self=self
+            )
+        )
+
     def check_owner(self, user):
         return self.user == user
 
@@ -46,6 +58,17 @@ class Team(db.Model, Timestamp):
     title = db.Column(db.String(length=50), nullable=False)
 
     members = db.relationship('TeamMember', cascade='delete, delete-orphan')
+
+    def __repr__(self):
+        return (
+            "<{class_name}("
+            "id={self.id}, "
+            "title=\"{self.title}\""
+            ")>".format(
+                class_name=self.__class__.__name__,
+                self=self
+            )
+        )
 
     @validates('title')
     def validate_title(self, key, title): # pylint: disable=unused-argument,no-self-use

@@ -1,27 +1,25 @@
 from six import itervalues
 
-from flask.ext.marshmallow import Schema, base_fields
+from flask_marshmallow import Schema, base_fields
 from marshmallow import validate
 
 
 class Parameters(Schema):
 
-    def __init__(self, api=None, **kwargs):
+    def __init__(self, **kwargs):
         super(Parameters, self).__init__(strict=True, **kwargs)
 
-
-class JSONParameters(Parameters):
-    """
-    Base JSON parameters class forcing all fields to be in ``json``/``body``.
-    """
-
-    def __init__(self, *args, **kwargs):
-        super(JSONParameters, self).__init__(*args, **kwargs)
-        for field in itervalues(self.fields):
-            field.metadata['location'] = 'json'
+    def make_instance(self, data):
+        """
+        This is a no-op function which shadows ``ModelSchema.make_instance``
+        method (when inherited classes inherit from ``ModelSchema``). Thus, we
+        avoid a new instance creation because it is undesirable behaviour for
+        parameters (they can be used not only for saving new instances).
+        """
+        return
 
 
-class PatchJSONParameters(JSONParameters):
+class PatchJSONParameters(Parameters):
     """
     Base parameters class for handling PATCH arguments according to RFC 6902.
     """

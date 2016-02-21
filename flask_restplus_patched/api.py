@@ -1,16 +1,14 @@
 from functools import wraps
 
 from flask import jsonify
-from flask.ext import restful, marshmallow
-from flask.ext.marshmallow import base_fields
-from flask.ext.restplus import Api as OriginalApi
+import flask_marshmallow
+from flask_restplus import Api as OriginalApi
 from flask_restplus.utils import merge
-from webargs.flaskparser import parser as flask_parser
+from webargs.flaskparser import use_args as use_webargs
 from werkzeug import cached_property, exceptions as http_exceptions
 
 from .model import Model, DefaultHTTPErrorSchema
 from .swagger import Swagger
-from .webargsparser import jsonlist_flask_parser
 
 
 class Api(OriginalApi):
@@ -37,9 +35,9 @@ class Api(OriginalApi):
 
     def model(self, name=None, model=None, **kwargs):
         """
-        Register a model
+        Register a model.
         """
-        if isinstance(model, marshmallow.Schema):
+        if isinstance(model, flask_marshmallow.Schema):
             if not name:
                 name = model.__class__.__name__
             api_model = Model(name, model)
@@ -48,22 +46,21 @@ class Api(OriginalApi):
             return api_model
         return super(Api, self).model(name, model, **kwargs)
 
-    def parameters(self, parameters):
+    def parameters(self, parameters, locations=None):
+        """
+        Register endpoint parameters.
+        """
         def decorator(func):
-            if parameters.many:
-                # XXX: read the note to JSONListFlaskParser for details
-                _parser = jsonlist_flask_parser
-                _parameters = {
-                    'body': base_fields.Nested(parameters, many=True, required=True, location='json')
-                }
+            if locations is None and parameters.many:
+                _locations = ('json', )
             else:
-                _parser = flask_parser
-                _parameters = parameters.fields
+                _locations = locations
 
-            parametrized_func = _parser.use_args(_parameters)(func)
-            return self.doc(params=_parameters)(
+            return self.doc(params=parameters)(
                 self.response(code=http_exceptions.UnprocessableEntity.code)(
-                    parametrized_func
+                    use_webargs(parameters, locations=_locations)(
+                        func
+                    )
                 )
             )
 
@@ -119,16 +116,6 @@ class Api(OriginalApi):
             )(decorated_func_or_class)
 
         return decorator
-
-
-# This function is moved out from Api class
-def abort(code=http_exceptions.InternalServerError.code, message=None, **kwargs):
-    '''Properly abort the current request'''
-    if message or kwargs and 'status' not in kwargs:
-        kwargs['status'] = code
-    if message:
-        kwargs['message'] = str(message)
-    restful.abort(code, **kwargs)
 
 
 # Return validation errors as JSON

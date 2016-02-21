@@ -1,5 +1,5 @@
-from flask.ext.restplus import *
-from .api import Api, abort
+from flask_restplus import *
+from .api import Api
 from .model import Schema, ModelSchema, DefaultHTTPErrorSchema
-from .parameters import Parameters, JSONParameters, PatchJSONParameters
+from .parameters import Parameters, PatchJSONParameters
 from .swagger import Swagger

@@ -1,5 +1,4 @@
 # encoding: utf-8
-# pylint: disable=no-self-use
 """
 RESTful API Team resources
 --------------------------
@@ -100,7 +99,7 @@ class TeamByID(Resource):
         try:
             with permissions.OwnerRolePermission(obj=team):
                 with permissions.WriteAccessPermission():
-                    for operation in args['body']:
+                    for operation in args:
                         try:
                             if not self._process_patch_operation(operation, team=team):
                                 log.info(
