@@ -114,8 +114,10 @@ def test_add_new_team_member(flask_app_client, db, regular_user, admin_user, tea
     team_members.delete()
     db.session.commit()
 
-def test_delete_team_member(flask_app_client, db, regular_user, readonly_user, team_for_regular_user):
-    # pylint: disable=invalid-name
+def test_delete_team_member(
+        flask_app_client, db, regular_user, readonly_user, team_for_regular_user
+):
+    # pylint: disable=invalid-name,unused-argument
     with flask_app_client.login(regular_user, auth_scopes=('teams:write', )):
         response = flask_app_client.delete(
             '/api/v1/teams/%d/members/%d' % (team_for_regular_user.id, readonly_user.id),

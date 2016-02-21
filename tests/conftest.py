@@ -22,7 +22,7 @@ def db(flask_app):
     # pylint: disable=unused-argument,invalid-name
     from app.extensions import db as db_instance
     yield db_instance
-    db_instance.session.rollback() # pylint: disable=no-member
+    db_instance.session.rollback()
 
 @pytest.fixture(scope='session')
 def flask_app_client(flask_app):
@@ -32,7 +32,7 @@ def flask_app_client(flask_app):
 
 @pytest.yield_fixture(scope='session')
 def regular_user(flask_app):
-    # pylint: disable=invalid-name,unused-argument,no-member
+    # pylint: disable=invalid-name,unused-argument
     from app.extensions import db
 
     regular_user_instance = utils.generate_user_instance(
@@ -47,7 +47,7 @@ def regular_user(flask_app):
 
 @pytest.yield_fixture(scope='session')
 def readonly_user(flask_app):
-    # pylint: disable=invalid-name,unused-argument,no-member
+    # pylint: disable=invalid-name,unused-argument
     from app.extensions import db
 
     readonly_user_instance = utils.generate_user_instance(
@@ -63,7 +63,7 @@ def readonly_user(flask_app):
 
 @pytest.yield_fixture(scope='session')
 def admin_user(flask_app):
-    # pylint: disable=invalid-name,unused-argument,no-member
+    # pylint: disable=invalid-name,unused-argument
     from app.extensions import db
 
     admin_user_instance = utils.generate_user_instance(

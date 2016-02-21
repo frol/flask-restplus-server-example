@@ -1,5 +1,5 @@
 # encoding: utf-8
-# pylint: disable=missing-docstring
+# pylint: disable=missing-docstring,redefined-outer-name
 import pytest
 
 from flask_login import current_user, login_user, logout_user
@@ -30,6 +30,7 @@ def patch_User_password_scheme():
 
 @pytest.fixture()
 def user_instance(patch_User_password_scheme):
+    # pylint: disable=unused-argument,invalid-name
     user_id = 1
     _user_instance = utils.generate_user_instance(user_id=user_id)
     _user_instance.get_id = lambda: user_id

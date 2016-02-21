@@ -1,6 +1,5 @@
 # pylint: disable=too-few-public-methods,invalid-name,missing-docstring
 import os
-import tempfile
 
 
 class BaseConfig(object):

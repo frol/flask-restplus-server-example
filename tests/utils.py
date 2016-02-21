@@ -50,7 +50,6 @@ class AutoAuthFlaskClient(FlaskClient):
                 expires=datetime.utcnow() + timedelta(days=1),
             )
 
-            # pylint: disable=no-member
             db.session.add(oauth2_bearer_token)
             db.session.commit()
 
@@ -68,7 +67,6 @@ class AutoAuthFlaskClient(FlaskClient):
         response = super(AutoAuthFlaskClient, self).open(*args, **kwargs)
 
         if self._user is not None:
-            # pylint: disable=no-member
             db.session.delete(oauth2_bearer_token)
             db.session.commit()
 

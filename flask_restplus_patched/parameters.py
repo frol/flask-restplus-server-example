@@ -1,5 +1,3 @@
-from six import itervalues
-
 from flask_marshmallow import Schema, base_fields
 from marshmallow import validate
 
