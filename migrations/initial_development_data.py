@@ -16,6 +16,7 @@ def init_users():
     docs_user = User(username='docs', email='docs@localhost', password='w', is_active=False)
     regular_user = User(username='user', email='user@localhost', password='w')
     db.session.add(root_user)
+    db.session.add(docs_user)
     db.session.add(regular_user)
     db.session.commit()
     return root_user, docs_user, regular_user
