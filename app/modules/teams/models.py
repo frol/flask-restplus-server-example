@@ -4,7 +4,6 @@ Team database models
 --------------------
 """
 
-from sqlalchemy.orm import validates, backref
 from sqlalchemy_utils import Timestamp
 
 from app.extensions import db
@@ -21,7 +20,7 @@ class TeamMember(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), primary_key=True)
     user = db.relationship(
         'User',
-        backref=backref('teams_membership', cascade='delete, delete-orphan')
+        backref=db.backref('teams_membership', cascade='delete, delete-orphan')
     )
 
     is_leader = db.Column(db.Boolean, default=False, nullable=False)
@@ -70,7 +69,7 @@ class Team(db.Model, Timestamp):
             )
         )
 
-    @validates('title')
+    @db.validates('title')
     def validate_title(self, key, title): # pylint: disable=unused-argument,no-self-use
         if len(title) < 3:
             raise ValueError("Title has to be at least 3 characters long.")
