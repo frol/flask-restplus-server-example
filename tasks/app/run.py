@@ -23,6 +23,13 @@ def run(
         context.invoke_execute(context, 'app.dependencies.install')
     if upgrade_db:
         context.invoke_execute(context, 'app.db.upgrade')
+        if development:
+            context.invoke_execute(
+                context,
+                'app.db.init_development_data',
+                upgrade_db=False,
+                skip_on_failure=True
+            )
 
     from app import create_app
     create_app(

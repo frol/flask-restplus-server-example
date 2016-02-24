@@ -5,7 +5,6 @@ Application database related tasks for Invoke.
 
 Forked from flask-migrate
 """
-
 import argparse
 import functools
 import logging
@@ -13,12 +12,14 @@ import os
 
 from invoke import ctask as task
 
+log = logging.getLogger(__name__) # pylint: disable=invalid-name
+
 try:
     from alembic import __version__ as __alembic_version__
     from alembic.config import Config as AlembicConfig
     from alembic import command
 except ImportError:
-    logging.warning("Alembic cannot be imported, so app.db.* tasks won't be available!")
+    log.warning("Alembic cannot be imported, so some app.db.* tasks won't be available!")
 else:
 
     alembic_version = tuple([int(v) for v in __alembic_version__.split('.')[0:3]])
@@ -289,3 +290,33 @@ else:
         with create_app().app_context():
             config = _get_config(directory)
             command.stamp(config, revision, sql=sql, tag=tag)
+
+
+@task
+def init_development_data(context, upgrade_db=True, skip_on_failure=False):
+    """
+    Fill a database with development data like default users.
+    """
+    if upgrade_db:
+        context.invoke_execute(context, 'app.db.upgrade')
+
+    log.info("Initializing development data...")
+
+    import app
+    flask_app = app.create_app()
+
+    with flask_app.app_context():
+        from migrations import initial_development_data
+        try:
+            initial_development_data.init()
+        except AssertionError as exception:
+            if not skip_on_failure:
+                log.error("%s", exception)
+            else:
+                log.debug(
+                    "The following error was ignored due to the `skip_on_failure` flag: %s",
+                    exception
+                )
+                log.info("Initializing development data step is skipped.")
+        else:
+            log.info("Fixtures have been successfully applied.")
