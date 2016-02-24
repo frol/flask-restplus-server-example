@@ -1,6 +1,8 @@
 .dockerignore
 Dockerfile
 
+example.db
+
 .git*
 
 __pycache__
