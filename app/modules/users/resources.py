@@ -21,6 +21,9 @@ from .models import db, User
 log = logging.getLogger(__name__)
 namespace = api_v1.namespace('users', description="Users")
 
+api_v1.add_oauth_scope('users:read', "Provice access to user details")
+api_v1.add_oauth_scope('users:write', "Provice write access to user details")
+
 
 @namespace.route('/')
 class Users(Resource):

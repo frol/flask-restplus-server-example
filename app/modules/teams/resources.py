@@ -22,6 +22,9 @@ from .models import Team, TeamMember
 log = logging.getLogger(__name__) # pylint: disable=invalid-name
 namespace = api_v1.namespace('teams', description="Teams") # pylint: disable=invalid-name
 
+api_v1.add_oauth_scope('teams:read', "Provice access to team details")
+api_v1.add_oauth_scope('teams:write', "Provice write access to team details")
+
 
 @namespace.route('/')
 class Teams(Resource):

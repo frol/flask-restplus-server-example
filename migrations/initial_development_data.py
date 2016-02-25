@@ -5,7 +5,7 @@ This file contains initialization data for development usage only.
 
 You can execute this code via ``invoke app.db.init_development_data``
 """
-from app.extensions import db
+from app.extensions import db, api
 
 from app.modules.users.models import User
 from app.modules.auth.models import OAuth2Client
@@ -27,7 +27,8 @@ def init_auth(docs_user):
     oauth2_client = OAuth2Client(
         client_id='docs',
         client_secret='KQ()SWK)SQK)QWSKQW(SKQ)S(QWSQW(SJ*HQ&HQW*SQ*^SSQWSGQSG',
-        user_id=docs_user.id
+        user_id=docs_user.id,
+        _default_scopes=' '.join(api.api_v1.authorizations['oauth2_password']['scopes'])
     )
     db.session.add(oauth2_client)
     db.session.commit()

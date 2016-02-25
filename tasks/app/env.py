@@ -15,13 +15,12 @@ def enter(context, install_dependencies=True, upgrade_db=True):
         context.invoke_execute(context, 'app.dependencies.install')
     if upgrade_db:
         context.invoke_execute(context, 'app.db.upgrade')
-        if development:
-            context.invoke_execute(
-                context,
-                'app.db.init_development_data',
-                upgrade_db=False,
-                skip_on_failure=True
-            )
+        context.invoke_execute(
+            context,
+            'app.db.init_development_data',
+            upgrade_db=False,
+            skip_on_failure=True
+        )
 
 
     import pprint

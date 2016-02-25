@@ -15,24 +15,14 @@ class BaseConfig(object):
         'oauth2_password': {
             'type': 'oauth2',
             'flow': 'password',
-            'scopes': {
-                'users:read': "Read users",
-                'users:write': "Write users",
-                'teams:read': "Read teams",
-                'teams:write': "Write teams",
-            },
+            'scopes': {},
             'tokenUrl': '/auth/oauth2/token',
         },
         # TODO: implement other grant types for third-party apps
         #'oauth2_implicit': {
         #    'type': 'oauth2',
         #    'flow': 'implicit',
-        #    'scopes': {
-        #        'users:read': "Read users",
-        #        'users:write': "Write users",
-        #        'teams:read': "Read teams",
-        #        'teams:write': "Write teams",
-        #    },
+        #    'scopes': {},
         #    'authorizationUrl': '/auth/oauth2/authorize',
         #},
     }
