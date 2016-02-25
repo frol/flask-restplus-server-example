@@ -12,11 +12,27 @@ from app.modules.auth.models import OAuth2Client
 
 
 def init_users():
-    root_user = User(username='root', email='root@localhost', password='q', is_admin=True)
-    docs_user = User(username='docs', email='docs@localhost', password='w', is_active=False)
-    regular_user = User(username='user', email='user@localhost', password='w')
+    root_user = User(
+        username='root',
+        email='root@localhost',
+        password='q',
+        is_active=True,
+        is_admin=True
+    )
     db.session.add(root_user)
+    docs_user = User(
+        username='docs',
+        email='docs@localhost',
+        password='w',
+        is_active=False
+    )
     db.session.add(docs_user)
+    regular_user = User(
+        username='user',
+        email='user@localhost',
+        password='w',
+        is_active=True
+    )
     db.session.add(regular_user)
     db.session.commit()
     return root_user, docs_user, regular_user
