@@ -5,13 +5,13 @@ Input arguments (Parameters) for User resources RESTful API
 """
 
 from flask_marshmallow import base_fields
-from flask_restplus_patched import Parameters, PatchJSONParameters
+from flask_restplus_patched import PostFormParameters, PatchJSONParameters
 
 from . import schemas
 from .models import User
 
 
-class AddUserParameters(Parameters, schemas.BaseUserSchema):
+class AddUserParameters(PostFormParameters, schemas.BaseUserSchema):
     """
     New user creation (sign up) parameters.
     """

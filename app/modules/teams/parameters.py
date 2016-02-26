@@ -5,13 +5,13 @@ Input arguments (Parameters) for Team resources RESTful API
 """
 
 from flask_marshmallow import base_fields
-from flask_restplus_patched import Parameters, PatchJSONParameters
+from flask_restplus_patched import PostFormParameters, PatchJSONParameters
 
 from . import schemas
 from .models import Team
 
 
-class CreateTeamParameters(Parameters, schemas.BaseTeamSchema):
+class CreateTeamParameters(PostFormParameters, schemas.BaseTeamSchema):
 
     class Meta(schemas.BaseTeamSchema.Meta):
         # This is not supported yet: https://github.com/marshmallow-code/marshmallow/issues/344
@@ -33,6 +33,6 @@ class PatchTeamDetailsParameters(PatchJSONParameters):
     )
 
 
-class AddTeamMemberParameters(Parameters):
+class AddTeamMemberParameters(PostFormParameters):
     user_id = base_fields.Integer(required=True)
     is_leader = base_fields.Boolean(required=False)

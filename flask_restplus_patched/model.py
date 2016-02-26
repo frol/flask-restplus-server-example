@@ -34,9 +34,9 @@ class DefaultHTTPErrorSchema(Schema):
 
 class Model(OriginalModel):
 
-    def __init__(self, name, model):
+    def __init__(self, name, model, **kwargs):
         # XXX: Wrapping with __schema__ is not a very elegant solution.
-        super(Model, self).__init__(name, {'__schema__': model})
+        super(Model, self).__init__(name, {'__schema__': model}, **kwargs)
 
     @cached_property
     def __schema__(self):

@@ -1,7 +1,8 @@
 #Flask>=0.11
 https://github.com/mitsuhiko/flask/archive/master.zip
 
-flask-restplus==0.8.6
+#flask-restplus>0.9.0
+https://github.com/frol/flask-restplus/archive/patch-2.zip
 
 Flask-Cors==2.1.2
 
