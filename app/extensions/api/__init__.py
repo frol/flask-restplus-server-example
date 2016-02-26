@@ -14,6 +14,7 @@ api_v1 = Api( # pylint: disable=invalid-name
     version='1.0',
     title="Flask-RESTplus Example API",
     description="Real-life example RESTful API server implementation using Flask-RESTplus",
+    authorizations={},
 )
 
 
