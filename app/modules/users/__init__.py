@@ -17,3 +17,5 @@ def init_app(app, **kwargs):
 
     # Touch underlying modules
     from . import models, resources
+
+    api_v1.add_namespace(resources.api)

@@ -10,7 +10,7 @@ from flask_restplus import Resource
 import sqlalchemy
 
 from app.extensions import db
-from app.extensions.api import api_v1, abort, http_exceptions
+from app.extensions.api import Namespace, abort, http_exceptions
 from app.extensions.api.parameters import PaginationParameters
 from app.modules.users import permissions
 from app.modules.users.models import User
@@ -20,18 +20,18 @@ from .models import Team, TeamMember
 
 
 log = logging.getLogger(__name__) # pylint: disable=invalid-name
-namespace = api_v1.namespace('teams', description="Teams") # pylint: disable=invalid-name
+api = Namespace('teams', description="Teams") # pylint: disable=invalid-name
 
 
-@namespace.route('/')
+@api.route('/')
 class Teams(Resource):
     """
     Manipulations with teams.
     """
 
-    @api_v1.login_required(scopes=['teams:read'])
-    @api_v1.parameters(PaginationParameters())
-    @api_v1.response(schemas.BaseTeamSchema(many=True))
+    @api.login_required(scopes=['teams:read'])
+    @api.parameters(PaginationParameters())
+    @api.response(schemas.BaseTeamSchema(many=True))
     def get(self, args):
         """
         List of teams.
@@ -41,10 +41,10 @@ class Teams(Resource):
         """
         return Team.query.offset(args['offset']).limit(args['limit'])
 
-    @api_v1.login_required(scopes=['teams:write'])
-    @api_v1.parameters(parameters.CreateTeamParameters())
-    @api_v1.response(schemas.DetailedTeamSchema())
-    @api_v1.response(code=http_exceptions.Conflict.code)
+    @api.login_required(scopes=['teams:write'])
+    @api.parameters(parameters.CreateTeamParameters())
+    @api.response(schemas.DetailedTeamSchema())
+    @api.response(code=http_exceptions.Conflict.code)
     def post(self, args):
         """
         Create a new team.
@@ -64,8 +64,8 @@ class Teams(Resource):
         return team
 
 
-@namespace.route('/<int:team_id>')
-@api_v1.response(
+@api.route('/<int:team_id>')
+@api.response(
     code=http_exceptions.NotFound.code,
     description="Team not found.",
 )
@@ -74,9 +74,9 @@ class TeamByID(Resource):
     Manipulations with a specific team.
     """
 
-    @api_v1.login_required(scopes=['teams:read'])
-    @api_v1.permission_required(permissions.OwnerRolePermission(partial=True))
-    @api_v1.response(schemas.DetailedTeamSchema())
+    @api.login_required(scopes=['teams:read'])
+    @api.permission_required(permissions.OwnerRolePermission(partial=True))
+    @api.response(schemas.DetailedTeamSchema())
     def get(self, team_id):
         """
         Get team details by ID.
@@ -85,11 +85,11 @@ class TeamByID(Resource):
         with permissions.OwnerRolePermission(obj=team):
             return team
 
-    @api_v1.login_required(scopes=['teams:write'])
-    @api_v1.permission_required(permissions.OwnerRolePermission(partial=True))
-    @api_v1.parameters(parameters.PatchTeamDetailsParameters())
-    @api_v1.response(schemas.DetailedTeamSchema())
-    @api_v1.response(code=http_exceptions.Conflict.code)
+    @api.login_required(scopes=['teams:write'])
+    @api.permission_required(permissions.OwnerRolePermission(partial=True))
+    @api.parameters(parameters.PatchTeamDetailsParameters())
+    @api.response(schemas.DetailedTeamSchema())
+    @api.response(code=http_exceptions.Conflict.code)
     def patch(self, args, team_id):
         """
         Patch team details by ID.
@@ -121,9 +121,9 @@ class TeamByID(Resource):
             db.session.rollback()
         return team
 
-    @api_v1.login_required(scopes=['teams:write'])
-    @api_v1.permission_required(permissions.OwnerRolePermission(partial=True))
-    @api_v1.response(code=http_exceptions.Conflict.code)
+    @api.login_required(scopes=['teams:write'])
+    @api.permission_required(permissions.OwnerRolePermission(partial=True))
+    @api.response(code=http_exceptions.Conflict.code)
     def delete(self, team_id):
         """
         Delete a team by ID.
@@ -171,8 +171,8 @@ class TeamByID(Resource):
         return False
 
 
-@namespace.route('/<int:team_id>/members/')
-@api_v1.response(
+@api.route('/<int:team_id>/members/')
+@api.response(
     code=http_exceptions.NotFound.code,
     description="Team not found.",
 )
@@ -181,10 +181,10 @@ class TeamMembers(Resource):
     Manipulations with members of a specific team.
     """
 
-    @api_v1.login_required(scopes=['teams:read'])
-    @api_v1.permission_required(permissions.OwnerRolePermission(partial=True))
-    @api_v1.parameters(PaginationParameters())
-    @api_v1.response(schemas.BaseTeamMemberSchema(many=True))
+    @api.login_required(scopes=['teams:read'])
+    @api.permission_required(permissions.OwnerRolePermission(partial=True))
+    @api.parameters(PaginationParameters())
+    @api.response(schemas.BaseTeamMemberSchema(many=True))
     def get(self, args, team_id):
         """
         Get team members by team ID.
@@ -193,11 +193,11 @@ class TeamMembers(Resource):
         with permissions.OwnerRolePermission(obj=team):
             return team.members[args['offset']: args['offset'] + args['limit']]
 
-    @api_v1.login_required(scopes=['teams:write'])
-    @api_v1.permission_required(permissions.OwnerRolePermission(partial=True))
-    @api_v1.parameters(parameters.AddTeamMemberParameters())
-    @api_v1.response(schemas.BaseTeamMemberSchema())
-    @api_v1.response(code=http_exceptions.Conflict.code)
+    @api.login_required(scopes=['teams:write'])
+    @api.permission_required(permissions.OwnerRolePermission(partial=True))
+    @api.parameters(parameters.AddTeamMemberParameters())
+    @api.response(schemas.BaseTeamMemberSchema())
+    @api.response(code=http_exceptions.Conflict.code)
     def post(self, args, team_id):
         """
         Add a new member to a team.
@@ -232,8 +232,8 @@ class TeamMembers(Resource):
         return team_member
 
 
-@namespace.route('/<int:team_id>/members/<int:user_id>')
-@api_v1.response(
+@api.route('/<int:team_id>/members/<int:user_id>')
+@api.response(
     code=http_exceptions.NotFound.code,
     description="Team or member not found.",
 )
@@ -242,9 +242,9 @@ class TeamMemberByID(Resource):
     Manipulations with a specific team member.
     """
 
-    @api_v1.login_required(scopes=['teams:write'])
-    @api_v1.permission_required(permissions.OwnerRolePermission(partial=True))
-    @api_v1.response(code=http_exceptions.Conflict.code)
+    @api.login_required(scopes=['teams:write'])
+    @api.permission_required(permissions.OwnerRolePermission(partial=True))
+    @api.response(code=http_exceptions.Conflict.code)
     def delete(self, team_id, user_id):
         """
         Remove a member from a team.

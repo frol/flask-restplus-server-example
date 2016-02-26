@@ -11,7 +11,7 @@ from flask_login import current_user
 from flask_restplus import Resource
 import sqlalchemy
 
-from app.extensions.api import api_v1, abort, http_exceptions
+from app.extensions.api import Namespace, abort, http_exceptions
 from app.extensions.api.parameters import PaginationParameters
 
 from . import permissions, schemas, parameters
@@ -19,19 +19,19 @@ from .models import db, User
 
 
 log = logging.getLogger(__name__)
-namespace = api_v1.namespace('users', description="Users")
+api = Namespace('users', description="Users")
 
 
-@namespace.route('/')
+@api.route('/')
 class Users(Resource):
     """
     Manipulations with users.
     """
 
-    @api_v1.login_required(scopes=['users:read'])
-    @api_v1.permission_required(permissions.AdminRolePermission())
-    @api_v1.parameters(PaginationParameters())
-    @api_v1.response(schemas.BaseUserSchema(many=True))
+    @api.login_required(scopes=['users:read'])
+    @api.permission_required(permissions.AdminRolePermission())
+    @api.parameters(PaginationParameters())
+    @api.response(schemas.BaseUserSchema(many=True))
     def get(self, args):
         """
         List of users.
@@ -41,10 +41,10 @@ class Users(Resource):
         """
         return User.query.offset(args['offset']).limit(args['limit'])
 
-    @api_v1.parameters(parameters.AddUserParameters())
-    @api_v1.response(schemas.DetailedUserSchema())
-    @api_v1.response(code=http_exceptions.Forbidden.code)
-    @api_v1.response(code=http_exceptions.Conflict.code)
+    @api.parameters(parameters.AddUserParameters())
+    @api.response(schemas.DetailedUserSchema())
+    @api.response(code=http_exceptions.Forbidden.code)
+    @api.response(code=http_exceptions.Conflict.code)
     def post(self, args):
         """
         Create a new user.
@@ -75,10 +75,10 @@ class Users(Resource):
         return new_user
 
 
-@namespace.route('/signup_form')
+@api.route('/signup_form')
 class UserSignupForm(Resource):
 
-    @api_v1.response(schemas.UserSignupFormSchema())
+    @api.response(schemas.UserSignupFormSchema())
     def get(self):
         """
         Get signup form keys.
@@ -90,8 +90,8 @@ class UserSignupForm(Resource):
         return {"recaptcha_server_key": "TODO"}
 
 
-@namespace.route('/<int:user_id>')
-@api_v1.response(
+@api.route('/<int:user_id>')
+@api.response(
     code=http_exceptions.NotFound.code,
     description="User not found.",
 )
@@ -100,9 +100,9 @@ class UserByID(Resource):
     Manipulations with a specific user.
     """
 
-    @api_v1.login_required(scopes=['users:read'])
-    @api_v1.permission_required(permissions.OwnerRolePermission(partial=True))
-    @api_v1.response(schemas.DetailedUserSchema())
+    @api.login_required(scopes=['users:read'])
+    @api.permission_required(permissions.OwnerRolePermission(partial=True))
+    @api.response(schemas.DetailedUserSchema())
     def get(self, user_id):
         """
         Get user details by ID.
@@ -111,11 +111,11 @@ class UserByID(Resource):
         with permissions.OwnerRolePermission(obj=user):
             return user
 
-    @api_v1.login_required(scopes=['users:write'])
-    @api_v1.permission_required(permissions.OwnerRolePermission(partial=True))
-    @api_v1.parameters(parameters.PatchUserDetailsParameters())
-    @api_v1.response(schemas.DetailedUserSchema())
-    @api_v1.response(code=http_exceptions.Conflict.code)
+    @api.login_required(scopes=['users:write'])
+    @api.permission_required(permissions.OwnerRolePermission(partial=True))
+    @api.parameters(parameters.PatchUserDetailsParameters())
+    @api.response(schemas.DetailedUserSchema())
+    @api.response(code=http_exceptions.Conflict.code)
     def patch(self, args, user_id):
         """
         Patch user details by ID.
@@ -200,14 +200,14 @@ class UserByID(Resource):
         return False
 
 
-@namespace.route('/me')
+@api.route('/me')
 class UserMe(Resource):
     """
     Useful reference to the authenticated user itself.
     """
 
-    @api_v1.login_required(scopes=['users:read'])
-    @api_v1.response(schemas.DetailedUserSchema())
+    @api.login_required(scopes=['users:read'])
+    @api.response(schemas.DetailedUserSchema())
     def get(self):
         """
         Get current user details.

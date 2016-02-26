@@ -9,6 +9,7 @@ from copy import deepcopy
 from flask import Blueprint
 
 from .api import Api
+from .namespace import Namespace
 from .http_exceptions import abort
 
 
