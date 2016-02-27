@@ -12,20 +12,20 @@ implemented.
 
 The goals that were achived in this example:
 
-* RESTful API server should be self-documented using Swagger specifications,
-  so interactive documentation UI is in place;
+* RESTful API server should be self-documented using OpenAPI (fka Swagger)
+  specifications, so interactive documentation UI is in place;
 * Authentication is handled with OAuth2 and using Resource Owner Password
   Credentials Grant (Password Flow) for first-party clients makes it usable
   not only for third-party "external" apps;
 * Permissions are handled (and automaticaly documented);
 * PATCH method can be handled accordingly to
-  [RFC 6902](http://tools.ietf.org/html/rfc6902).
+  [RFC 6902](http://tools.ietf.org/html/rfc6902);
+* Extensive testing with good code coverage.
 
 I had to patch Flask-RESTplus (see `flask_restplus_patched` folder), so it can
 handle Marshmallow schemas and Webargs arguments.
 
-This is still work-in-progress project, but it already has some value, so I
-publish it. Here is how it looks at this point of time:
+Here is how it looks at this point of time:
 
 ![Flask RESTplus Example API](https://raw.githubusercontent.com/frol/flask-restplus-server-example/master/docs/static/Flask_RESTplus_Example_API.png)
 
@@ -35,23 +35,31 @@ Dependencies
 
 ### Project Dependencies
 
-* **Python** 2.7, 3.3+ / pypy2 (2.5.0)
-* **flask-restplus** (*flask*, *flask-restful*)
-* **sqlalchemy** (+ *flask-sqlalchemy*) - Database ORM.
-* **sqlalchemy-utils** - for nice custom fields (e.g., PasswordField).
-* **alembic** (+ *flask-alembic*) - for DB migrations.
-* **marshmallow** (+ *marshmallow-sqlalchemy*, *flask-marshmallow*) - for
+* [**Python**](https://www.python.org/) 2.7, 3.3+ / pypy2 (2.5.0)
+* [**flask-restplus**](https://github.com/noirbizarre/flask-restplus) (+
+  [*flask*](http://flask.pocoo.org/))
+* [**sqlalchemy**](http://www.sqlalchemy.org/) (+
+  [*flask-sqlalchemy*](http://flask-sqlalchemy.pocoo.org/)) - Database ORM.
+* [**sqlalchemy-utils**](https://sqlalchemy-utils.rtdf.org/) - for nice
+  custom fields (e.g., `PasswordField`).
+* [**alembic**](https://alembic.rtdf.org/) - for DB migrations.
+* [**marshmallow**](http://marshmallow.rtfd.org/) (+
+  [*marshmallow-sqlalchemy*](http://marshmallow-sqlalchemy.rtfd.org/),
+  [*flask-marshmallow*](http://flask-marshmallow.rtfd.org/)) - for
   schema definitions. (*supported by the patched Flask-RESTplus*)
-* **webargs** - for parameters (input arguments). (*supported by the patched
-  Flask-RESTplus*)
-* **apispec** - for *marshmallow* and *webargs* introspection. (*integrated
-  into the patched Flask-RESTplus*)
-* **oauthlib** (+ *flask-oauthlib*) - for authentication.
-* **flask-login** - for `current_user` integration only.
-* **bcrypt** - for password hashing (used as a backend by
-  *sqlalchemy-utils.PasswordField*).
-* **permission** - for authorization.
-* **Swagger-UI** - for interactive RESTful API documentation.
+* [**webargs**](http://webargs.rtfd.org/) - for parameters (input arguments).
+  (*supported by the patched Flask-RESTplus*)
+* [**apispec**](http://apispec.rtfd.org/) - for *marshmallow* and *webargs*
+  introspection. (*integrated into the patched Flask-RESTplus*)
+* [**oauthlib**](http://oauthlib.rtfd.org/) (+
+  [*flask-oauthlib*](http://flask-oauthlib.rtfd.org/)) - for authentication.
+* [**flask-login**](http://flask-login.rtfd.org/) - for `current_user`
+  integration only.
+* [**bcrypt**](https://github.com/pyca/bcrypt/) - for password hashing (used as
+  a backend by *sqlalchemy-utils.PasswordField*).
+* [**permission**](https://github.com/hustlzp/permission) - for authorization.
+* [**Swagger-UI**](https://github.com/swagger-api/swagger-ui) - for interactive
+  RESTful API documentation.
 
 ### Build Dependencies
 
@@ -64,15 +72,11 @@ life become colorful.
 
 * **flask-restplus** is patched to handle marshmallow schemas and webargs
   input parameters
-  ([GH #9](https://github.com/noirbizarre/flask-restplus/issues/9)),
-  and to be able to implement and document PATCH method as it is described in
-  [RFC 6902](http://tools.ietf.org/html/rfc6902)
-  ([GH #11](https://github.com/noirbizarre/flask-restplus/issues/11))
-* **swagger-ui** (*the bundle is included in this repo*) just includes several
-  pull-requests: JSON Editor
-  ([PR #1589](https://github.com/swagger-api/swagger-ui/pull/1589)),
-  and Resource Owner Password Credentials Grant OAuth2 (Password Flow)
-  ([PR #1574](https://github.com/swagger-api/swagger-ui/pull/1574))
+  ([GH #9](https://github.com/noirbizarre/flask-restplus/issues/9)).
+* **swagger-ui** (*the bundle is automatically downloaded on the first run*)
+  just includes a pull-request to support Resource Owner Password Credentials
+  Grant OAuth2 (aka Password Flow)
+  ([PR #1853](https://github.com/swagger-api/swagger-ui/pull/1853)).
 
 
 Installation
