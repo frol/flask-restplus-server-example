@@ -13,7 +13,7 @@ class Namespace(BaseNamespace):
     Having app-specific handlers here.
     """
 
-    def login_required(self, scopes):
+    def login_required(self, oauth_scopes):
         """
         A decorator which restricts access for authorized users only.
         """
@@ -25,6 +25,8 @@ class Namespace(BaseNamespace):
             from app.extensions import oauth2
             from app.modules.users import permissions
 
+            # Automatically apply `permissions.ActivatedUserRolePermisson`
+            # guard if none is yet applied.
             if getattr(func, '_role_permission_applied', False):
                 protected_func = func
             else:
@@ -32,26 +34,26 @@ class Namespace(BaseNamespace):
                     permissions.ActivatedUserRolePermission()
                 )(func)
 
-            oauth_protected_func = oauth2.require_oauth(*scopes)(protected_func)
-            oauth_authorizations = []
-
-            scopes_set = set(scopes)
-            for api in self.apis:
-                for authorization_name, authorization_settings in api.authorizations.items():
-                    if authorization_settings['type'].startswith('oauth'):
-                        oauth_authorizations.append(authorization_name)
-                        unknown_scopes = scopes_set - set(authorization_settings['scopes'])
-                        assert not unknown_scopes, "%r auth scopes are unknown" % unknown_scopes
+            oauth_protected_func = oauth2.require_oauth(*oauth_scopes)(protected_func)
 
             return self.doc(
-                security=[
-                    {authorization_name: scopes} for authorization_name in oauth_authorizations
-                ]
+                security={
+                    # This is a temporary configuration which is overriden in
+                    # `Api.add_namespace`.
+                    '__oauth__': {
+                        'type': 'oauth',
+                        'scopes': oauth_scopes,
+                    }
+                }
             )(
                 self.response(
                     code=http_exceptions.Unauthorized.code,
-                    description="Authentication with %s scope(s) is required" % (
-                        ', '.join(scopes)
+                    description=(
+                        "Authentication is required"
+                        if not oauth_scopes else
+                        "Authentication with %s OAuth scope(s) is required" % (
+                            ', '.join(oauth_scopes)
+                        )
                     ),
                 )(oauth_protected_func)
             )

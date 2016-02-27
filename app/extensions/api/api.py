@@ -3,6 +3,8 @@
 Extended Api implementation with an application-specific helpers
 ----------------------------------------------------------------
 """
+from six import iteritems
+
 from flask_restplus_patched import Api as BaseApi
 
 from .namespace import Namespace
@@ -25,3 +27,21 @@ class Api(BaseApi):
                 assert scope_name not in authorization_settings['scopes'], \
                     "OAuth scope %s already exists" % scope_name
                 authorization_settings['scopes'][scope_name] = scope_description
+
+    def add_namespace(self, ns):
+        # Rewrite security rules for OAuth scopes since Namespaces don't have
+        # enough information about authorization methods.
+        for resource, _, _ in ns.resources:
+            for method in resource.methods:
+                method_func = getattr(resource, method.lower())
+
+                if 'security' in method_func.__apidoc__:
+                    if '__oauth__' in method_func.__apidoc__['security']:
+                        oauth_scopes = method_func.__apidoc__['security']['__oauth__']['scopes']
+                        method_func.__apidoc__['security'] = {
+                            auth_name: oauth_scopes
+                            for auth_name, auth_settings in iteritems(self.authorizations)
+                            if auth_settings['type'].startswith('oauth')
+                        }
+
+        super(Api, self).add_namespace(ns)

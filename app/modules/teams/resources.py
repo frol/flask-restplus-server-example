@@ -29,7 +29,7 @@ class Teams(Resource):
     Manipulations with teams.
     """
 
-    @api.login_required(scopes=['teams:read'])
+    @api.login_required(oauth_scopes=['teams:read'])
     @api.parameters(PaginationParameters())
     @api.response(schemas.BaseTeamSchema(many=True))
     def get(self, args):
@@ -41,7 +41,7 @@ class Teams(Resource):
         """
         return Team.query.offset(args['offset']).limit(args['limit'])
 
-    @api.login_required(scopes=['teams:write'])
+    @api.login_required(oauth_scopes=['teams:write'])
     @api.parameters(parameters.CreateTeamParameters())
     @api.response(schemas.DetailedTeamSchema())
     @api.response(code=http_exceptions.Conflict.code)
@@ -74,7 +74,7 @@ class TeamByID(Resource):
     Manipulations with a specific team.
     """
 
-    @api.login_required(scopes=['teams:read'])
+    @api.login_required(oauth_scopes=['teams:read'])
     @api.permission_required(permissions.OwnerRolePermission(partial=True))
     @api.response(schemas.DetailedTeamSchema())
     def get(self, team_id):
@@ -85,7 +85,7 @@ class TeamByID(Resource):
         with permissions.OwnerRolePermission(obj=team):
             return team
 
-    @api.login_required(scopes=['teams:write'])
+    @api.login_required(oauth_scopes=['teams:write'])
     @api.permission_required(permissions.OwnerRolePermission(partial=True))
     @api.parameters(parameters.PatchTeamDetailsParameters())
     @api.response(schemas.DetailedTeamSchema())
@@ -121,7 +121,7 @@ class TeamByID(Resource):
             db.session.rollback()
         return team
 
-    @api.login_required(scopes=['teams:write'])
+    @api.login_required(oauth_scopes=['teams:write'])
     @api.permission_required(permissions.OwnerRolePermission(partial=True))
     @api.response(code=http_exceptions.Conflict.code)
     def delete(self, team_id):
@@ -181,7 +181,7 @@ class TeamMembers(Resource):
     Manipulations with members of a specific team.
     """
 
-    @api.login_required(scopes=['teams:read'])
+    @api.login_required(oauth_scopes=['teams:read'])
     @api.permission_required(permissions.OwnerRolePermission(partial=True))
     @api.parameters(PaginationParameters())
     @api.response(schemas.BaseTeamMemberSchema(many=True))
@@ -193,7 +193,7 @@ class TeamMembers(Resource):
         with permissions.OwnerRolePermission(obj=team):
             return team.members[args['offset']: args['offset'] + args['limit']]
 
-    @api.login_required(scopes=['teams:write'])
+    @api.login_required(oauth_scopes=['teams:write'])
     @api.permission_required(permissions.OwnerRolePermission(partial=True))
     @api.parameters(parameters.AddTeamMemberParameters())
     @api.response(schemas.BaseTeamMemberSchema())
@@ -242,7 +242,7 @@ class TeamMemberByID(Resource):
     Manipulations with a specific team member.
     """
 
-    @api.login_required(scopes=['teams:write'])
+    @api.login_required(oauth_scopes=['teams:write'])
     @api.permission_required(permissions.OwnerRolePermission(partial=True))
     @api.response(code=http_exceptions.Conflict.code)
     def delete(self, team_id, user_id):

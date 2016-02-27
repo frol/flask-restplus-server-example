@@ -28,7 +28,7 @@ class Users(Resource):
     Manipulations with users.
     """
 
-    @api.login_required(scopes=['users:read'])
+    @api.login_required(oauth_scopes=['users:read'])
     @api.permission_required(permissions.AdminRolePermission())
     @api.parameters(PaginationParameters())
     @api.response(schemas.BaseUserSchema(many=True))
@@ -100,7 +100,7 @@ class UserByID(Resource):
     Manipulations with a specific user.
     """
 
-    @api.login_required(scopes=['users:read'])
+    @api.login_required(oauth_scopes=['users:read'])
     @api.permission_required(permissions.OwnerRolePermission(partial=True))
     @api.response(schemas.DetailedUserSchema())
     def get(self, user_id):
@@ -111,7 +111,7 @@ class UserByID(Resource):
         with permissions.OwnerRolePermission(obj=user):
             return user
 
-    @api.login_required(scopes=['users:write'])
+    @api.login_required(oauth_scopes=['users:write'])
     @api.permission_required(permissions.OwnerRolePermission(partial=True))
     @api.parameters(parameters.PatchUserDetailsParameters())
     @api.response(schemas.DetailedUserSchema())
@@ -206,7 +206,7 @@ class UserMe(Resource):
     Useful reference to the authenticated user itself.
     """
 
-    @api.login_required(scopes=['users:read'])
+    @api.login_required(oauth_scopes=['users:read'])
     @api.response(schemas.DetailedUserSchema())
     def get(self):
         """
