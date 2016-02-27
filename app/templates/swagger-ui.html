@@ -10,7 +10,6 @@
                 url: "{{ specs_url }}",
                 validatorUrl: "{{ config.SWAGGER_VALIDATOR_URL }}" || null,
                 dom_id: "swagger-ui-container",
-                jsonEditor: true,
                 supportedSubmitMethods: ['get', 'post', 'put', 'delete', 'patch'],
                 onComplete: function(swaggerApi, swaggerUi){
                     if(typeof initOAuth == "function") {
@@ -18,6 +17,8 @@
                             clientId: "docs",
                             realm: "your-realms",
                             appName: "swagger-docs"
+                            //realm: "Flask-RESTplus Example server docs",
+                            //appName: "Flask-RESTplus Example server"
                         });
                     }
                     $('pre code').each(function(i, e) {
@@ -27,6 +28,7 @@
                 onFailure: function(data) {
                     log("Unable to Load SwaggerUI");
                 },
+                jsonEditor: {{ config.SWAGGER_UI_JSONEDITOR | default(False) | string | lower }},
                 docExpansion: "{{ config.SWAGGER_UI_DOC_EXPANSION | default('none') }}"
             });
             window.swaggerUi.load();
