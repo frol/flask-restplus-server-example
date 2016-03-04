@@ -21,8 +21,8 @@ def init_users():
     )
     db.session.add(root_user)
     docs_user = User(
-        username='docs',
-        email='docs@localhost',
+        username='documentation',
+        email='documentation@localhost',
         password='w',
         is_active=False
     )
@@ -41,7 +41,7 @@ def init_auth(docs_user):
     # TODO: OpenAPI documentation has to have OAuth2 Implicit Flow instead
     # of Resource Owner Password Credentials Flow
     oauth2_client = OAuth2Client(
-        client_id='docs',
+        client_id='documentation',
         client_secret='KQ()SWK)SQK)QWSKQW(SKQ)S(QWSQW(SJ*HQ&HQW*SQ*^SSQWSGQSG',
         user_id=docs_user.id,
         _default_scopes=' '.join(api.api_v1.authorizations['oauth2_password']['scopes'])

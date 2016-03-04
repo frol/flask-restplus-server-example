@@ -39,9 +39,9 @@ class BaseConfig(object):
     STATIC_ROOT = os.path.join(PROJECT_ROOT, 'static')
 
     SWAGGER_UI_JSONEDITOR = True
-    SWAGGER_UI_OAUTH_CLIENT_ID = 'docs'
-    SWAGGER_UI_OAUTH_REALM = 'Flask-RESTplus Example server docs authentication'
-    SWAGGER_UI_OAUTH_APP_NAME = 'Flask-RESTplus Example server docs'
+    SWAGGER_UI_OAUTH_CLIENT_ID = 'documentation'
+    SWAGGER_UI_OAUTH_REALM = "Authentication for Flask-RESTplus Example server documentation"
+    SWAGGER_UI_OAUTH_APP_NAME = "Flask-RESTplus Example server documentation"
 
     # TODO: consider if these are relevant for this project
     SQLALCHEMY_TRACK_MODIFICATIONS = True
