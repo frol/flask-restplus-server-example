@@ -3,6 +3,7 @@
 Extended Api Namespace implementation with an application-specific helpers
 --------------------------------------------------------------------------
 """
+import flask_marshmallow
 from flask_restplus_patched import Namespace as BaseNamespace
 
 from . import http_exceptions
@@ -12,6 +13,13 @@ class Namespace(BaseNamespace):
     """
     Having app-specific handlers here.
     """
+
+    def model(self, name=None, model=None, **kwargs):
+        if isinstance(model, flask_marshmallow.Schema) and not name:
+            name = model.__class__.__name__
+            if name.endswith('Schema'):
+                name = name[:-len('Schema')]
+        return super(Namespace, self).model(name=name, model=model, **kwargs)
 
     def login_required(self, oauth_scopes):
         """
