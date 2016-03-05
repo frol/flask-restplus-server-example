@@ -14,7 +14,40 @@ class Namespace(BaseNamespace):
     Having app-specific handlers here.
     """
 
+    def resolve_object_by_model(self, model, object_arg_name, identity_arg_name=None):
+        """
+        A helper decorator to resolve DB record instance by id.
+
+        Arguments:
+            model (type) - a Flask-SQLAlchemy model class with
+                ``query.get_or_404`` method
+            object_arg_name (str) - argument name for a resolved object
+            identity_arg_name (str) - argument name holding an object identity,
+                by default it will be auto-generated as
+                ``%(object_arg_name)s_id``.
+
+        Example:
+        >>> @namespace.resolve_object_by_model(User, 'user')
+        ... def get_user_by_id(user):
+        ...     return user
+        >>> get_user_by_id(user_id=3)
+        <User(id=3, ...)>
+        """
+        if identity_arg_name is None:
+            identity_arg_name = '%s_id' % object_arg_name
+        return self.resolve_object(
+            object_arg_name,
+            resolver=lambda kwargs: model.query.get_or_404(kwargs.pop(identity_arg_name))
+        )
+
     def model(self, name=None, model=None, **kwargs):
+        """
+        A decorator which registers a model (aka schema / definition).
+
+        This extended implementation auto-generates a name for
+        ``Flask-Marshmallow.Schema``-based instances by using a class name
+        with stripped off `Schema` prefix.
+        """
         if isinstance(model, flask_marshmallow.Schema) and not name:
             name = model.__class__.__name__
             if name.endswith('Schema'):
@@ -24,6 +57,14 @@ class Namespace(BaseNamespace):
     def login_required(self, oauth_scopes):
         """
         A decorator which restricts access for authorized users only.
+
+        This decorator automatically applies the following features:
+
+        * ``OAuth2.require_oauth`` decorator requires authentication;
+        * ``permissions.ActivatedUserRolePermission`` decorator ensures
+          minimal authorization level;
+        * All of the above requirements are put into OpenAPI Specification with
+          relevant options and in a text description.
         """
         def decorator(func):
             """
@@ -68,9 +109,33 @@ class Namespace(BaseNamespace):
 
         return decorator
 
-    def permission_required(self, permission):
+    def permission_required(self, permission, kwargs_on_request=None):
         """
-        A decorator which restricts access for users with a specific permissions only.
+        A decorator which restricts access for users with a specific
+        permissions only.
+
+        This decorator puts together permissions restriction code with OpenAPI
+        Specification documentation.
+
+        Arguments:
+            permission (Permission) - it can be a class or an instance of
+                :class:``Permission``, which will be applied to a decorated
+                function, and docstrings of which will be used in OpenAPI
+                Specification.
+            kwargs_on_request (func) - a function which should accept only one
+                ``dict`` argument (all kwargs passed to the function), and
+                must return a ``dict`` of arguments which will be passed to
+                the ``permission`` object.
+
+        Example:
+        >>> @namespace.permission_required(
+        ...     OwnerRolePermission,
+        ...     kwargs_on_request=lambda kwargs: {'obj': kwargs['team']}
+        ... )
+        ... def get_team(team):
+        ...     # This line will be reached only if OwnerRolePermission check
+        ...     # is passed!
+        ...     return team
         """
         def decorator(func):
             """
@@ -84,9 +149,32 @@ class Namespace(BaseNamespace):
                 # documentation purposes.
                 protected_func = func
             else:
-                protected_func = permission(func)
+                if not kwargs_on_request:
+                    _permission_decorator = permission
+                else:
+                    def _permission_decorator(func):
+                        def wrapper(*args, **kwargs):
+                            with permission(**kwargs_on_request(kwargs)):
+                                return func(*args, **kwargs)
+                        return wrapper
 
-            if isinstance(permission, permissions.RolePermission):
+                protected_func = _permission_decorator(func)
+
+            # Apply `_role_permission_applied` marker for Role Permissions,
+            # so don't apply unnecessary permissions in `login_required`
+            # decorator.
+            #
+            # TODO: Change this behaviour when implement advanced OPTIONS
+            # method support
+            if (
+                    isinstance(permission, permissions.RolePermission)
+                    or
+                    (
+                        isinstance(permission, type)
+                        and
+                        issubclass(permission, permissions.RolePermission)
+                    )
+            ):
                 protected_func._role_permission_applied = True # pylint: disable=protected-access
 
             permission_description = permission.__doc__.strip()

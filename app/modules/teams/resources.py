@@ -75,40 +75,41 @@ class TeamByID(Resource):
     """
 
     @api.login_required(oauth_scopes=['teams:read'])
-    @api.permission_required(permissions.OwnerRolePermission(partial=True))
+    @api.resolve_object_by_model(Team, 'team')
+    @api.permission_required(
+        permissions.OwnerRolePermission,
+        kwargs_on_request=lambda kwargs: {'obj': kwargs['team']}
+    )
     @api.response(schemas.DetailedTeamSchema())
-    def get(self, team_id):
+    def get(self, team):
         """
         Get team details by ID.
         """
-        team = Team.query.get_or_404(team_id)
-        with permissions.OwnerRolePermission(obj=team):
-            return team
+        return team
 
     @api.login_required(oauth_scopes=['teams:write'])
-    @api.permission_required(permissions.OwnerRolePermission(partial=True))
+    @api.resolve_object_by_model(Team, 'team')
+    @api.permission_required(
+        permissions.OwnerRolePermission,
+        kwargs_on_request=lambda kwargs: {'obj': kwargs['team']}
+    )
+    @api.permission_required(permissions.WriteAccessPermission())
     @api.parameters(parameters.PatchTeamDetailsParameters())
     @api.response(schemas.DetailedTeamSchema())
     @api.response(code=http_exceptions.Conflict.code)
-    def patch(self, args, team_id):
+    def patch(self, args, team):
         """
         Patch team details by ID.
         """
-        team = Team.query.get_or_404(team_id)
-
         try:
-            with permissions.OwnerRolePermission(obj=team):
-                with permissions.WriteAccessPermission():
-                    for operation in args:
-                        try:
-                            if not self._process_patch_operation(operation, team=team):
-                                log.info(
-                                    "Team patching has ignored unknown operation %s",
-                                    operation
-                                )
-                        except ValueError as exception:
-                            abort(code=http_exceptions.Conflict.code, message=str(exception))
-                    db.session.merge(team)
+            for operation in args:
+                try:
+                    if not self._process_patch_operation(operation, team=team):
+                        log.info("Team patching has ignored unknown operation %s", operation)
+                except ValueError as exception:
+                    abort(code=http_exceptions.Conflict.code, message=str(exception))
+
+            db.session.merge(team)
 
             try:
                 db.session.commit()
@@ -122,18 +123,18 @@ class TeamByID(Resource):
         return team
 
     @api.login_required(oauth_scopes=['teams:write'])
-    @api.permission_required(permissions.OwnerRolePermission(partial=True))
+    @api.resolve_object_by_model(Team, 'team')
+    @api.permission_required(
+        permissions.OwnerRolePermission,
+        kwargs_on_request=lambda kwargs: {'obj': kwargs['team']}
+    )
+    @api.permission_required(permissions.WriteAccessPermission())
     @api.response(code=http_exceptions.Conflict.code)
-    def delete(self, team_id):
+    def delete(self, team):
         """
         Delete a team by ID.
         """
-        team = Team.query.get_or_404(team_id)
-
-        with permissions.OwnerRolePermission(obj=team):
-            with permissions.WriteAccessPermission():
-                db.session.delete(team)
-
+        db.session.delete(team)
         try:
             db.session.commit()
         except sqlalchemy.exc.IntegrityError:
@@ -143,7 +144,6 @@ class TeamByID(Resource):
                 code=http_exceptions.Conflict.code,
                 message="Could not delete the team."
             )
-
         return None
 
     def _process_patch_operation(self, operation, team):
@@ -182,43 +182,49 @@ class TeamMembers(Resource):
     """
 
     @api.login_required(oauth_scopes=['teams:read'])
+    @api.resolve_object_by_model(Team, 'team')
+    @api.permission_required(
+        permissions.OwnerRolePermission,
+        kwargs_on_request=lambda kwargs: {'obj': kwargs['team']}
+    )
     @api.permission_required(permissions.OwnerRolePermission(partial=True))
     @api.parameters(PaginationParameters())
     @api.response(schemas.BaseTeamMemberSchema(many=True))
-    def get(self, args, team_id):
+    def get(self, args, team):
         """
         Get team members by team ID.
         """
-        team = Team.query.get_or_404(team_id)
-        with permissions.OwnerRolePermission(obj=team):
-            return team.members[args['offset']: args['offset'] + args['limit']]
+        return team.members[args['offset']: args['offset'] + args['limit']]
 
     @api.login_required(oauth_scopes=['teams:write'])
-    @api.permission_required(permissions.OwnerRolePermission(partial=True))
+    @api.resolve_object_by_model(Team, 'team')
+    @api.permission_required(
+        permissions.OwnerRolePermission,
+        kwargs_on_request=lambda kwargs: {'obj': kwargs['team']}
+    )
+    @api.permission_required(permissions.WriteAccessPermission())
     @api.parameters(parameters.AddTeamMemberParameters())
     @api.response(schemas.BaseTeamMemberSchema())
     @api.response(code=http_exceptions.Conflict.code)
-    def post(self, args, team_id):
+    def post(self, args, team):
         """
         Add a new member to a team.
         """
-        team = Team.query.get_or_404(team_id)
-
         try:
-            with permissions.OwnerRolePermission(obj=team):
-                with permissions.WriteAccessPermission():
-                    user_id = args.pop('user_id')
-                    user = User.query.get(user_id)
-                    if user is None:
-                        abort(
-                            code=http_exceptions.NotFound.code,
-                            message="User with id %d does not exist" % user_id
-                        )
-                    try:
-                        team_member = TeamMember(team=team, user=user, **args)
-                    except ValueError as exception:
-                        abort(code=http_exceptions.Conflict.code, message=str(exception))
-                    db.session.add(team_member)
+            user_id = args.pop('user_id')
+            user = User.query.get(user_id)
+            if user is None:
+                abort(
+                    code=http_exceptions.NotFound.code,
+                    message="User with id %d does not exist" % user_id
+                )
+
+            try:
+                team_member = TeamMember(team=team, user=user, **args)
+            except ValueError as exception:
+                abort(code=http_exceptions.Conflict.code, message=str(exception))
+
+            db.session.add(team_member)
 
             try:
                 db.session.commit()
@@ -243,23 +249,19 @@ class TeamMemberByID(Resource):
     """
 
     @api.login_required(oauth_scopes=['teams:write'])
-    @api.permission_required(permissions.OwnerRolePermission(partial=True))
+    @api.resolve_object_by_model(Team, 'team')
+    @api.permission_required(
+        permissions.OwnerRolePermission,
+        kwargs_on_request=lambda kwargs: {'obj': kwargs['team']}
+    )
+    @api.permission_required(permissions.WriteAccessPermission())
     @api.response(code=http_exceptions.Conflict.code)
-    def delete(self, team_id, user_id):
+    def delete(self, team, user_id):
         """
         Remove a member from a team.
         """
-        team = Team.query.get_or_404(team_id)
-
-        with permissions.OwnerRolePermission(obj=team):
-            with permissions.WriteAccessPermission():
-                team_member = TeamMember.query.filter_by(team=team, user_id=user_id).one()
-                if team_member is None:
-                    abort(
-                        code=http_exceptions.NotFound.code,
-                        message="User with id %d does not exist" % user_id
-                    )
-                db.session.delete(team_member)
+        team_member = TeamMember.query.filter_by(team=team, user_id=user_id).first_or_404()
+        db.session.delete(team_member)
 
         try:
             db.session.commit()

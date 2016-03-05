@@ -101,45 +101,54 @@ class UserByID(Resource):
     """
 
     @api.login_required(oauth_scopes=['users:read'])
-    @api.permission_required(permissions.OwnerRolePermission(partial=True))
+    @api.resolve_object_by_model(User, 'user')
+    @api.permission_required(
+        permissions.OwnerRolePermission,
+        kwargs_on_request=lambda kwargs: {'obj': kwargs['user']}
+    )
     @api.response(schemas.DetailedUserSchema())
-    def get(self, user_id):
+    def get(self, user):
         """
         Get user details by ID.
         """
-        user = User.query.get(user_id)
-        with permissions.OwnerRolePermission(obj=user):
-            return user
+        return user
 
     @api.login_required(oauth_scopes=['users:write'])
-    @api.permission_required(permissions.OwnerRolePermission(partial=True))
+    @api.resolve_object_by_model(User, 'user')
+    @api.permission_required(
+        permissions.OwnerRolePermission,
+        kwargs_on_request=lambda kwargs: {'obj': kwargs['user']}
+    )
+    @api.permission_required(permissions.WriteAccessPermission())
     @api.parameters(parameters.PatchUserDetailsParameters())
     @api.response(schemas.DetailedUserSchema())
     @api.response(code=http_exceptions.Conflict.code)
-    def patch(self, args, user_id):
+    def patch(self, args, user):
         """
         Patch user details by ID.
         """
-        user = User.query.get_or_404(user_id)
+        state = {'current_password': None}
 
-        with permissions.OwnerRolePermission(obj=user):
-            with permissions.WriteAccessPermission():
-                state = {'current_password': None}
-
-                for operation in args:
+        try:
+            for operation in args:
+                try:
                     if not self._process_patch_operation(operation, user=user, state=state):
                         log.info("User patching has ignored unknown operation %s", operation)
+                except ValueError as exception:
+                    abort(code=http_exceptions.Conflict.code, message=str(exception))
 
-                try:
-                    db.session.merge(user)
-                    db.session.commit()
-                except sqlalchemy.exc.IntegrityError:
-                    db.session.rollback()
-                    # TODO: handle errors better
-                    abort(
-                        code=http_exceptions.Conflict.code,
-                        message="Could not update user details."
-                    )
+            try:
+                db.session.merge(user)
+                db.session.commit()
+            except sqlalchemy.exc.IntegrityError:
+                db.session.rollback()
+                # TODO: handle errors better
+                abort(
+                    code=http_exceptions.Conflict.code,
+                    message="Could not update user details."
+                )
+        finally:
+            db.session.rollback()
         return user
 
     def _process_patch_operation(self, operation, user, state):

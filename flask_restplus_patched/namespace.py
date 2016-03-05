@@ -27,9 +27,30 @@ class Namespace(OriginalNamespace):
         ##            doc[key]['expect'] = [doc[key]['expect']]
         cls.__apidoc__ = merge(getattr(cls, '__apidoc__', {}), doc)
 
+    def resolve_object(self, object_arg_name, resolver):
+        """
+        A helper decorator to resolve object instance from arguments (e.g. identity).
+
+        Example:
+        >>> @namespace.route('/<int:user_id>')
+        ... class MyResource(Resource):
+        ...    @namespace.resolve_object(
+        ...        object_arg_name='user',
+        ...        resolver=lambda kwargs: User.query.get_or_404(kwargs.pop('user_id'))
+        ...    )
+        ...    def get(self, user):
+        ...        # user is a User instance here
+        """
+        def decorator(func):
+            def wrapper(*args, **kwargs):
+                kwargs[object_arg_name] = resolver(kwargs)
+                return func(*args, **kwargs)
+            return wrapper
+        return decorator
+
     def model(self, name=None, model=None, mask=None, **kwargs):
         """
-        Register a model.
+        Model registration decorator.
         """
         if isinstance(model, flask_marshmallow.Schema):
             if not name:
@@ -41,7 +62,7 @@ class Namespace(OriginalNamespace):
 
     def parameters(self, parameters, locations=None):
         """
-        Register endpoint parameters.
+        Endpoint parameters registration decorator.
         """
         def decorator(func):
             if locations is None and parameters.many:
@@ -60,6 +81,28 @@ class Namespace(OriginalNamespace):
         return decorator
 
     def response(self, model=None, code=200, description=None, **kwargs):
+        """
+        Endpoint response OpenAPI documentation decorator.
+
+        It automatically documents HTTPError%(code)d responses with relevant
+        schemas.
+
+        Arguments:
+            model (flask_marshmallow.Schema) - it can be a class or an instance
+                of the class, which will be used for OpenAPI documentation
+                purposes. It can be omitted if ``code`` argument is set to an
+                error HTTP status code.
+            code (int) - HTTP status code which is documented.
+            description (str)
+
+        Example:
+        >>> @namespace.response(BaseTeamSchema(many=True))
+        ... @namespace.response(code=403)
+        ... def get_teams():
+        ...     if not user.is_admin:
+        ...         abort(403)
+        ...     return Team.query.all()
+        """
         if model is None:
             if code not in http_exceptions.default_exceptions:
                 raise ValueError("`model` parameter is required for code %d" % code)
