@@ -3,6 +3,8 @@
 Extended Api Namespace implementation with an application-specific helpers
 --------------------------------------------------------------------------
 """
+from functools import wraps
+
 import flask_marshmallow
 from flask_restplus_patched import Namespace as BaseNamespace
 
@@ -153,6 +155,7 @@ class Namespace(BaseNamespace):
                     _permission_decorator = permission
                 else:
                     def _permission_decorator(func):
+                        @wraps(func)
                         def wrapper(*args, **kwargs):
                             with permission(**kwargs_on_request(kwargs)):
                                 return func(*args, **kwargs)

@@ -42,6 +42,7 @@ class Namespace(OriginalNamespace):
         ...        # user is a User instance here
         """
         def decorator(func):
+            @wraps(func)
             def wrapper(*args, **kwargs):
                 kwargs[object_arg_name] = resolver(kwargs)
                 return func(*args, **kwargs)
@@ -121,21 +122,21 @@ class Namespace(OriginalNamespace):
                 # wrapper.
                 decorated_func_or_class = func_or_class
             else:
-                def dump_wrapper(func):
-                    def dump_decorator(*args, **kwargs):
+                def dump_decorator(func):
+                    def dump_wrapper(*args, **kwargs):
                         return model.dump(func(*args, **kwargs)).data
-                    return dump_decorator
+                    return dump_wrapper
 
                 if isinstance(func_or_class, type):
                     # Make a copy of `method_decorators` as otherwise we will
                     # modify the behaviour of all flask-restful.Resource-based
                     # classes
                     func_or_class.method_decorators = (
-                        [dump_wrapper] + func_or_class.method_decorators
+                        [dump_decorator] + func_or_class.method_decorators
                     )
                     decorated_func_or_class = func_or_class
                 else:
-                    decorated_func_or_class = wraps(func_or_class)(dump_wrapper(func_or_class))
+                    decorated_func_or_class = wraps(func_or_class)(dump_decorator(func_or_class))
 
             if isinstance(model, Model):
                 api_model = model
