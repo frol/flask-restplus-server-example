@@ -12,8 +12,8 @@ def init_app(app, **kwargs):
     """
     Init teams module.
     """
-    api_v1.add_oauth_scope('teams:read', "Provice access to team details")
-    api_v1.add_oauth_scope('teams:write', "Provice write access to team details")
+    api_v1.add_oauth_scope('teams:read', "Provide access to team details")
+    api_v1.add_oauth_scope('teams:write', "Provide write access to team details")
 
     # Touch underlying modules
     from . import models, resources
