@@ -108,7 +108,7 @@ class Namespace(OriginalNamespace):
             if code not in http_exceptions.default_exceptions:
                 raise ValueError("`model` parameter is required for code %d" % code)
             model = self.model(
-                name='HTTPError%dSchema' % code,
+                name='HTTPError%d' % code,
                 model=DefaultHTTPErrorSchema(http_code=code)
             )
         if description is None:
