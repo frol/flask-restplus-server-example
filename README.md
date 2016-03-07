@@ -137,39 +137,37 @@ In this example, however, `init_app` imports `resources` and registeres `api`
 Where to start reading the code?
 --------------------------------
 
-The easiest way to start the application is by using PyInvoke command:
+The easiest way to start the application is by using PyInvoke command `app.run`
+implemented in [`tasks/app/run.py`](tasks/app/run.py):
 
 ```
 $ invoke app.run
 ```
 
-It is implemented in [`tasks/app/run.py`](blob/master/tasks/app/run.py).
-
 The command creates an application by running
-[`app.create_app()`](blob/master/app/__init__.py) function.
+[`app/__init__.py:create_app()`](app/__init__.py) function, which in its turn:
 
-`app.create_app()` loads config, initialized extensions and modules.
+1. loads an application config;
+2. initializes extensions:
+   [`app/extensions/__init__.py:init_app()`](app/extensions/__init__.py);
+3. initializes modules:
+   [`app/modules/__init__.py:init_app()`](app/modules/__init__.py).
 
-Extensions initialization is done in
-[`app/extensions/__init__.py:init_app`](blob/master/app/extensions/__init__.py).
-
-Modules initialization is done in
-[`app/modules/__init__.py:init_app`](blob/master/app/modules/__init__.py).
-
-Modules initialization leads to calling `init_app` in every enabled module
+Modules initialization calls `init_app()` in every enabled module
 (listed in `config.ENABLED_MODULES`).
 
 Let's take `teams` module as an example to look further.
-[`app/modules/teams/__init__.py:init_app`](blob/master/app/modules/teams/__init__.py)
+[`app/modules/teams/__init__.py:init_app()`](app/modules/teams/__init__.py)
 imports and registers `api` instance of (patched) `flask_restplus.Namespace`
 from `.resources`. Flask-RESTPlus `Namespace` is designed to provide similar
 functionality as Flask `Blueprint`.
 
-[`api.route()`](blob/master/app/modules/teams/resources.py) is used to bind a
-resource to a specific route.
+[`api.route()`](app/modules/teams/resources.py) is used to bind a
+resource (classes inherited from `flask_restplus.Resource`) to a specific
+route.
 
-Resources can have class methods equivalent to HTTP methods (`.get()`,
-`.post()`, etc). This is where users' requests end up.
+Lastly, every `Resource` should have methods which are lowercased HTTP method
+names (i.e. `.get()`, `.post()`, etc). This is where users' requests end up.
 
 
 Dependencies
