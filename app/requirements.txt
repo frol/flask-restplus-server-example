@@ -14,10 +14,8 @@ werkzeug==0.11.4
 
 flask-marshmallow==0.6.2
 marshmallow-sqlalchemy==0.8.0
-#webargs>1.2.0
-https://github.com/frol/webargs/archive/add-bulk-type-arguments-support.zip
-#apispec>0.7.0
-https://github.com/frol/apispec/archive/fix-schema-instances-introspection.zip
+webargs>=1.3.0
+apispec>=0.8.0
 
 bcrypt==2.0
 passlib==1.6.5
