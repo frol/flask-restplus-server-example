@@ -7,7 +7,10 @@ import os
 import shutil
 import zipfile
 
-from invoke import ctask as task
+try:
+    from invoke import ctask as task
+except ImportError:  # Invoke 0.13 renamed ctask to task
+    from invoke import task
 
 from tasks.utils import download_file
 

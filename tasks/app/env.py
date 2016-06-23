@@ -3,7 +3,10 @@
 Application environment related tasks for Invoke.
 """
 
-from invoke import ctask as task
+try:
+    from invoke import ctask as task
+except ImportError:  # Invoke 0.13 renamed ctask to task
+    from invoke import task
 
 
 @task

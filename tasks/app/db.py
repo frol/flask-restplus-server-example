@@ -10,7 +10,10 @@ import functools
 import logging
 import os
 
-from invoke import ctask as task
+try:
+    from invoke import ctask as task
+except ImportError:  # Invoke 0.13 renamed ctask to task
+    from invoke import task
 
 log = logging.getLogger(__name__) # pylint: disable=invalid-name
 
