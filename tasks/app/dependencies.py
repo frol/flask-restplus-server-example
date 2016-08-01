@@ -36,6 +36,10 @@ def install_swagger_ui(context, force=False):
     log.info("Installing Swagger UI assets...")
 
     try:
+        FileExistsError
+    except NameError:
+        FileExistsError = OSError
+    try:
         os.makedirs(os.path.join(context.app.static_root, 'bower'))
     except FileExistsError:
         pass
