@@ -67,7 +67,11 @@ def install_swagger_ui(context, force=False):
             zipped_member_path = os.path.relpath(zipped_member.filename, 'swagger-ui-master')
 
             # We only need the 'dist' folder
-            if not os.path.commonpath([zipped_member_path, 'dist']):
+            try:
+                commonpath = os.path.commonpath
+            except:  # Python 2.x fallback
+                commonpath = os.path.commonprefix
+            if not commonpath([zipped_member_path, 'dist']):
                 continue
 
             extract_path = os.path.join(swagger_ui_root, zipped_member_path)
