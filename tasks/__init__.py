@@ -74,6 +74,9 @@ def invoke_execute(context, command_name, **kwargs):
     return results[target_task]
 
 namespace.configure({
+    'run': {
+        'shell': '/bin/sh',
+    },
     'root_namespace': namespace,
     'invoke_execute': invoke_execute,
 })
