@@ -5,6 +5,8 @@ example.db
 
 .git*
 
+deploy/*
+
 __pycache__
 */__pycache__
 */*/__pycache__
