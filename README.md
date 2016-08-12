@@ -46,6 +46,7 @@ Folders:
 * `tests` - These are [pytest](http://pytest.org) tests for this RESTful API
   Server example implementation.
 * `docs` - It contains just images for the README, so you can safely ignore it.
+* `deploy` - It contains some application stack examples.
 
 Files:
 

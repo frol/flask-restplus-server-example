@@ -1,0 +1,14 @@
+revproxy:
+  restart: always
+  build: ./revproxy
+  ports:
+    - "80:80"
+  links:
+    - api:api
+
+api:
+  restart: always
+  build: ../../
+  expose:
+    - "5000"
+
