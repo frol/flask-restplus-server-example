@@ -18,9 +18,9 @@ class Api(OriginalApi):
         app.errorhandler(http_exceptions.UnprocessableEntity.code)(handle_validation_error)
 
     def namespace(self, *args, **kwargs):
-        # The only purpose of this method is to pass custom Namespace class
+        # The only purpose of this method is to pass a custom Namespace class
         _namespace = Namespace(*args, **kwargs)
-        self.namespaces.append(_namespace)
+        self.add_namespace(_namespace)
         return _namespace
 
 
