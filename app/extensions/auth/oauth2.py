@@ -22,7 +22,7 @@ from werkzeug import exceptions as http_exceptions
 from app.extensions import api, db
 
 
-log = logging.getLogger(__name__) # pylint: disable=invalid-name
+log = logging.getLogger(__name__)  # pylint: disable=invalid-name
 
 
 class OAuth2RequestValidator(provider.OAuth2RequestValidator):
@@ -106,22 +106,19 @@ class OAuth2RequestValidator(provider.OAuth2RequestValidator):
         return request.grant_type in grant_types
 
 
+def api_invalid_response(req):
+    # pylint: disable=unused-argument
+    api.abort(code=http_exceptions.Unauthorized.code)
+
+
 class OAuth2Provider(provider.OAuth2Provider):
     """
     A helper class which connects OAuth2RequestValidator with OAuh2Provider.
     """
 
     def __init__(self, *args, **kwargs):
-        # XXX: it would be great if flask-oauthlib won't override existing
-        # methods, so we can implement `_invalid_response` as a method instead
-        # of saving it and restoring.
-        _saved_invalid_response = self._invalid_response
         super(OAuth2Provider, self).__init__(*args, **kwargs)
-        self._invalid_response = _saved_invalid_response
-
-    def _invalid_response(self, req):
-        # pylint: disable=method-hidden,unused-argument,no-self-use
-        api.abort(code=http_exceptions.Unauthorized.code)
+        self.invalid_response(api_invalid_response)
 
     def init_app(self, app):
         super(OAuth2Provider, self).init_app(app)
