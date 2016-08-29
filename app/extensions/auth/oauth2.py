@@ -107,13 +107,17 @@ class OAuth2RequestValidator(provider.OAuth2RequestValidator):
 
 
 def api_invalid_response(req):
+    """
+    This is a default handler for OAuth2Provider, which raises abort exception
+    with error message in JSON format.
+    """
     # pylint: disable=unused-argument
     api.abort(code=http_exceptions.Unauthorized.code)
 
 
 class OAuth2Provider(provider.OAuth2Provider):
     """
-    A helper class which connects OAuth2RequestValidator with OAuh2Provider.
+    A helper class which connects OAuth2RequestValidator with OAuth2Provider.
     """
 
     def __init__(self, *args, **kwargs):
