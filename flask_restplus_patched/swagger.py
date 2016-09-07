@@ -14,7 +14,7 @@ class Swagger(OriginalSwagger):
         if isinstance(schema, dict) and all(isinstance(field, dict) for field in schema.values()):
             return list(schema.values())
 
-        if schema.many:
+        if schema.many or 'in' in schema.context and 'json' in schema.context['in']:
             default_location = 'body'
         else:
             default_location = 'query'
