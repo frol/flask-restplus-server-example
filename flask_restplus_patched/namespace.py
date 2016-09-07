@@ -70,6 +70,8 @@ class Namespace(OriginalNamespace):
                 _locations = ('json', )
             else:
                 _locations = locations
+            if locations is not None:
+                parameters.context['in'] = locations
 
             return self.doc(params=parameters)(
                 self.response(code=http_exceptions.UnprocessableEntity.code)(
