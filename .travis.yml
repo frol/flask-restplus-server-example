@@ -9,8 +9,8 @@ python:
 
 matrix:
   allow_failures:
-    python: "nightly"
-    python: "pypy"
+    - python: "nightly"
+    - python: "pypy"
 
 branches:
   only:
