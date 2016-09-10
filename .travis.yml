@@ -7,11 +7,17 @@ python:
   - "nightly"
   - "pypy"
 
+matrix:
+  allow_failures:
+    python: "nightly"
+    python: "pypy"
+
 branches:
   only:
     - master
 
 install:
+  # Travis has pypy 2.5.0, which is way too old, so we upgrade it on the fly:
   - |
       if [ "$TRAVIS_PYTHON_VERSION" = "pypy" ]; then
         export PYENV_ROOT="$HOME/.pyenv"
@@ -20,7 +26,7 @@ install:
         else
           rm -rf "$PYENV_ROOT" && git clone --depth 1 https://github.com/yyuu/pyenv.git "$PYENV_ROOT"
         fi
-        export PYPY_VERSION="4.0.1"
+        export PYPY_VERSION="5.4.1"
         "$PYENV_ROOT/bin/pyenv" install --skip-existing "pypy-$PYPY_VERSION"
         virtualenv --python="$PYENV_ROOT/versions/pypy-$PYPY_VERSION/bin/python" "$HOME/virtualenvs/pypy-$PYPY_VERSION"
         source "$HOME/virtualenvs/pypy-$PYPY_VERSION/bin/activate"
