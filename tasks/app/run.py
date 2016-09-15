@@ -20,7 +20,7 @@ def run(
         upgrade_db=True
     ):
     """
-    Run DDOTS RESTful API Server.
+    Run Example RESTful API Server.
     """
     if install_dependencies:
         context.invoke_execute(context, 'app.dependencies.install')

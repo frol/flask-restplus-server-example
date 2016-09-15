@@ -1,7 +1,7 @@
 # encoding: utf-8
 # pylint: disable=invalid-name
 """
-The starting point of Invoke tasks for DDOTS RESTful API Server project.
+The starting point of Invoke tasks for Example RESTful API Server project.
 """
 
 import logging
