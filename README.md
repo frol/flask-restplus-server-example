@@ -231,7 +231,7 @@ It is very easy to start exploring the example using Docker:
 $ docker run -it --rm --publish 5000:5000 frolvlad/flask-restplus-server-example
 ```
 
-[![](https://badge.imagelayers.io/frolvlad/flask-restplus-server-example:latest.svg)](https://imagelayers.io/?images=frolvlad/flask-restplus-server-example:latest 'Get your own badge on imagelayers.io')
+[![](https://images.microbadger.com/badges/image/frolvlad/flask-restplus-server-example.svg)](http://microbadger.com/images/frolvlad/flask-restplus-server-example "Get your own image badge on microbadger.com")
 
 
 ### From sources
