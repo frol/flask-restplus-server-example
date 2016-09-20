@@ -3,9 +3,13 @@
 Extended Api Namespace implementation with an application-specific helpers
 --------------------------------------------------------------------------
 """
+from contextlib import contextmanager
 from functools import wraps
 
 import flask_marshmallow
+import sqlalchemy
+from werkzeug.exceptions import HTTPException
+
 from flask_restplus_patched import Namespace as BaseNamespace
 
 from . import http_exceptions
@@ -191,3 +195,30 @@ class Namespace(BaseNamespace):
             )
 
         return decorator
+
+    @contextmanager
+    def commit_or_abort(self, session, default_error_message="The operation failed to complete"):
+        """
+        Context manager to simplify a workflow in resources
+
+        Args:
+            session: db.session instance
+            default_error_message: Custom error message
+
+        Exampple:
+        >>> with api.commit_or_abort(db.session):
+        ...     team = Team(**args)
+        ...     db.session.add(team)
+        ...     return team
+        """
+        try:
+            try:
+                yield session
+                session.commit()
+            except ValueError as exception:
+                http_exceptions.abort(code=http_exceptions.Conflict.code, message=str(exception))
+            except sqlalchemy.exc.IntegrityError:
+                http_exceptions.abort(code=http_exceptions.Conflict.code, message=default_error_message)
+        except HTTPException:
+            session.rollback()
+            raise
