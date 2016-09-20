@@ -9,7 +9,6 @@ import logging
 
 from flask_login import current_user
 from flask_restplus import Resource
-import sqlalchemy
 
 from app.extensions.api import Namespace, abort, http_exceptions
 from app.extensions.api.parameters import PaginationParameters
@@ -63,15 +62,11 @@ class Users(Resource):
             abort(code=http_exceptions.Forbidden.code, message="CAPTCHA key is incorrect.")
 
         new_user = User(**args)
-
-        db.session.add(new_user)
-        try:
-            db.session.commit()
-        except sqlalchemy.exc.IntegrityError:
-            db.session.rollback()
-            # TODO: handle errors better
-            abort(code=http_exceptions.Conflict.code, message="Could not create a new user.")
-
+        with api.commit_or_abort(
+                db.session,
+                default_error_message="Failed to create a new user."
+            ):
+            db.session.add(new_user)
         return new_user
 
 
@@ -129,7 +124,10 @@ class UserByID(Resource):
         """
         state = {'current_password': None}
 
-        try:
+        with api.commit_or_abort(
+                db.session,
+                default_error_message="Failed to update user details."
+            ):
             for operation in args:
                 try:
                     if not self._process_patch_operation(operation, user=user, state=state):
@@ -137,18 +135,7 @@ class UserByID(Resource):
                 except ValueError as exception:
                     abort(code=http_exceptions.Conflict.code, message=str(exception))
 
-            try:
-                db.session.merge(user)
-                db.session.commit()
-            except sqlalchemy.exc.IntegrityError:
-                db.session.rollback()
-                # TODO: handle errors better
-                abort(
-                    code=http_exceptions.Conflict.code,
-                    message="Could not update user details."
-                )
-        finally:
-            db.session.rollback()
+            db.session.merge(user)
         return user
 
     def _process_patch_operation(self, operation, user, state):

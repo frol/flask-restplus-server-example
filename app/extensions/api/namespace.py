@@ -218,7 +218,10 @@ class Namespace(BaseNamespace):
             except ValueError as exception:
                 http_exceptions.abort(code=http_exceptions.Conflict.code, message=str(exception))
             except sqlalchemy.exc.IntegrityError:
-                http_exceptions.abort(code=http_exceptions.Conflict.code, message=default_error_message)
+                http_exceptions.abort(
+                    code=http_exceptions.Conflict.code,
+                    message=default_error_message
+                )
         except HTTPException:
             session.rollback()
             raise
