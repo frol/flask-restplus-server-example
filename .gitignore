@@ -50,3 +50,4 @@ docs/_build/
 local_config.py
 static/
 example.db
+.idea/
