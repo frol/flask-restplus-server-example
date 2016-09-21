@@ -5,9 +5,12 @@ Input arguments (Parameters) for User resources RESTful API
 """
 
 from flask_marshmallow import base_fields
+from marshmallow import validates_schema
+
+from app.extensions.api import abort, http_exceptions
 from flask_restplus_patched import PostFormParameters, PatchJSONParameters
 
-from . import schemas
+from . import schemas, permissions
 from .models import User
 
 
@@ -32,6 +35,27 @@ class AddUserParameters(PostFormParameters, schemas.BaseUserSchema):
             'password',
             'recaptcha_key',
         )
+
+    @validates_schema
+    def validate_captcha(self, data):
+        """"
+        Check reCAPTCHA if necessary.
+
+        NOTE: we remove 'recaptcha_key' from data once checked because we don't need it
+        in the resource
+        """
+
+        recaptcha_key = data.pop('recaptcha_key', None)
+        captcha_is_valid = False
+        if not recaptcha_key:
+            no_captcha_permission = permissions.AdminRolePermission()
+            if no_captcha_permission.check():
+                captcha_is_valid = True
+        elif recaptcha_key == 'secret_key':
+            captcha_is_valid = True
+
+        if not captcha_is_valid:
+            abort(code=http_exceptions.Forbidden.code, message="CAPTCHA key is incorrect.")
 
 
 class PatchUserDetailsParameters(PatchJSONParameters):

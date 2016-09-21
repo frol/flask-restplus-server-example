@@ -1,5 +1,5 @@
 # encoding: utf-8
-# pylint: disable=too-few-public-methods,invalid-name
+# pylint: disable=too-few-public-methods,invalid-name,bad-continuation
 """
 RESTful API User resources
 --------------------------
@@ -48,24 +48,12 @@ class Users(Resource):
         """
         Create a new user.
         """
-        # Check reCAPTCHA if necessary
-        recaptcha_key = args.pop('recaptcha_key', None)
-        captcha_is_valid = False
-        if not recaptcha_key:
-            no_captcha_permission = permissions.AdminRolePermission()
-            if no_captcha_permission.check():
-                captcha_is_valid = True
-        elif recaptcha_key == 'secret_key':
-            captcha_is_valid = True
 
-        if not captcha_is_valid:
-            abort(code=http_exceptions.Forbidden.code, message="CAPTCHA key is incorrect.")
-
-        new_user = User(**args)
         with api.commit_or_abort(
                 db.session,
                 default_error_message="Failed to create a new user."
             ):
+            new_user = User(**args)
             db.session.add(new_user)
         return new_user
 
