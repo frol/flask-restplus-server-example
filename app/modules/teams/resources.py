@@ -1,4 +1,5 @@
 # encoding: utf-8
+# pylint: disable=bad-continuation
 """
 RESTful API Team resources
 --------------------------
@@ -98,10 +99,7 @@ class TeamByID(Resource):
                 db.session,
                 default_error_message="Failed to update team details."
             ):
-            for operation in args:
-                if not self._process_patch_operation(operation, team=team):
-                    log.info("Team patching has ignored unknown operation %s", operation)
-
+            parameters.PatchTeamDetailsParameters.perform_patch(args, obj=team)
             db.session.merge(team)
         return team
 
@@ -123,30 +121,6 @@ class TeamByID(Resource):
             ):
             db.session.delete(team)
         return None
-
-    def _process_patch_operation(self, operation, team):
-        """
-        Args:
-            operation (dict) - one patch operation in RFC 6902 format.
-            team (Team) - team instance which is needed to be patched.
-            state (dict) - inter-operations state storage.
-
-        Returns:
-            processing_status (bool) - True if operation was handled, otherwise False.
-        """
-        if 'value' not in operation:
-            # TODO: handle errors better
-            abort(code=http_exceptions.UnprocessableEntity.code, message="value is required")
-
-        assert operation['path'][0] == '/', "Path must always begin with /"
-        field_name = operation['path'][1:]
-        field_value = operation['value']
-
-        if operation['op'] == parameters.PatchTeamDetailsParameters.OP_REPLACE:
-            setattr(team, field_name, field_value)
-            return True
-
-        return False
 
 
 @api.route('/<int:team_id>/members/')

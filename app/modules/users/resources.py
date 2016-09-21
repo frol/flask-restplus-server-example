@@ -48,7 +48,6 @@ class Users(Resource):
         """
         Create a new user.
         """
-
         with api.commit_or_abort(
                 db.session,
                 default_error_message="Failed to create a new user."
@@ -116,72 +115,9 @@ class UserByID(Resource):
                 db.session,
                 default_error_message="Failed to update user details."
             ):
-            for operation in args:
-                try:
-                    if not self._process_patch_operation(operation, user=user, state=state):
-                        log.info("User patching has ignored unknown operation %s", operation)
-                except ValueError as exception:
-                    abort(code=http_exceptions.Conflict.code, message=str(exception))
-
+            parameters.PatchUserDetailsParameters.perform_patch(args, user, state)
             db.session.merge(user)
         return user
-
-    def _process_patch_operation(self, operation, user, state):
-        """
-        Args:
-            operation (dict) - one patch operation in RFC 6902 format
-            user (User) - user instance which is needed to be patched
-            state (dict) - inter-operations state storage
-
-        Returns:
-            processing_status (bool) - True if operation was handled, otherwise False.
-        """
-        if 'value' not in operation:
-            # TODO: handle errors better
-            abort(code=http_exceptions.UnprocessableEntity.code, message="value is required")
-
-        if operation['op'] == parameters.PatchUserDetailsParameters.OP_TEST:
-            # User has to provide the admin/supervisor password (if the current
-            # user has an admin or a supervisor role) or the current password
-            # of the user that is edited.
-            if operation['path'] == '/current_password':
-                current_password = operation['value']
-
-                if current_user.password != current_password and user.password != current_password:
-                    abort(code=http_exceptions.Forbidden.code, message="Wrong password")
-
-                state['current_password'] = current_password
-                return True
-
-        elif operation['op'] == parameters.PatchUserDetailsParameters.OP_REPLACE:
-            assert operation['path'][0] == '/', "Path must always begin with /"
-            field_name = operation['path'][1:]
-            field_value = operation['value']
-
-            # Some fields require extra permissions to be changed.
-            # Current user has to have at least a Supervisor role to change
-            # 'is_active' and 'is_readonly' property
-            if field_name in {'is_active', 'is_readonly'}:
-                with permissions.SupervisorRolePermission(
-                    obj=user,
-                    password_required=True,
-                    password=state['current_password']
-                ):
-                    # Access granted
-                    pass
-
-            # Current user has to have an Admin role to change 'is_admin' property
-            elif field_name == 'is_admin':
-                with permissions.AdminRolePermission(
-                    password_required=True,
-                    password=state['current_password']
-                ):
-                    # Access granted
-                    pass
-
-            setattr(user, field_name, field_value)
-            return True
-        return False
 
 
 @api.route('/me')
