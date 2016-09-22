@@ -1,9 +1,11 @@
 # encoding: utf-8
+# pylint: disable=too-many-ancestors,bad-continuation
 """
 Input arguments (Parameters) for User resources RESTful API
 -----------------------------------------------------------
 """
 
+from flask_login import current_user
 from flask_marshmallow import base_fields
 from marshmallow import validates_schema
 
@@ -72,3 +74,41 @@ class PatchUserDetailsParameters(PatchJSONParameters):
             User.is_admin.fget.__name__,
         )
     )
+
+    @classmethod
+    def test(cls, obj, field, value, state=None):
+        """
+        Additional check for 'current_password' as User hasn't field 'current_password'
+        """
+        if field == 'current_password':
+            if current_user.password != value and obj.password != value:
+                abort(code=http_exceptions.Forbidden.code, message="Wrong password")
+            else:
+                state['current_password'] = value
+                return True
+        return PatchJSONParameters.test(obj, field, value)
+
+    @classmethod
+    def replace(cls, obj, field, value, state=None):
+        """
+        Some fields require extra permissions to be changed.
+        Current user has to have at least a Supervisor role to change
+        'is_active' and 'is_readonly' property
+        And 'is_admin' requires Admin role
+        """
+        if field in {'is_active', 'is_readonly'}:
+            with permissions.SupervisorRolePermission(
+                    obj=obj,
+                    password_required=True,
+                    password=state['current_password']
+                ):
+                # Access granted
+                pass
+        elif field == 'is_admin':
+            with permissions.AdminRolePermission(
+                    password_required=True,
+                    password=state['current_password']
+                ):
+                # Access granted
+                pass
+        return PatchJSONParameters.replace(obj, field, value, state=state)

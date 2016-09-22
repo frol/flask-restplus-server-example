@@ -1,9 +1,13 @@
 # encoding: utf-8
 # pylint: disable=missing-docstring
+import logging
+
 from six import itervalues
 
 from flask_marshmallow import Schema, base_fields
-from marshmallow import validate
+from marshmallow import validate, validates_schema, ValidationError
+
+log = logging.getLogger(__name__)  # pylint: disable=invalid-name
 
 
 class Parameters(Schema):
@@ -55,10 +59,13 @@ class PatchJSONParameters(Parameters):
         OP_REMOVE,
         OP_REPLACE,
     )
-    op = base_fields.String(required=True) # pylint: disable=invalid-name
+    op = base_fields.String(required=True)  # pylint: disable=invalid-name
 
     PATH_CHOICES = None
+
     path = base_fields.String(required=True)
+
+    NO_VALUE_OPERATIONS = (OP_REMOVE,)
 
     value = base_fields.Raw(required=False)
 
@@ -72,3 +79,125 @@ class PatchJSONParameters(Parameters):
             self.fields['op'].validators + [validate.OneOf(self.OPERATION_CHOICES)]
         self.fields['path'].validators = \
             self.fields['path'].validators + [validate.OneOf(self.PATH_CHOICES)]
+
+    @validates_schema
+    def validate_patch_structure(self, data):
+        """
+        Common validation of PATCH structure
+
+        Provide check that 'value' present in all operations expect it.
+
+        Provide check if 'path' is present. 'path' can be absent if provided
+        without '/' at the start. Supposed that if 'path' is present than it
+        is prepended with '/'.
+        Removing '/' in the beginning to simplify usage in resource.
+        """
+        if data['op'] not in self.NO_VALUE_OPERATIONS and 'value' not in data:
+            raise ValidationError('value is required')
+
+        if 'path' not in data:
+            raise ValidationError('Path is required and must always begin with /')
+        else:
+            data['field_name'] = data['path'][1:]
+
+    @classmethod
+    def perform_patch(cls, operations, obj, state=None):
+        """
+        Performs all necessary operations by calling class methods with corresponding names
+        """
+        for operation in operations:
+            if not cls._process_patch_operation(operation, obj=obj, state=state):
+                log.info("%s patching has stopped because of unknown operation %s", (obj.__name__, operation))
+                raise ValidationError("Failed to update %s details." % obj.__name__)
+        return True
+
+    @classmethod
+    def _process_patch_operation(cls, operation, obj, state=None):
+        """
+        Args:
+            operation (dict) - one patch operation in RFC 6902 format.
+            obj (Team) - team instance which is needed to be patched.
+            state (dict) - inter-operations state storage
+
+        Returns:
+            processing_status (bool) - True if operation was handled, otherwise False.
+        """
+        field_operaion = operation['op']
+
+        if field_operaion == cls.OP_REPLACE:
+            return cls.replace(obj, operation['field_name'], operation['value'], state=state)
+
+        elif field_operaion == cls.OP_TEST:
+            return cls.test(obj, operation['field_name'], operation['value'], state=state)
+
+        elif field_operaion == cls.OP_ADD:
+            return cls.add(obj, operation['field_name'], operation['value'], state=state)
+
+        elif field_operaion == cls.OP_MOVE:
+            return cls.move(obj, operation['field_name'], operation['value'], state=state)
+
+        elif field_operaion == cls.OP_COPY:
+            return cls.copy(obj, operation['field_name'], operation['value'], state=state)
+
+        elif field_operaion == cls.OP_REMOVE:
+            return cls.remove(obj, operation['field_name'], state=state)
+
+        return False
+
+    @classmethod
+    def replace(cls, obj, field, value, state=None):
+        """
+        This is method for replace operation. It is separated to have a possibility to easily
+        override it in your Parameters
+
+        Args:
+            obj: instance to change
+            field: (str) name
+            value: (str) value
+            state: (dict) inter-operations state storage
+
+        Returns:
+            processing_status: (bool) - True
+        """
+        setattr(obj, field, value)
+        return True
+
+    @classmethod
+    def test(cls, obj, field, value, state=None):
+        """
+        This is method for test operation. It is separated to have a possibility to easily
+        override it in your Parameters
+
+        Args:
+            obj: instance to change
+            field: (str) name
+            value: (str) value
+            state: (dict) inter-operations state storage
+
+        Returns:
+            processing_status: (bool) - True
+        """
+        if getattr(obj, field) == value:
+            return True
+        else:
+            return False
+
+    @classmethod
+    def add(cls, obj, field, value, state=None):
+        # pylint: disable=abstract-method
+        raise NotImplementedError()
+
+    @classmethod
+    def remove(cls, obj, field, state=None):
+        # pylint: disable=abstract-method
+        raise NotImplementedError()
+
+    @classmethod
+    def move(cls, obj, field, value, state=None):
+        # pylint: disable=abstract-method
+        raise NotImplementedError()
+
+    @classmethod
+    def copy(cls, obj, field, value, state=None):
+        # pylint: disable=abstract-method
+        raise NotImplementedError()
