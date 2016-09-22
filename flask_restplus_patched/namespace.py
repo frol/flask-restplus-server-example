@@ -3,13 +3,15 @@ from functools import wraps
 import flask_marshmallow
 from flask_restplus import Namespace as OriginalNamespace
 from flask_restplus.utils import merge
-from webargs.flaskparser import use_args as use_webargs
+from webargs.flaskparser import parser as webargs_parser
 from werkzeug import cached_property, exceptions as http_exceptions
 
 from .model import Model, DefaultHTTPErrorSchema
 
 
 class Namespace(OriginalNamespace):
+
+    WEBARGS_PARSER = webargs_parser
 
     def _handle_api_doc(self, cls, doc):
         if doc is False:
@@ -75,7 +77,7 @@ class Namespace(OriginalNamespace):
 
             return self.doc(params=parameters)(
                 self.response(code=http_exceptions.UnprocessableEntity.code)(
-                    use_webargs(parameters, locations=_locations)(
+                    self.WEBARGS_PARSER.use_args(parameters, locations=_locations)(
                         func
                     )
                 )

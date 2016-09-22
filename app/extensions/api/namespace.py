@@ -13,12 +13,15 @@ from werkzeug.exceptions import HTTPException
 from flask_restplus_patched import Namespace as BaseNamespace
 
 from . import http_exceptions
+from .webargs_parser import CustomWebargsParser
 
 
 class Namespace(BaseNamespace):
     """
     Having app-specific handlers here.
     """
+
+    WEBARGS_PARSER = CustomWebargsParser()
 
     def resolve_object_by_model(self, model, object_arg_name, identity_arg_name=None):
         """
