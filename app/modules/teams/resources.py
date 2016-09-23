@@ -8,6 +8,7 @@ RESTful API Team resources
 import logging
 
 from flask_restplus import Resource
+from flask_restplus_patched._http import HTTPStatus
 
 from app.extensions import db
 from app.extensions.api import Namespace, abort, http_exceptions
@@ -15,12 +16,13 @@ from app.extensions.api.parameters import PaginationParameters
 from app.modules.users import permissions
 from app.modules.users.models import User
 
+
 from . import parameters, schemas
 from .models import Team, TeamMember
 
 
-log = logging.getLogger(__name__) # pylint: disable=invalid-name
-api = Namespace('teams', description="Teams") # pylint: disable=invalid-name
+log = logging.getLogger(__name__)  # pylint: disable=invalid-name
+api = Namespace('teams', description="Teams")  # pylint: disable=invalid-name
 
 
 @api.route('/')
@@ -111,6 +113,7 @@ class TeamByID(Resource):
     )
     @api.permission_required(permissions.WriteAccessPermission())
     @api.response(code=http_exceptions.Conflict.code)
+    @api.response(code=HTTPStatus.NO_CONTENT)
     def delete(self, team):
         """
         Delete a team by ID.

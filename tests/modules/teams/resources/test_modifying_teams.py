@@ -133,7 +133,7 @@ def test_team_deletion(flask_app_client, regular_user, team_for_regular_user):
             '/api/v1/teams/%d' % team_for_regular_user.id
         )
 
-    assert response.status_code == 200
+    assert response.status_code == 204
     assert response.content_type == 'application/json'
 
 
