@@ -1,11 +1,13 @@
 from functools import wraps
 
+import flask
 import flask_marshmallow
 from flask_restplus import Namespace as OriginalNamespace
 from flask_restplus.utils import merge
 from webargs.flaskparser import parser as webargs_parser
 from werkzeug import cached_property, exceptions as http_exceptions
 
+from ._http import HTTPStatus
 from .model import Model, DefaultHTTPErrorSchema
 
 
@@ -108,7 +110,7 @@ class Namespace(OriginalNamespace):
         ...         abort(403)
         ...     return Team.query.all()
         """
-        if model is None:
+        if model is None and code != HTTPStatus.NO_CONTENT:
             if code not in http_exceptions.default_exceptions:
                 raise ValueError("`model` parameter is required for code %d" % code)
             model = self.model(
@@ -118,6 +120,20 @@ class Namespace(OriginalNamespace):
         if description is None:
             if code in http_exceptions.default_exceptions:
                 description = http_exceptions.default_exceptions[code].description
+            elif code == HTTPStatus.NO_CONTENT:
+                description = 'Request fulfilled, nothing follows'
+
+        def dump_response_with_model_decorator(func):
+            def dump_wrapper(*args, **kwargs):
+                response = func(*args, **kwargs)
+                if isinstance(response, flask.Response):
+                    return response
+                elif response is None:
+                    if code == HTTPStatus.NO_CONTENT:
+                        return flask.Response(status=HTTPStatus.NO_CONTENT, content_type='application/json')
+                    raise ValueError("Reponse must not be empty with code 200")
+                return model.dump(response).data
+            return dump_wrapper
 
         def decorator(func_or_class):
             if code in http_exceptions.default_exceptions:
@@ -125,35 +141,29 @@ class Namespace(OriginalNamespace):
                 # produce a response later, so we don't need to apply a dump
                 # wrapper.
                 decorated_func_or_class = func_or_class
+            elif isinstance(func_or_class, type):
+                # Make a copy of `method_decorators` as otherwise we will
+                # modify the behaviour of all flask-restful.Resource-based
+                # classes
+                func_or_class.method_decorators = (
+                    [dump_response_with_model_decorator] + func_or_class.method_decorators
+                )
+                decorated_func_or_class = func_or_class
             else:
-                def dump_decorator(func):
-                    def dump_wrapper(*args, **kwargs):
-                        return model.dump(func(*args, **kwargs)).data
-                    return dump_wrapper
+                decorated_func_or_class = wraps(func_or_class)(
+                    dump_response_with_model_decorator(func_or_class)
+                )
 
-                if isinstance(func_or_class, type):
-                    # Make a copy of `method_decorators` as otherwise we will
-                    # modify the behaviour of all flask-restful.Resource-based
-                    # classes
-                    func_or_class.method_decorators = (
-                        [dump_decorator] + func_or_class.method_decorators
-                    )
-                    decorated_func_or_class = func_or_class
+            if code == HTTPStatus.NO_CONTENT:
+                api_model = None
+            else:
+                if isinstance(model, Model):
+                    api_model = model
                 else:
-                    decorated_func_or_class = wraps(func_or_class)(dump_decorator(func_or_class))
+                    api_model = self.model(model=model)
+                if getattr(model, 'many', False):
+                    api_model = [api_model]
 
-            if isinstance(model, Model):
-                api_model = model
-            else:
-                api_model = self.model(model=model)
-
-            return self.doc(
-                responses={
-                    code: (
-                        description,
-                        [api_model] if getattr(model, 'many', False) else api_model
-                    ),
-                }
-            )(decorated_func_or_class)
+            return self.doc(responses={code: (description, api_model)})(decorated_func_or_class)
 
         return decorator
