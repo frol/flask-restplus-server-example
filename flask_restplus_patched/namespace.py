@@ -45,11 +45,17 @@ class Namespace(OriginalNamespace):
         ...    def get(self, user):
         ...        # user is a User instance here
         """
-        def decorator(func):
-            @wraps(func)
+        def decorator(func_or_class):
+            if isinstance(func_or_class, type):
+                func_or_class.method_decorators = (
+                    [decorator] + func_or_class.method_decorators
+                )
+                return func_or_class
+
+            @wraps(func_or_class)
             def wrapper(*args, **kwargs):
                 kwargs[object_arg_name] = resolver(kwargs)
-                return func(*args, **kwargs)
+                return func_or_class(*args, **kwargs)
             return wrapper
         return decorator
 
@@ -167,3 +173,11 @@ class Namespace(OriginalNamespace):
             return self.doc(responses={code: (description, api_model)})(decorated_func_or_class)
 
         return decorator
+
+    def route(self, *args, **kwargs):
+        base_wrapper = super(Namespace, self).route(*args, **kwargs)
+        def wrapper(cls):
+            if 'OPTIONS' in cls.methods:
+                cls.options = self.response(code=204)(cls.options)
+            return base_wrapper(cls)
+        return wrapper

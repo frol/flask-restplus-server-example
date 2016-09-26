@@ -92,7 +92,9 @@ class Namespace(BaseNamespace):
                     permissions.ActivatedUserRolePermission()
                 )(func)
 
-            oauth_protected_func = oauth2.require_oauth(*oauth_scopes)(protected_func)
+            oauth_protection_decorator = oauth2.require_oauth(*oauth_scopes)
+            self._register_access_restriction_decorator(func, oauth_protection_decorator)
+            oauth_protected_func = oauth_protection_decorator(protected_func)
 
             return self.doc(
                 security={
@@ -169,6 +171,7 @@ class Namespace(BaseNamespace):
                         return wrapper
 
                 protected_func = _permission_decorator(func)
+                self._register_access_restriction_decorator(protected_func, _permission_decorator)
 
             # Apply `_role_permission_applied` marker for Role Permissions,
             # so don't apply unnecessary permissions in `login_required`
@@ -185,7 +188,7 @@ class Namespace(BaseNamespace):
                         issubclass(permission, permissions.RolePermission)
                     )
             ):
-                protected_func._role_permission_applied = True # pylint: disable=protected-access
+                protected_func._role_permission_applied = True  # pylint: disable=protected-access
 
             permission_description = permission.__doc__.strip()
             return self.doc(
@@ -198,6 +201,15 @@ class Namespace(BaseNamespace):
             )
 
         return decorator
+
+    def _register_access_restriction_decorator(self, func, decorator_to_register):
+        """
+        Helper function to register decorator to function to perform checks 
+        in options method
+        """
+        if not hasattr(func, '_access_restriction_decorators'):
+            func._access_restriction_decorators = []  # pylint: disable=protected-access
+        func._access_restriction_decorators.append(decorator_to_register)  # pylint: disable=protected-access
 
     @contextmanager
     def commit_or_abort(self, session, default_error_message="The operation failed to complete"):
