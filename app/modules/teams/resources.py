@@ -7,6 +7,7 @@ RESTful API Team resources
 
 import logging
 
+from flask_login import current_user
 from flask_restplus import Resource
 from flask_restplus_patched._http import HTTPStatus
 
@@ -57,6 +58,8 @@ class Teams(Resource):
             ):
             team = Team(**args)
             db.session.add(team)
+            team_member = TeamMember(team=team, user=current_user, is_leader=True)
+            db.session.add(team_member)
         return team
 
 
