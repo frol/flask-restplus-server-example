@@ -74,14 +74,53 @@ class Namespace(BaseNamespace):
           minimal authorization level;
         * All of the above requirements are put into OpenAPI Specification with
           relevant options and in a text description.
+
+        Arguments:
+            oauth_scopes (list) - a list of required OAuth2 Scopes (strings)
+
+        Example: 
+        >>> class Users(Resource):
+        ...     @namespace.login_required(oauth_scopes=['users:read'])
+        ...     def get(self):
+        ...         return []
+        ... 
+        >>> @namespace.login_required(oauth_scopes=['users:read'])
+        ... class Users(Resource):
+        ...     def get(self):
+        ...         return []
+        ... 
+        ...     @namespace.login_required(oauth_scopes=['users:write'])
+        ...     def post(self):
+        ...         return User()
+        ... 
+        >>> @namespace.login_required(oauth_scopes=[])
+        ... class Users(Resource):
+        ...     @namespace.login_required(oauth_scopes=['users:read'])
+        ...     def get(self):
+        ...         return []
+        ... 
+        ...     @namespace.login_required(oauth_scopes=['users:write'])
+        ...     def post(self):
+        ...         return User()
         """
-        def decorator(func):
+        def decorator(func_or_class):
             """
             A helper wrapper.
             """
+            if isinstance(func_or_class, type):
+                # Handle Resource classes decoration
+                func_or_class._apply_decorator_to_methods(decorator)
+                return func_or_class
+            else:
+                func = func_or_class
+
             # Avoid circilar dependency
             from app.extensions import oauth2
             from app.modules.users import permissions
+
+            # This way we will avoid unnecessary checks if the decorator is
+            # applied several times, e.g. when Resource class is decorated.
+            func.__latest_oauth_decorator_id__ = id(decorator)
 
             # Automatically apply `permissions.ActivatedUserRolePermisson`
             # guard if none is yet applied.
@@ -92,8 +131,40 @@ class Namespace(BaseNamespace):
                     permissions.ActivatedUserRolePermission()
                 )(func)
 
-            oauth_protection_decorator = oauth2.require_oauth(*oauth_scopes)
-            self._register_access_restriction_decorator(func, oauth_protection_decorator)
+            # Accumulate OAuth2 scopes if @login_required decorator is applied
+            # several times
+            if hasattr(protected_func, '__apidoc__') \
+                    and 'security' in protected_func.__apidoc__ \
+                    and '__oauth__' in protected_func.__apidoc__['security']:
+                _oauth_scopes = (
+                        oauth_scopes + protected_func.__apidoc__['security']['__oauth__']['scopes']
+                    )
+            else:
+                _oauth_scopes = oauth_scopes
+
+            def oauth_protection_decorator(func):
+                """
+                This helper decorator is necessary to be able to skip redundant
+                checks when Resource class is also decorated.
+                """
+                oauth_protected_func = oauth2.require_oauth(*_oauth_scopes)(func)
+
+                @wraps(oauth_protected_func)
+                def wrapper(self, *args, **kwargs):
+                    latest_oauth_decorator_id = getattr(
+                            getattr(self, func.__name__),
+                            '__latest_oauth_decorator_id__',
+                            None
+                        )
+                    if id(decorator) == latest_oauth_decorator_id:
+                        _func = oauth_protected_func
+                    else:
+                        _func = func
+                    return _func(self, *args, **kwargs)
+
+                return wrapper
+
+            self._register_access_restriction_decorator(protected_func, oauth_protection_decorator)
             oauth_protected_func = oauth_protection_decorator(protected_func)
 
             return self.doc(
@@ -102,7 +173,7 @@ class Namespace(BaseNamespace):
                     # `Api.add_namespace`.
                     '__oauth__': {
                         'type': 'oauth',
-                        'scopes': oauth_scopes,
+                        'scopes': _oauth_scopes,
                     }
                 }
             )(
@@ -110,9 +181,9 @@ class Namespace(BaseNamespace):
                     code=http_exceptions.Unauthorized.code,
                     description=(
                         "Authentication is required"
-                        if not oauth_scopes else
+                        if not _oauth_scopes else
                         "Authentication with %s OAuth scope(s) is required" % (
-                            ', '.join(oauth_scopes)
+                            ', '.join(_oauth_scopes)
                         )
                     ),
                 )(oauth_protected_func)

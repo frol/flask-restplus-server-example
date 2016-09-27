@@ -8,7 +8,7 @@ RESTful API Team resources
 import logging
 
 from flask_login import current_user
-from flask_restplus import Resource
+from flask_restplus_patched import Resource
 from flask_restplus_patched._http import HTTPStatus
 
 from app.extensions import db
@@ -27,12 +27,12 @@ api = Namespace('teams', description="Teams")  # pylint: disable=invalid-name
 
 
 @api.route('/')
+@api.login_required(oauth_scopes=['teams:read'])
 class Teams(Resource):
     """
     Manipulations with teams.
     """
 
-    @api.login_required(oauth_scopes=['teams:read'])
     @api.parameters(PaginationParameters())
     @api.response(schemas.BaseTeamSchema(many=True))
     def get(self, args):
@@ -64,6 +64,7 @@ class Teams(Resource):
 
 
 @api.route('/<int:team_id>')
+@api.login_required(oauth_scopes=['teams:read'])
 @api.response(
     code=http_exceptions.NotFound.code,
     description="Team not found.",
@@ -73,7 +74,6 @@ class TeamByID(Resource):
     Manipulations with a specific team.
     """
 
-    @api.login_required(oauth_scopes=['teams:read'])
     @api.resolve_object_by_model(Team, 'team')
     @api.permission_required(
         permissions.OwnerRolePermission,
@@ -130,6 +130,7 @@ class TeamByID(Resource):
 
 
 @api.route('/<int:team_id>/members/')
+@api.login_required(oauth_scopes=['teams:read'])
 @api.response(
     code=http_exceptions.NotFound.code,
     description="Team not found.",
@@ -139,7 +140,6 @@ class TeamMembers(Resource):
     Manipulations with members of a specific team.
     """
 
-    @api.login_required(oauth_scopes=['teams:read'])
     @api.resolve_object_by_model(Team, 'team')
     @api.permission_required(
         permissions.OwnerRolePermission,
@@ -187,6 +187,7 @@ class TeamMembers(Resource):
 
 
 @api.route('/<int:team_id>/members/<int:user_id>')
+@api.login_required(oauth_scopes=['teams:read'])
 @api.response(
     code=http_exceptions.NotFound.code,
     description="Team or member not found.",

@@ -47,9 +47,9 @@ class Namespace(OriginalNamespace):
         """
         def decorator(func_or_class):
             if isinstance(func_or_class, type):
-                func_or_class.method_decorators = (
-                    [decorator] + func_or_class.method_decorators
-                )
+                # Handle Resource classes decoration
+                # pylint: disable=protected-access
+                func_or_class._apply_decorator_to_methods(decorator)
                 return func_or_class
 
             @wraps(func_or_class)
@@ -129,35 +129,44 @@ class Namespace(OriginalNamespace):
             elif code == HTTPStatus.NO_CONTENT:
                 description = 'Request fulfilled, nothing follows'
 
-        def dump_response_with_model_decorator(func):
+        def response_serializer_decorator(func):
+            """
+            This decorator handles responses to serialize the returned value
+            with a given model.
+            """
             def dump_wrapper(*args, **kwargs):
+                # pylint: disable=missing-docstring
                 response = func(*args, **kwargs)
+
                 if isinstance(response, flask.Response):
                     return response
+
                 elif response is None:
                     if code == HTTPStatus.NO_CONTENT:
-                        return flask.Response(status=HTTPStatus.NO_CONTENT, content_type='application/json')
+                        return flask.Response(
+                            status=HTTPStatus.NO_CONTENT,
+                            content_type='application/json'
+                        )
                     raise ValueError("Reponse must not be empty with code 200")
+
                 return model.dump(response).data
+
             return dump_wrapper
 
         def decorator(func_or_class):
             if code in http_exceptions.default_exceptions:
                 # If the code is handled by raising an exception, it will
-                # produce a response later, so we don't need to apply a dump
+                # produce a response later, so we don't need to apply a useless
                 # wrapper.
                 decorated_func_or_class = func_or_class
             elif isinstance(func_or_class, type):
-                # Make a copy of `method_decorators` as otherwise we will
-                # modify the behaviour of all flask-restful.Resource-based
-                # classes
-                func_or_class.method_decorators = (
-                    [dump_response_with_model_decorator] + func_or_class.method_decorators
-                )
+                # Handle Resource classes decoration
+                # pylint: disable=protected-access
+                func_or_class._apply_decorator_to_methods(response_serializer_decorator)
                 decorated_func_or_class = func_or_class
             else:
                 decorated_func_or_class = wraps(func_or_class)(
-                    dump_response_with_model_decorator(func_or_class)
+                    response_serializer_decorator(func_or_class)
                 )
 
             if code == HTTPStatus.NO_CONTENT:
