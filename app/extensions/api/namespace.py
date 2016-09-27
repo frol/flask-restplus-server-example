@@ -120,7 +120,7 @@ class Namespace(BaseNamespace):
 
             # This way we will avoid unnecessary checks if the decorator is
             # applied several times, e.g. when Resource class is decorated.
-            func.__latest_oauth_decorator_id__ = id(decorator)
+            func.__dict__['__latest_oauth_decorator_id__'] = id(decorator)
 
             # Automatically apply `permissions.ActivatedUserRolePermisson`
             # guard if none is yet applied.
