@@ -44,7 +44,7 @@ class Resource(OriginalResource):
         allowed_methods = []
         for method_func in method_funcs:
             if getattr(method_func, '_access_restriction_decorators', None):
-                if not hasattr(method_func, '_cached_ok_func'):
+                if not hasattr(method_func, '_cached_fake_method_func'):
                     fake_method_func = lambda *args, **kwargs: True
                     # `__name__` is used in `login_required` decorator, so it
                     # is required to fake this also
