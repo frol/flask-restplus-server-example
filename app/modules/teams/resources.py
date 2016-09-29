@@ -69,12 +69,12 @@ class Teams(Resource):
     code=http_exceptions.NotFound.code,
     description="Team not found.",
 )
+@api.resolve_object_by_model(Team, 'team')
 class TeamByID(Resource):
     """
     Manipulations with a specific team.
     """
 
-    @api.resolve_object_by_model(Team, 'team')
     @api.permission_required(
         permissions.OwnerRolePermission,
         kwargs_on_request=lambda kwargs: {'obj': kwargs['team']}
@@ -87,7 +87,6 @@ class TeamByID(Resource):
         return team
 
     @api.login_required(oauth_scopes=['teams:write'])
-    @api.resolve_object_by_model(Team, 'team')
     @api.permission_required(
         permissions.OwnerRolePermission,
         kwargs_on_request=lambda kwargs: {'obj': kwargs['team']}
@@ -109,7 +108,6 @@ class TeamByID(Resource):
         return team
 
     @api.login_required(oauth_scopes=['teams:write'])
-    @api.resolve_object_by_model(Team, 'team')
     @api.permission_required(
         permissions.OwnerRolePermission,
         kwargs_on_request=lambda kwargs: {'obj': kwargs['team']}
@@ -135,12 +133,12 @@ class TeamByID(Resource):
     code=http_exceptions.NotFound.code,
     description="Team not found.",
 )
+@api.resolve_object_by_model(Team, 'team')
 class TeamMembers(Resource):
     """
     Manipulations with members of a specific team.
     """
 
-    @api.resolve_object_by_model(Team, 'team')
     @api.permission_required(
         permissions.OwnerRolePermission,
         kwargs_on_request=lambda kwargs: {'obj': kwargs['team']}
@@ -155,7 +153,6 @@ class TeamMembers(Resource):
         return team.members[args['offset']: args['offset'] + args['limit']]
 
     @api.login_required(oauth_scopes=['teams:write'])
-    @api.resolve_object_by_model(Team, 'team')
     @api.permission_required(
         permissions.OwnerRolePermission,
         kwargs_on_request=lambda kwargs: {'obj': kwargs['team']}
@@ -192,13 +189,13 @@ class TeamMembers(Resource):
     code=http_exceptions.NotFound.code,
     description="Team or member not found.",
 )
+@api.resolve_object_by_model(Team, 'team')
 class TeamMemberByID(Resource):
     """
     Manipulations with a specific team member.
     """
 
     @api.login_required(oauth_scopes=['teams:write'])
-    @api.resolve_object_by_model(Team, 'team')
     @api.permission_required(
         permissions.OwnerRolePermission,
         kwargs_on_request=lambda kwargs: {'obj': kwargs['team']}

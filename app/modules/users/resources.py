@@ -78,12 +78,12 @@ class UserSignupForm(Resource):
     code=http_exceptions.NotFound.code,
     description="User not found.",
 )
+@api.resolve_object_by_model(User, 'user')
 class UserByID(Resource):
     """
     Manipulations with a specific user.
     """
 
-    @api.resolve_object_by_model(User, 'user')
     @api.permission_required(
         permissions.OwnerRolePermission,
         kwargs_on_request=lambda kwargs: {'obj': kwargs['user']}
@@ -96,7 +96,6 @@ class UserByID(Resource):
         return user
 
     @api.login_required(oauth_scopes=['users:write'])
-    @api.resolve_object_by_model(User, 'user')
     @api.permission_required(
         permissions.OwnerRolePermission,
         kwargs_on_request=lambda kwargs: {'obj': kwargs['user']}
@@ -121,12 +120,12 @@ class UserByID(Resource):
 
 
 @api.route('/me')
+@api.login_required(oauth_scopes=['users:read'])
 class UserMe(Resource):
     """
     Useful reference to the authenticated user itself.
     """
 
-    @api.login_required(oauth_scopes=['users:read'])
     @api.response(schemas.DetailedUserSchema())
     def get(self):
         """

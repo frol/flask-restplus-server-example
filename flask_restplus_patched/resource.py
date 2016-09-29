@@ -4,6 +4,8 @@ import flask
 from flask_restplus import Resource as OriginalResource
 from werkzeug.exceptions import HTTPException
 
+from ._http import HTTPStatus
+
 
 class Resource(OriginalResource):
     """
@@ -38,21 +40,36 @@ class Resource(OriginalResource):
         for other methods to provide information about what methods
         current_user can use
         """
-        funcs = [getattr(self, m.lower()) for m in self.methods]
-        methods = self.methods[:]
-        for method in funcs:
-            if hasattr(method, '_access_restriction_decorators'):
-                if not hasattr(method, '_cached_ok_func'):
-                    ok_func = lambda *args, **kwargs: True
-                    for decorator in method._access_restriction_decorators:
-                        ok_func = decorator(ok_func)
-                    method.__dict__['_cached_ok_func'] = ok_func
+        method_funcs = [getattr(self, m.lower()) for m in self.methods]
+        allowed_methods = []
+        for method_func in method_funcs:
+            if getattr(method_func, '_access_restriction_decorators', None):
+                if not hasattr(method_func, '_cached_ok_func'):
+                    fake_method_func = lambda *args, **kwargs: True
+                    # `__name__` is used in `login_required` decorator, so it
+                    # is required to fake this also
+                    fake_method_func.__name__ = 'options'
+
+                    # Decorate the fake method with the registered access
+                    # restriction decorators
+                    for decorator in method_func._access_restriction_decorators:
+                        fake_method_func = decorator(fake_method_func)
+
+                    # Cache the `fake_method_func` to avoid redoing this over
+                    # and over again
+                    method_func.__dict__['_cached_fake_method_func'] = fake_method_func
                 else:
-                    ok_func = method._cached_ok_func
+                    fake_method_func = method._cached_fake_method_func
+
                 try:
-                    ok_func(*args, **kwargs)
+                    fake_method_func(self, *args, **kwargs)
                 except HTTPException:
-                    del methods[methods.index(method.__name__.upper())]
-                else:
-                    pass  # !!! all checks are passed, so we should be fine here!
-        return flask.Response(status=204, headers={'Allow': ", ".join(methods)})
+                    # This method is not allowed, so skip it
+                    continue
+
+            allowed_methods.append(method_func.__name__.upper())
+
+        return flask.Response(
+            status=HTTPStatus.NO_CONTENT,
+            headers={'Allow': ", ".join(allowed_methods)}
+        )
