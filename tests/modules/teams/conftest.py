@@ -24,3 +24,20 @@ def team_for_regular_user(db, regular_user, readonly_user):
     db.session.delete(regular_user_team_member)
     db.session.delete(team)
     db.session.commit()
+
+@pytest.yield_fixture()
+def team_for_nobody(db):  # pylint: disable=invalid-name
+    """
+    Create a team that not belongs regural user
+    """
+    from app.modules.teams.models import Team
+
+    team = Team(title="Admin User's team")
+    db.session.add(team)
+    db.session.commit()
+
+    yield team
+
+    # Cleanup
+    db.session.delete(team)
+    db.session.commit()
