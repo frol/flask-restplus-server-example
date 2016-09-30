@@ -185,20 +185,16 @@ class PatchJSONParameters(Parameters):
 
     @classmethod
     def add(cls, obj, field, value, state=None):
-        # pylint: disable=abstract-method
         raise NotImplementedError()
 
     @classmethod
     def remove(cls, obj, field, state=None):
-        # pylint: disable=abstract-method
         raise NotImplementedError()
 
     @classmethod
     def move(cls, obj, field, value, state=None):
-        # pylint: disable=abstract-method
         raise NotImplementedError()
 
     @classmethod
     def copy(cls, obj, field, value, state=None):
-        # pylint: disable=abstract-method
         raise NotImplementedError()

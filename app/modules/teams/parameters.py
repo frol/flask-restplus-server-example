@@ -21,7 +21,7 @@ class CreateTeamParameters(PostFormParameters, schemas.BaseTeamSchema):
 
 
 class PatchTeamDetailsParameters(PatchJSONParameters):
-    # pylint: disable=missing-docstring
+    # pylint: disable=abstract-method,missing-docstring
     OPERATION_CHOICES = (
         PatchJSONParameters.OP_REPLACE,
     )

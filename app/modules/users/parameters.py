@@ -1,5 +1,5 @@
 # encoding: utf-8
-# pylint: disable=too-many-ancestors,bad-continuation
+# pylint: disable=wrong-import-order
 """
 Input arguments (Parameters) for User resources RESTful API
 -----------------------------------------------------------
@@ -7,10 +7,10 @@ Input arguments (Parameters) for User resources RESTful API
 
 from flask_login import current_user
 from flask_marshmallow import base_fields
+from flask_restplus_patched import PostFormParameters, PatchJSONParameters
 from marshmallow import validates_schema
 
 from app.extensions.api import abort, http_exceptions
-from flask_restplus_patched import PostFormParameters, PatchJSONParameters
 
 from . import schemas, permissions
 from .models import User
@@ -61,6 +61,11 @@ class AddUserParameters(PostFormParameters, schemas.BaseUserSchema):
 
 
 class PatchUserDetailsParameters(PatchJSONParameters):
+    # pylint: disable=abstract-method
+    """
+    User details updating parameters following PATCH JSON RFC.
+    """
+
     PATH_CHOICES = tuple(
         '/%s' % field for field in (
             'current_password',
@@ -92,9 +97,10 @@ class PatchUserDetailsParameters(PatchJSONParameters):
     def replace(cls, obj, field, value, state=None):
         """
         Some fields require extra permissions to be changed.
+
         Current user has to have at least a Supervisor role to change
-        'is_active' and 'is_readonly' property
-        And 'is_admin' requires Admin role
+        'is_active' and 'is_readonly' property, and changing 'is_admin'
+        property requires Admin role.
         """
         if field in {'is_active', 'is_readonly'}:
             with permissions.SupervisorRolePermission(

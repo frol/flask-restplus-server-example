@@ -78,27 +78,27 @@ class Namespace(BaseNamespace):
         Arguments:
             oauth_scopes (list) - a list of required OAuth2 Scopes (strings)
 
-        Example: 
+        Example:
         >>> class Users(Resource):
         ...     @namespace.login_required(oauth_scopes=['users:read'])
         ...     def get(self):
         ...         return []
-        ... 
+        ...
         >>> @namespace.login_required(oauth_scopes=['users:read'])
         ... class Users(Resource):
         ...     def get(self):
         ...         return []
-        ... 
+        ...
         ...     @namespace.login_required(oauth_scopes=['users:write'])
         ...     def post(self):
         ...         return User()
-        ... 
+        ...
         >>> @namespace.login_required(oauth_scopes=[])
         ... class Users(Resource):
         ...     @namespace.login_required(oauth_scopes=['users:read'])
         ...     def get(self):
         ...         return []
-        ... 
+        ...
         ...     @namespace.login_required(oauth_scopes=['users:write'])
         ...     def post(self):
         ...         return User()
@@ -109,6 +109,7 @@ class Namespace(BaseNamespace):
             """
             if isinstance(func_or_class, type):
                 # Handle Resource classes decoration
+                # pylint: disable=protected-access
                 func_or_class._apply_decorator_to_methods(decorator)
                 return func_or_class
             else:
@@ -137,8 +138,8 @@ class Namespace(BaseNamespace):
                     and 'security' in protected_func.__apidoc__ \
                     and '__oauth__' in protected_func.__apidoc__['security']:
                 _oauth_scopes = (
-                        oauth_scopes + protected_func.__apidoc__['security']['__oauth__']['scopes']
-                    )
+                    oauth_scopes + protected_func.__apidoc__['security']['__oauth__']['scopes']
+                )
             else:
                 _oauth_scopes = oauth_scopes
 
@@ -151,11 +152,16 @@ class Namespace(BaseNamespace):
 
                 @wraps(oauth_protected_func)
                 def wrapper(self, *args, **kwargs):
+                    """
+                    This wrapper decides whether OAuth2.require_oauth should be
+                    executed to avoid unnecessary calls when ``login_required``
+                    decorator is applied several times.
+                    """
                     latest_oauth_decorator_id = getattr(
-                            getattr(self, func.__name__),
-                            '__latest_oauth_decorator_id__',
-                            None
-                        )
+                        getattr(self, func.__name__),
+                        '__latest_oauth_decorator_id__',
+                        None
+                    )
                     if id(decorator) == latest_oauth_decorator_id:
                         _func = oauth_protected_func
                     else:
@@ -274,8 +280,9 @@ class Namespace(BaseNamespace):
         return decorator
 
     def _register_access_restriction_decorator(self, func, decorator_to_register):
+        # pylint: disable=invalid-name
         """
-        Helper function to register decorator to function to perform checks 
+        Helper function to register decorator to function to perform checks
         in options method
         """
         if not hasattr(func, '_access_restriction_decorators'):
