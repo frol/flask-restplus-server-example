@@ -59,7 +59,7 @@ class Resource(OriginalResource):
                     # and over again
                     method_func.__dict__['_cached_fake_method_func'] = fake_method_func
                 else:
-                    fake_method_func = method._cached_fake_method_func
+                    fake_method_func = method_func._cached_fake_method_func
 
                 try:
                     fake_method_func(self, *args, **kwargs)
