@@ -116,7 +116,9 @@ class Namespace(OriginalNamespace):
         ...         abort(403)
         ...     return Team.query.all()
         """
-        if model is None and code != HTTPStatus.NO_CONTENT:
+        ALLOWED_EMPTY_BODY_STATUSES = (HTTPStatus.NO_CONTENT, HTTPStatus.ACCEPTED)
+
+        if model is None and code not in ALLOWED_EMPTY_BODY_STATUSES:
             if code not in http_exceptions.default_exceptions:
                 raise ValueError("`model` parameter is required for code %d" % code)
             model = self.model(
@@ -126,7 +128,7 @@ class Namespace(OriginalNamespace):
         if description is None:
             if code in http_exceptions.default_exceptions:
                 description = http_exceptions.default_exceptions[code].description
-            elif code == HTTPStatus.NO_CONTENT:
+            elif code in ALLOWED_EMPTY_BODY_STATUSES:
                 description = 'Request fulfilled, nothing follows'
 
         def response_serializer_decorator(func):
@@ -138,16 +140,15 @@ class Namespace(OriginalNamespace):
                 # pylint: disable=missing-docstring
                 response = func(*args, **kwargs)
 
-                if isinstance(response, flask.Response):
-                    return response
-
-                elif response is None:
-                    if code == HTTPStatus.NO_CONTENT:
+                if response is None:
+                    if code in ALLOWED_EMPTY_BODY_STATUSES:
                         return flask.Response(
-                            status=HTTPStatus.NO_CONTENT,
+                            status=code,
                             content_type='application/json'
                         )
                     raise ValueError("Reponse must not be empty with code 200")
+                elif isinstance(response, flask.Response) or model is None:
+                    return response
 
                 return model.dump(response).data
 
@@ -169,7 +170,7 @@ class Namespace(OriginalNamespace):
                     response_serializer_decorator(func_or_class)
                 )
 
-            if code == HTTPStatus.NO_CONTENT:
+            if code in ALLOWED_EMPTY_BODY_STATUSES:
                 api_model = None
             else:
                 if isinstance(model, Model):
