@@ -3,3 +3,4 @@ try:
 except ImportError:
     class HTTPStatus:
         NO_CONTENT = 204
+        ACCEPTED = 202
