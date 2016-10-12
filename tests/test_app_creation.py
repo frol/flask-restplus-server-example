@@ -5,6 +5,6 @@ import pytest
 from app import create_app
 
 
-@pytest.mark.parametrize('flask_config', ['production', 'development'])
-def test_create_app(flask_config):
-    create_app(flask_config=flask_config)
+@pytest.mark.parametrize('flask_config_name', ['production', 'development'])
+def test_create_app(flask_config_name):
+    create_app(flask_config_name=flask_config_name)

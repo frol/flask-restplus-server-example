@@ -4,6 +4,8 @@
 Application execution related tasks for Invoke.
 """
 
+import os
+
 try:
     from invoke import ctask as task
 except ImportError:  # Invoke 0.13 renamed ctask to task
@@ -22,6 +24,7 @@ def run(
     """
     Run Example RESTful API Server.
     """
+    os.environ['FLASK_CONFIG'] = 'development' if development else 'production'
     if install_dependencies:
         context.invoke_execute(context, 'app.dependencies.install')
     if upgrade_db:
@@ -35,9 +38,4 @@ def run(
             )
 
     from app import create_app
-    create_app(
-        flask_config='development' if development else 'production'
-    ).run(
-        host=host,
-        port=port
-    )
+    create_app().run(host=host, port=port)
