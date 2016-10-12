@@ -10,56 +10,56 @@ from app.modules.users import permissions
 
 def test_DenyAbortMixin():
     with pytest.raises(HTTPException):
-        permissions.DenyAbortMixin().deny()
+        permissions.rules.DenyAbortMixin().deny()
 
 def test_WriteAccessRule_authenticated_user(authenticated_user_instance):
     authenticated_user_instance.is_readonly = False
-    assert permissions.WriteAccessRule().check() is True
+    assert permissions.rules.WriteAccessRule().check() is True
     authenticated_user_instance.is_readonly = True
-    assert permissions.WriteAccessRule().check() is False
+    assert permissions.rules.WriteAccessRule().check() is False
 
 def test_ActivatedUserRoleRule_anonymous(anonymous_user_instance):
     # pylint: disable=unused-argument
-    assert permissions.ActivatedUserRoleRule().check() is False
+    assert permissions.rules.ActivatedUserRoleRule().check() is False
 
 def test_ActivatedUserRoleRule_authenticated_user(authenticated_user_instance):
     authenticated_user_instance.is_active = True
-    assert permissions.ActivatedUserRoleRule().check() is True
+    assert permissions.rules.ActivatedUserRoleRule().check() is True
     authenticated_user_instance.is_active = False
-    assert permissions.ActivatedUserRoleRule().check() is False
+    assert permissions.rules.ActivatedUserRoleRule().check() is False
 
 def test_PasswordRequiredRule(authenticated_user_instance):
     authenticated_user_instance.password = "correct_password"
-    assert permissions.PasswordRequiredRule(password="correct_password").check() is True
-    assert permissions.PasswordRequiredRule(password="wrong_password").check() is False
+    assert permissions.rules.PasswordRequiredRule(password="correct_password").check() is True
+    assert permissions.rules.PasswordRequiredRule(password="wrong_password").check() is False
 
 def test_AdminRoleRule_authenticated_user(authenticated_user_instance):
     authenticated_user_instance.is_admin = True
-    assert permissions.AdminRoleRule().check() is True
+    assert permissions.rules.AdminRoleRule().check() is True
     authenticated_user_instance.is_admin = False
-    assert permissions.AdminRoleRule().check() is False
+    assert permissions.rules.AdminRoleRule().check() is False
 
 def test_SupervisorRoleRule_authenticated_user(authenticated_user_instance):
     obj = Mock()
     del obj.check_supervisor
-    assert permissions.SupervisorRoleRule(obj).check() is False
+    assert permissions.rules.SupervisorRoleRule(obj).check() is False
     obj.check_supervisor = lambda user: user == authenticated_user_instance
-    assert permissions.SupervisorRoleRule(obj).check() is True
+    assert permissions.rules.SupervisorRoleRule(obj).check() is True
     obj.check_supervisor = lambda user: False
-    assert permissions.SupervisorRoleRule(obj).check() is False
+    assert permissions.rules.SupervisorRoleRule(obj).check() is False
 
 def test_OwnerRoleRule_authenticated_user(authenticated_user_instance):
     obj = Mock()
     del obj.check_owner
-    assert permissions.OwnerRoleRule(obj).check() is False
+    assert permissions.rules.OwnerRoleRule(obj).check() is False
     obj.check_owner = lambda user: user == authenticated_user_instance
-    assert permissions.OwnerRoleRule(obj).check() is True
+    assert permissions.rules.OwnerRoleRule(obj).check() is True
     obj.check_owner = lambda user: False
-    assert permissions.OwnerRoleRule(obj).check() is False
+    assert permissions.rules.OwnerRoleRule(obj).check() is False
 
 def test_PartialPermissionDeniedRule():
     with pytest.raises(RuntimeError):
-        permissions.PartialPermissionDeniedRule().check()
+        permissions.rules.PartialPermissionDeniedRule().check()
 
 def test_PasswordRequiredPermissionMixin():
     mixin = permissions.PasswordRequiredPermissionMixin(
