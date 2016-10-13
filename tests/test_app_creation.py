@@ -6,8 +6,12 @@ from app import CONFIG_NAME_MAPPER, create_app
 
 
 def test_create_app():
-    with pytest.raises(SystemExit):
+    try:
         create_app()
+    except SystemExit:
+        # Clean git repository doesn't have `local_config.py`, so it is fine
+        # if we get SystemExit error.
+        pass
 
 @pytest.mark.parametrize('flask_config_name', ['production', 'development', 'testing'])
 def test_create_app_passing_flask_config_name(flask_config_name):
