@@ -49,10 +49,10 @@ else:
     for handler in logger.handlers:
         if isinstance(handler, logging.StreamHandler):
             break
-    else:
-        handler = logging.StreamHandler()
-        logger.addHandler(handler)
-    handler.setFormatter(formatter)
+        else:
+            handler = logging.StreamHandler()
+            logger.addHandler(handler)
+        handler.setFormatter(formatter)
 
 
 from invoke import Collection
