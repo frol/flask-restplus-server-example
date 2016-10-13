@@ -60,10 +60,12 @@ else:
             'multidb': "Multiple databases migraton",
         }
     )
-    def init(context, directory='migrations', multidb=False):
+    def init(context, directory='migrations', multidb=False, app=None):
         """Generates a new migration"""
         from app import create_app
-        with create_app().app_context():
+        if app is None:
+            app = create_app()
+        with app.app_context():
             config = Config()
             config.set_main_option('script_location', directory)
             config.config_file_name = os.path.join(directory, 'alembic.ini')
@@ -87,10 +89,13 @@ else:
         }
     )
     def revision(context, directory='migrations', message=None, autogenerate=False, sql=False,
-                 head='head', splice=False, branch_label=None, version_path=None, rev_id=None):
+                 head='head', splice=False, branch_label=None, version_path=None, rev_id=None,
+                 app=None):
         """Create a new revision file."""
         from app import create_app
-        with create_app().app_context():
+        if app is None:
+            app = create_app()
+        with app.app_context():
             config = _get_config(directory)
             if alembic_version >= (0, 7, 0):
                 command.revision(config, message, autogenerate=autogenerate, sql=sql,
@@ -111,10 +116,12 @@ else:
         }
     )
     def migrate(context, directory='migrations', message=None, sql=False, head='head', splice=False,
-                branch_label=None, version_path=None, rev_id=None):
+                branch_label=None, version_path=None, rev_id=None, app=None):
         """Alias for 'revision --autogenerate'"""
         from app import create_app
-        with create_app().app_context():
+        if app is None:
+            app = create_app()
+        with app.app_context():
             config = _get_config(directory, opts=['autogenerate'])
             if alembic_version >= (0, 7, 0):
                 command.revision(config, message, autogenerate=True, sql=sql, head=head,
@@ -129,10 +136,12 @@ else:
             'directory': "migration script directory",
         }
     )
-    def edit(context, revision='current', directory='migrations'):
+    def edit(context, revision='current', directory='migrations', app=None):
         """Upgrade to a later version"""
         from app import create_app
-        with create_app().app_context():
+        if app is None:
+            app = create_app()
+        with app.app_context():
             if alembic_version >= (0, 8, 0):
                 config = _get_config(directory)
                 command.edit(config, revision)
@@ -148,10 +157,12 @@ else:
         }
     )
     def merge(context, directory='migrations', revisions='', message=None, branch_label=None,
-              rev_id=None):
+              rev_id=None, app=None):
         """Merge two revisions together.  Creates a new migration file"""
         from app import create_app
-        with create_app().app_context():
+        if app is None:
+            app = create_app()
+        with app.app_context():
             if alembic_version >= (0, 7, 0):
                 config = _get_config(directory)
                 command.merge(config, revisions, message=message,
@@ -168,10 +179,13 @@ else:
             'x_arg': "Additional arguments consumed by custom env.py scripts",
         }
     )
-    def upgrade(context, directory='migrations', revision='head', sql=False, tag=None, x_arg=None):
+    def upgrade(context, directory='migrations', revision='head', sql=False, tag=None, x_arg=None,
+                app=None):
         """Upgrade to a later version"""
         from app import create_app
-        with create_app().app_context():
+        if app is None:
+            app = create_app()
+        with app.app_context():
             config = _get_config(directory, x_arg=x_arg)
             command.upgrade(config, revision, sql=sql, tag=tag)
 
@@ -185,10 +199,13 @@ else:
             'x_arg': "Additional arguments consumed by custom env.py scripts",
         }
     )
-    def downgrade(context, directory='migrations', revision='-1', sql=False, tag=None, x_arg=None):
+    def downgrade(context, directory='migrations', revision='-1', sql=False, tag=None, x_arg=None,
+                  app=None):
         """Revert to a previous version"""
         from app import create_app
-        with create_app().app_context():
+        if app is None:
+            app = create_app()
+        with app.app_context():
             config = _get_config(directory, x_arg=x_arg)
             if sql and revision == '-1':
                 revision = 'head:-1'
@@ -200,10 +217,12 @@ else:
             'directory': "migration script directory",
         }
     )
-    def show(context, directory='migrations', revision='head'):
+    def show(context, directory='migrations', revision='head', app=None):
         """Show the revision denoted by the given symbol."""
         from app import create_app
-        with create_app().app_context():
+        if app is None:
+            app = create_app()
+        with app.app_context():
             if alembic_version >= (0, 7, 0):
                 config = _get_config(directory)
                 command.show(config, revision)
@@ -217,10 +236,12 @@ else:
             'directory': "migration script directory",
         }
     )
-    def history(context, directory='migrations', rev_range=None, verbose=False):
+    def history(context, directory='migrations', rev_range=None, verbose=False, app=None):
         """List changeset scripts in chronological order."""
         from app import create_app
-        with create_app().app_context():
+        if app is None:
+            app = create_app()
+        with app.app_context():
             config = _get_config(directory)
             if alembic_version >= (0, 7, 0):
                 command.history(config, rev_range, verbose=verbose)
@@ -234,10 +255,12 @@ else:
             'directory': "migration script directory",
         }
     )
-    def heads(context, directory='migrations', verbose=False, resolve_dependencies=False):
+    def heads(context, directory='migrations', verbose=False, resolve_dependencies=False, app=None):
         """Show current available heads in the script directory"""
         from app import create_app
-        with create_app().app_context():
+        if app is None:
+            app = create_app()
+        with app.app_context():
             if alembic_version >= (0, 7, 0):
                 config = _get_config(directory)
                 command.heads(config, verbose=verbose,
@@ -251,10 +274,12 @@ else:
             'directory': "migration script directory",
         }
     )
-    def branches(context, directory='migrations', verbose=False):
+    def branches(context, directory='migrations', verbose=False, app=None):
         """Show current branch points"""
         from app import create_app
-        with create_app().app_context():
+        if app is None:
+            app = create_app()
+        with app.app_context():
             config = _get_config(directory)
             if alembic_version >= (0, 7, 0):
                 command.branches(config, verbose=verbose)
@@ -268,10 +293,12 @@ else:
             'directory': "migration script directory",
         }
     )
-    def current(context, directory='migrations', verbose=False, head_only=False):
+    def current(context, directory='migrations', verbose=False, head_only=False, app=None):
         """Display the current revision for each database."""
         from app import create_app
-        with create_app().app_context():
+        if app is None:
+            app = create_app()
+        with app.app_context():
             config = _get_config(directory)
             if alembic_version >= (0, 7, 0):
                 command.current(config, verbose=verbose, head_only=head_only)
@@ -286,17 +313,19 @@ else:
             'directory': "migration script directory",
         }
     )
-    def stamp(context, directory='migrations', revision='head', sql=False, tag=None):
+    def stamp(context, directory='migrations', revision='head', sql=False, tag=None, app=None):
         """'stamp' the revision table with the given revision; don't run any
         migrations"""
         from app import create_app
-        with create_app().app_context():
+        if app is None:
+            app = create_app()
+        with app.app_context():
             config = _get_config(directory)
             command.stamp(config, revision, sql=sql, tag=tag)
 
 
 @task
-def init_development_data(context, upgrade_db=True, skip_on_failure=False):
+def init_development_data(context, upgrade_db=True, skip_on_failure=False, app=None):
     """
     Fill a database with development data like default users.
     """

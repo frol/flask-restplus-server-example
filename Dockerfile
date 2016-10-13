@@ -1,8 +1,9 @@
 FROM frolvlad/alpine-python3
 
-COPY tasks /opt/www/tasks
-COPY config.py /opt/www/
-COPY app/requirements.txt /opt/www/app/
+ENV API_SERVER_HOME=/opt/www
+COPY tasks "$API_SERVER_HOME/tasks"
+COPY config.py "$API_SERVER_HOME/"
+COPY app/requirements.txt "$API_SERVER_HOME/app/"
 
 RUN apk add --no-cache --virtual=build_dependencies musl-dev gcc python3-dev libffi-dev && \
     cd /opt/www && \
@@ -13,7 +14,10 @@ RUN apk add --no-cache --virtual=build_dependencies musl-dev gcc python3-dev lib
 
 COPY . /opt/www/
 
-RUN chown -R nobody /opt/www/
+RUN chown -R nobody "$API_SERVER_HOME/" && \
+    if [ ! -e "$API_SERVER_HOME/local_config.py" ]; then \
+        cp "$API_SERVER_HOME/local_config.py.template" "$API_SERVER_HOME/local_config.py" ; \
+    fi
 
 USER nobody
 WORKDIR /opt/www/
