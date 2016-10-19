@@ -17,6 +17,7 @@ def init_users():
         email='root@localhost',
         password='q',
         is_active=True,
+        is_regular_user=True,
         is_admin=True
     )
     db.session.add(root_user)
@@ -31,7 +32,8 @@ def init_users():
         username='user',
         email='user@localhost',
         password='w',
-        is_active=True
+        is_active=True,
+        is_regular_user=True
     )
     db.session.add(regular_user)
     db.session.commit()
