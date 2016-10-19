@@ -80,7 +80,7 @@ class PasswordRequiredPermissionMixin(object):
 
 class WriteAccessPermission(Permission):
     """
-    Require a non-readonly user to perform an action.
+    Require a regular user role to perform an action.
     """
 
     def rule(self):
@@ -107,13 +107,13 @@ class RolePermission(Permission):
         return rules.AllowAllRule()
 
 
-class ActivatedUserRolePermission(RolePermission):
+class ActiveUserRolePermission(RolePermission):
     """
-    At least Activated user is required.
+    At least Active user is required.
     """
 
     def rule(self):
-        return rules.ActivatedUserRoleRule()
+        return rules.ActiveUserRoleRule()
 
 
 class AdminRolePermission(PasswordRequiredPermissionMixin, RolePermission):
@@ -122,7 +122,19 @@ class AdminRolePermission(PasswordRequiredPermissionMixin, RolePermission):
     """
 
     def rule(self):
-        return rules.AdminRoleRule() & super(AdminRolePermission, self).rule()
+        return (
+            rules.InternalRoleRule()
+            | (rules.AdminRoleRule() & super(AdminRolePermission, self).rule())
+        )
+
+
+class InternalRolePermission(RolePermission):
+    """
+    Internal role is required.
+    """
+
+    def rule(self):
+        return rules.InternalRoleRule()
 
 
 class SupervisorRolePermission(PasswordRequiredPermissionMixin, RolePermission):
@@ -143,8 +155,14 @@ class SupervisorRolePermission(PasswordRequiredPermissionMixin, RolePermission):
 
     def rule(self):
         return (
-            (rules.SupervisorRoleRule(obj=self._obj) | rules.AdminRoleRule())
-            & super(SupervisorRolePermission, self).rule()
+            rules.InternalRoleRule()
+            | (
+                (
+                    rules.AdminRoleRule()
+                    | rules.SupervisorRoleRule(obj=self._obj)
+                )
+                & super(SupervisorRolePermission, self).rule()
+            )
         )
 
 
@@ -166,9 +184,13 @@ class OwnerRolePermission(PasswordRequiredPermissionMixin, RolePermission):
 
     def rule(self):
         return (
-            (rules.OwnerRoleRule(obj=self._obj)
-                | rules.SupervisorRoleRule(obj=self._obj)
-                | rules.AdminRoleRule()
+            rules.InternalRoleRule()
+            | (
+                (
+                    rules.AdminRoleRule()
+                    | rules.OwnerRoleRule(obj=self._obj)
+                    | rules.SupervisorRoleRule(obj=self._obj)
+                )
+                & super(OwnerRolePermission, self).rule()
             )
-            & super(OwnerRolePermission, self).rule()
         )

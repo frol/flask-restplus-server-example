@@ -52,7 +52,7 @@ def readonly_user(flask_app):
 
     readonly_user_instance = utils.generate_user_instance(
         username='readonly_user',
-        is_readonly=True
+        is_regular_user=False
     )
 
     db.session.add(readonly_user_instance)

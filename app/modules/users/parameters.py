@@ -8,7 +8,7 @@ Input arguments (Parameters) for User resources RESTful API
 from flask_login import current_user
 from flask_marshmallow import base_fields
 from flask_restplus_patched import PostFormParameters, PatchJSONParameters
-from marshmallow import validates_schema
+from marshmallow import validates_schema, ValidationError
 
 from app.extensions.api import abort, http_exceptions
 
@@ -75,7 +75,7 @@ class PatchUserDetailsParameters(PatchJSONParameters):
             User.password.key,
             User.email.key,
             User.is_active.fget.__name__,
-            User.is_readonly.fget.__name__,
+            User.is_regular_user.fget.__name__,
             User.is_admin.fget.__name__,
         )
     )
@@ -98,10 +98,19 @@ class PatchUserDetailsParameters(PatchJSONParameters):
         """
         Some fields require extra permissions to be changed.
 
-        Current user has to have at least a Supervisor role to change
-        'is_active' and 'is_readonly' property, and changing 'is_admin'
-        property requires Admin role.
+        Changing `is_active` and `is_regular_user` properties, current user
+        must be a supervisor of the changing user, and `current_password` of
+        the current user should be provided.
+
+        Changing `is_admin` property requires current user to be Admin, and
+        `current_password` of the current user should be provided..
         """
+        if 'current_password' not in state:
+            raise ValidationError(
+                "Updating sensitive user settings requires `current_password` test operation "
+                "performed before replacements."
+            )
+
         if field in {'is_active', 'is_readonly'}:
             with permissions.SupervisorRolePermission(
                     obj=obj,
@@ -117,4 +126,4 @@ class PatchUserDetailsParameters(PatchJSONParameters):
                 ):
                 # Access granted
                 pass
-        return PatchJSONParameters.replace(obj, field, value, state=state)
+        return super(PatchUserDetailsParameters, cls).replace(obj, field, value, state=state)

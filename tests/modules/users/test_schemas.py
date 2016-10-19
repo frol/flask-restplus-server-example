@@ -37,7 +37,7 @@ def test_DetailedUserSchema_dump_user_instance(user_instance):
         'created',
         'updated',
         'is_active',
-        'is_readonly',
+        'is_regular_user',
         'is_admin',
     }
 

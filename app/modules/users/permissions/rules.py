@@ -9,6 +9,7 @@ from permission import Rule as BaseRule
 
 from app.extensions.api import abort, http_exceptions
 
+
 class DenyAbortMixin(object):
     """
     A helper permissions mixin raising an HTTP Error (specified in
@@ -51,10 +52,10 @@ class WriteAccessRule(DenyAbortMixin, Rule):
     """
 
     def check(self):
-        return not current_user.is_readonly
+        return current_user.is_regular_user
 
 
-class ActivatedUserRoleRule(DenyAbortMixin, Rule):
+class ActiveUserRoleRule(DenyAbortMixin, Rule):
     """
     Ensure that the current_user is activated.
     """
@@ -80,13 +81,22 @@ class PasswordRequiredRule(DenyAbortMixin, Rule):
         return current_user.password == self._password
 
 
-class AdminRoleRule(ActivatedUserRoleRule):
+class AdminRoleRule(ActiveUserRoleRule):
     """
     Ensure that the current_user has an Admin role.
     """
 
     def check(self):
         return current_user.is_admin
+
+
+class InternalRoleRule(ActiveUserRoleRule):
+    """
+    Ensure that the current_user has an Internal role.
+    """
+
+    def check(self):
+        return current_user.is_internal
 
 
 class PartialPermissionDeniedRule(Rule):
@@ -98,7 +108,7 @@ class PartialPermissionDeniedRule(Rule):
         raise RuntimeError("Partial permissions are not intended to be checked")
 
 
-class SupervisorRoleRule(ActivatedUserRoleRule):
+class SupervisorRoleRule(ActiveUserRoleRule):
     """
     Ensure that the current_user has a Supervisor access to the given object.
     """
@@ -113,7 +123,7 @@ class SupervisorRoleRule(ActivatedUserRoleRule):
         return self._obj.check_supervisor(current_user) is True
 
 
-class OwnerRoleRule(ActivatedUserRoleRule):
+class OwnerRoleRule(ActiveUserRoleRule):
     """
     Ensure that the current_user has an Owner access to the given object.
     """

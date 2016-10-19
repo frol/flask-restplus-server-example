@@ -3,6 +3,8 @@
 User database models
 --------------------
 """
+import enum
+
 from sqlalchemy_utils import types as column_types, Timestamp
 
 from app.extensions import db
@@ -56,20 +58,26 @@ class User(db.Model, Timestamp):
     middle_name = db.Column(db.String(length=30), default='', nullable=False)
     last_name = db.Column(db.String(length=30), default='', nullable=False)
 
-    SR_ACTIVATED = 0x2000
-    SR_READONLY = 0x4000
-    SR_ADMIN = 0x8000
-    DEFAULT_STATIC_ROLES_CHOICES = (
-        (SR_ACTIVATED, "Activated"),
-        (SR_READONLY, "Read-only"),
-        (SR_ADMIN, "Admin"),
-    )
+    class StaticRoles(enum.Enum):
+        INTERNAL = (0x8000, "Internal")
+        ADMIN = (0x4000, "Admin")
+        REGULAR_USER = (0x2000, "Regular User")
+        ACTIVE = (0x1000, "Active Account")
+
+        @property
+        def mask(self):
+            return self.value[0]
+
+        @property
+        def title(self):
+            return self.value[1]
 
     static_roles = db.Column(db.Integer, default=0, nullable=False)
 
-    is_active = _get_is_static_role_property('is_active', SR_ACTIVATED)
-    is_readonly = _get_is_static_role_property('is_readonly', SR_READONLY)
-    is_admin = _get_is_static_role_property('is_admin', SR_ADMIN)
+    is_internal = _get_is_static_role_property('is_internal', StaticRoles.INTERNAL)
+    is_admin = _get_is_static_role_property('is_admin', StaticRoles.ADMIN)
+    is_regular_user = _get_is_static_role_property('is_regular_user', StaticRoles.REGULAR_USER)
+    is_active = _get_is_static_role_property('is_active', StaticRoles.ACTIVE)
 
     def __repr__(self):
         return (
@@ -77,9 +85,10 @@ class User(db.Model, Timestamp):
             "id={self.id}, "
             "username=\"{self.username}\", "
             "email=\"{self.email}\", "
-            "is_active={self.is_active}, "
-            "is_readonly={self.is_readonly}, "
+            "is_internal={self.is_internal}, "
             "is_admin={self.is_admin}"
+            "is_regular_user={self.is_regular_user}, "
+            "is_active={self.is_active}, "
             ")>".format(
                 class_name=self.__class__.__name__,
                 self=self
@@ -87,17 +96,17 @@ class User(db.Model, Timestamp):
         )
 
     def has_static_role(self, role):
-        return (self.static_roles & role) != 0
+        return (self.static_roles & role.mask) != 0
 
     def set_static_role(self, role):
         if self.has_static_role(role):
             return
-        self.static_roles |= role
+        self.static_roles |= role.mask
 
     def unset_static_role(self, role):
         if not self.has_static_role(role):
             return
-        self.static_roles ^= role
+        self.static_roles ^= role.mask
 
     def check_owner(self, user):
         return self == user

@@ -42,7 +42,7 @@ class DetailedUserSchema(BaseUserSchema):
             User.created.key,
             User.updated.key,
             User.is_active.fget.__name__,
-            User.is_readonly.fget.__name__,
+            User.is_regular_user.fget.__name__,
             User.is_admin.fget.__name__,
         )
 

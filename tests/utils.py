@@ -95,7 +95,7 @@ def generate_user_instance(
         created=None,
         updated=None,
         is_active=True,
-        is_readonly=False,
+        is_regular_user=True,
         is_admin=False
 ):
     """
@@ -117,7 +117,7 @@ def generate_user_instance(
         created=created or datetime.now(),
         updated=updated or datetime.now(),
         is_active=is_active,
-        is_readonly=is_readonly,
+        is_regular_user=is_regular_user,
         is_admin=is_admin,
     )
     user_instance.password_secret = password

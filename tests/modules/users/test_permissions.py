@@ -13,20 +13,20 @@ def test_DenyAbortMixin():
         permissions.rules.DenyAbortMixin().deny()
 
 def test_WriteAccessRule_authenticated_user(authenticated_user_instance):
-    authenticated_user_instance.is_readonly = False
+    authenticated_user_instance.is_regular_user = True
     assert permissions.rules.WriteAccessRule().check() is True
-    authenticated_user_instance.is_readonly = True
+    authenticated_user_instance.is_regular_user = False
     assert permissions.rules.WriteAccessRule().check() is False
 
-def test_ActivatedUserRoleRule_anonymous(anonymous_user_instance):
+def test_ActiveUserRoleRule_anonymous(anonymous_user_instance):
     # pylint: disable=unused-argument
-    assert permissions.rules.ActivatedUserRoleRule().check() is False
+    assert permissions.rules.ActiveUserRoleRule().check() is False
 
-def test_ActivatedUserRoleRule_authenticated_user(authenticated_user_instance):
+def test_ActiveUserRoleRule_authenticated_user(authenticated_user_instance):
     authenticated_user_instance.is_active = True
-    assert permissions.rules.ActivatedUserRoleRule().check() is True
+    assert permissions.rules.ActiveUserRoleRule().check() is True
     authenticated_user_instance.is_active = False
-    assert permissions.rules.ActivatedUserRoleRule().check() is False
+    assert permissions.rules.ActiveUserRoleRule().check() is False
 
 def test_PasswordRequiredRule(authenticated_user_instance):
     authenticated_user_instance.password = "correct_password"
@@ -69,10 +69,10 @@ def test_PasswordRequiredPermissionMixin():
         mixin.rule()
 
 def test_WriteAccessPermission_authenticated_user(authenticated_user_instance):
-    authenticated_user_instance.is_readonly = False
+    authenticated_user_instance.is_regular_user = True
     with permissions.WriteAccessPermission():
         pass
-    authenticated_user_instance.is_readonly = True
+    authenticated_user_instance.is_regular_user = False
     with pytest.raises(HTTPException):
         with permissions.WriteAccessPermission():
             pass
@@ -84,19 +84,19 @@ def test_RolePermission():
         with permissions.RolePermission(partial=True):
             pass
 
-def test_ActivatedUserRolePermission_anonymous_user(anonymous_user_instance):
+def test_ActiveUserRolePermission_anonymous_user(anonymous_user_instance):
     # pylint: disable=unused-argument
     with pytest.raises(HTTPException):
-        with permissions.ActivatedUserRolePermission():
+        with permissions.ActiveUserRolePermission():
             pass
 
-def test_ActivatedUserRolePermission_authenticated_user(authenticated_user_instance):
+def test_ActiveUserRolePermission_authenticated_user(authenticated_user_instance):
     authenticated_user_instance.is_active = True
-    with permissions.ActivatedUserRolePermission():
+    with permissions.ActiveUserRolePermission():
         pass
     authenticated_user_instance.is_active = False
     with pytest.raises(HTTPException):
-        with permissions.ActivatedUserRolePermission():
+        with permissions.ActiveUserRolePermission():
             pass
 
 def test_AdminRolePermission_anonymous_user(anonymous_user_instance):

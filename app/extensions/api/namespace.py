@@ -70,7 +70,7 @@ class Namespace(BaseNamespace):
         This decorator automatically applies the following features:
 
         * ``OAuth2.require_oauth`` decorator requires authentication;
-        * ``permissions.ActivatedUserRolePermission`` decorator ensures
+        * ``permissions.ActiveUserRolePermission`` decorator ensures
           minimal authorization level;
         * All of the above requirements are put into OpenAPI Specification with
           relevant options and in a text description.
@@ -123,13 +123,13 @@ class Namespace(BaseNamespace):
             # applied several times, e.g. when Resource class is decorated.
             func.__dict__['__latest_oauth_decorator_id__'] = id(decorator)
 
-            # Automatically apply `permissions.ActivatedUserRolePermisson`
+            # Automatically apply `permissions.ActiveUserRolePermisson`
             # guard if none is yet applied.
             if getattr(func, '_role_permission_applied', False):
                 protected_func = func
             else:
                 protected_func = self.permission_required(
-                    permissions.ActivatedUserRolePermission()
+                    permissions.ActiveUserRolePermission()
                 )(func)
 
             # Accumulate OAuth2 scopes if @login_required decorator is applied

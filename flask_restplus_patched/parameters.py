@@ -104,24 +104,30 @@ class PatchJSONParameters(Parameters):
     @classmethod
     def perform_patch(cls, operations, obj, state=None):
         """
-        Performs all necessary operations by calling class methods with corresponding names
+        Performs all necessary operations by calling class methods with
+        corresponding names.
         """
+        if state is None:
+            state = {}
         for operation in operations:
             if not cls._process_patch_operation(operation, obj=obj, state=state):
-                log.info("%s patching has stopped because of unknown operation %s", (obj.__name__, operation))
+                log.info(
+                    "%s patching has stopped because of unknown operation %s",
+                    (obj.__name__, operation)
+                )
                 raise ValidationError("Failed to update %s details." % obj.__name__)
         return True
 
     @classmethod
-    def _process_patch_operation(cls, operation, obj, state=None):
+    def _process_patch_operation(cls, operation, obj, state):
         """
         Args:
-            operation (dict) - one patch operation in RFC 6902 format.
-            obj (Team) - team instance which is needed to be patched.
-            state (dict) - inter-operations state storage
+            operation (dict): one patch operation in RFC 6902 format.
+            obj (object): an instance which is needed to be patched.
+            state (dict): inter-operations state storage
 
         Returns:
-            processing_status (bool) - True if operation was handled, otherwise False.
+            processing_status (bool): True if operation was handled, otherwise False.
         """
         field_operaion = operation['op']
 
@@ -146,37 +152,39 @@ class PatchJSONParameters(Parameters):
         return False
 
     @classmethod
-    def replace(cls, obj, field, value, state=None):
+    def replace(cls, obj, field, value, state):
         """
-        This is method for replace operation. It is separated to have a possibility to easily
-        override it in your Parameters
+        This is method for replace operation. It is separated to provide a
+        possibility to easily override it in your Parameters.
 
         Args:
-            obj: instance to change
-            field: (str) name
-            value: (str) value
-            state: (dict) inter-operations state storage
+            obj (object): an instance to change.
+            field (str): field name
+            value (str): new value
+            state (dict): inter-operations state storage
 
         Returns:
-            processing_status: (bool) - True
+            processing_status (bool): True
         """
+        if not hasattr(obj, field):
+            raise ValidationError("Field '%s' does not exist, so it cannot be patched" % field)
         setattr(obj, field, value)
         return True
 
     @classmethod
-    def test(cls, obj, field, value, state=None):
+    def test(cls, obj, field, value, state):
         """
-        This is method for test operation. It is separated to have a possibility to easily
-        override it in your Parameters
+        This is method for test operation. It is separated to provide a
+        possibility to easily override it in your Parameters.
 
         Args:
-            obj: instance to change
-            field: (str) name
-            value: (str) value
-            state: (dict) inter-operations state storage
+            obj (object): an instance to change.
+            field (str): field name
+            value (str): new value
+            state (dict): inter-operations state storage
 
         Returns:
-            processing_status: (bool) - True
+            processing_status (bool): True
         """
         if getattr(obj, field) == value:
             return True
@@ -184,17 +192,17 @@ class PatchJSONParameters(Parameters):
             return False
 
     @classmethod
-    def add(cls, obj, field, value, state=None):
+    def add(cls, obj, field, value, state):
         raise NotImplementedError()
 
     @classmethod
-    def remove(cls, obj, field, state=None):
+    def remove(cls, obj, field, state):
         raise NotImplementedError()
 
     @classmethod
-    def move(cls, obj, field, value, state=None):
+    def move(cls, obj, field, value, state):
         raise NotImplementedError()
 
     @classmethod
-    def copy(cls, obj, field, value, state=None):
+    def copy(cls, obj, field, value, state):
         raise NotImplementedError()
