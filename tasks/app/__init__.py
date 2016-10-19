@@ -5,7 +5,7 @@ Application related tasks for Invoke.
 
 from invoke import Collection
 
-from . import dependencies, env, db, run
+from . import dependencies, env, db, run, users
 
 from config import BaseConfig
 
@@ -14,6 +14,7 @@ namespace = Collection(
     env,
     db,
     run,
+    users,
 )
 
 namespace.configure({
