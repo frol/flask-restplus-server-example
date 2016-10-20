@@ -13,6 +13,9 @@ class Task(BaseTask):
     """
 
     def argspec(self, body):
+        """
+        See details in https://github.com/pyinvoke/invoke/pull/399.
+        """
         if hasattr(body, '__wrapped__'):
             return self.argspec(body.__wrapped__)
         return super(Task, self).argspec(body)
@@ -39,6 +42,11 @@ def app_context_task(*args, **kwargs):
 
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
+            """
+            A wrapped which tries to get ``app`` from ``kwargs`` or creates a
+            new ``app`` otherwise, and actives the application context, so the
+            decorated function is run inside the application context.
+            """
             app = kwargs.pop('app', None)
             if app is None:
                 from app import create_app
@@ -49,4 +57,4 @@ def app_context_task(*args, **kwargs):
 
         return Task(wrapper, **kwargs)
 
-    return lambda func: app_context_task(func, **kwargs) 
+    return lambda func: app_context_task(func, **kwargs)
