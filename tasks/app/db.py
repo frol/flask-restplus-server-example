@@ -83,8 +83,7 @@ else:
         }
     )
     def revision(context, directory='migrations', message=None, autogenerate=False, sql=False,
-                 head='head', splice=False, branch_label=None, version_path=None, rev_id=None,
-                 app=None):
+                 head='head', splice=False, branch_label=None, version_path=None, rev_id=None):
         """Create a new revision file."""
         config = _get_config(directory)
         if alembic_version >= (0, 7, 0):
@@ -173,8 +172,7 @@ else:
             'x_arg': "Additional arguments consumed by custom env.py scripts",
         }
     )
-    def downgrade(context, directory='migrations', revision='-1', sql=False, tag=None, x_arg=None,
-                  app=None):
+    def downgrade(context, directory='migrations', revision='-1', sql=False, tag=None, x_arg=None):
         """Revert to a previous version"""
         config = _get_config(directory, x_arg=x_arg)
         if sql and revision == '-1':
@@ -189,15 +187,11 @@ else:
     )
     def show(context, directory='migrations', revision='head'):
         """Show the revision denoted by the given symbol."""
-        from app import create_app
-        if app is None:
-            app = create_app()
-        with app.app_context():
-            if alembic_version >= (0, 7, 0):
-                config = _get_config(directory)
-                command.show(config, revision)
-            else:
-                raise RuntimeError('Alembic 0.7.0 or greater is required')
+        if alembic_version >= (0, 7, 0):
+            config = _get_config(directory)
+            command.show(config, revision)
+        else:
+            raise RuntimeError('Alembic 0.7.0 or greater is required')
 
     @app_context_task(
         help={

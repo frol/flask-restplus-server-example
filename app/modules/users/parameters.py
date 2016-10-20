@@ -81,7 +81,7 @@ class PatchUserDetailsParameters(PatchJSONParameters):
     )
 
     @classmethod
-    def test(cls, obj, field, value, state=None):
+    def test(cls, obj, field, value, state):
         """
         Additional check for 'current_password' as User hasn't field 'current_password'
         """
@@ -91,10 +91,10 @@ class PatchUserDetailsParameters(PatchJSONParameters):
             else:
                 state['current_password'] = value
                 return True
-        return PatchJSONParameters.test(obj, field, value)
+        return PatchJSONParameters.test(obj, field, value, state)
 
     @classmethod
-    def replace(cls, obj, field, value, state=None):
+    def replace(cls, obj, field, value, state):
         """
         Some fields require extra permissions to be changed.
 
@@ -126,4 +126,4 @@ class PatchUserDetailsParameters(PatchJSONParameters):
                 ):
                 # Access granted
                 pass
-        return super(PatchUserDetailsParameters, cls).replace(obj, field, value, state=state)
+        return super(PatchUserDetailsParameters, cls).replace(obj, field, value, state)
