@@ -22,3 +22,5 @@ Flask-Login==0.3.2
 permission==0.4.1
 
 arrow==0.7.0
+
+enum34; python_version < '3.4'
