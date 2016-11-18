@@ -1,6 +1,7 @@
 # encoding: utf-8
 # pylint: disable=missing-docstring
 import pytest
+import six
 
 
 @pytest.mark.parametrize('auth_scopes,redirect_uris', (
@@ -31,8 +32,8 @@ def test_creating_oauth2_client(
         'default_scopes',
         'redirect_uris'
     }
-    assert isinstance(response.json['client_id'], str)
-    assert isinstance(response.json['client_secret'], str)
+    assert isinstance(response.json['client_id'], six.text_type)
+    assert isinstance(response.json['client_secret'], six.text_type)
     assert isinstance(response.json['default_scopes'], list)
     assert set(response.json['default_scopes']) == {'users:read', 'users:write', 'auth:read'}
     assert isinstance(response.json['redirect_uris'], list)

@@ -24,4 +24,5 @@ permission==0.4.1
 
 arrow==0.8.0
 
+six
 enum34; python_version < '3.4'
