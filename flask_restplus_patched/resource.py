@@ -42,6 +42,7 @@ class Resource(OriginalResource):
         """
         method_funcs = [getattr(self, m.lower()) for m in self.methods]
         allowed_methods = []
+        request_oauth_backup = getattr(flask.request, 'oauth', None)
         for method_func in method_funcs:
             if getattr(method_func, '_access_restriction_decorators', None):
                 if not hasattr(method_func, '_cached_fake_method_func'):
@@ -61,6 +62,7 @@ class Resource(OriginalResource):
                 else:
                     fake_method_func = method_func._cached_fake_method_func
 
+                flask.request.oauth = None
                 try:
                     fake_method_func(self, *args, **kwargs)
                 except HTTPException:
@@ -68,6 +70,7 @@ class Resource(OriginalResource):
                     continue
 
             allowed_methods.append(method_func.__name__.upper())
+        flask.request.oauth = request_oauth_backup
 
         return flask.Response(
             status=HTTPStatus.NO_CONTENT,
