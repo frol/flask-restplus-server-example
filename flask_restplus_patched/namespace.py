@@ -149,8 +149,12 @@ class Namespace(OriginalNamespace):
                     raise ValueError("Reponse must not be empty with code 200")
                 elif isinstance(response, flask.Response) or model is None:
                     return response
+                elif isinstance(response, tuple):
+                    response, _code = response
+                else:
+                    _code = code
 
-                return model.dump(response).data
+                return model.dump(response).data, _code
 
             return dump_wrapper
 
