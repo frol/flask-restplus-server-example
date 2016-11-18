@@ -115,13 +115,15 @@ class Namespace(BaseNamespace):
             else:
                 func = func_or_class
 
+            # Only the first @login_required is respected because it is the
+            # most specific.
+            if getattr(func, '_require_oauth_applied', False):
+                return func
+            func.__dict__['_require_oauth_applied'] = True
+
             # Avoid circilar dependency
             from app.extensions import oauth2
             from app.modules.users import permissions
-
-            # This way we will avoid unnecessary checks if the decorator is
-            # applied several times, e.g. when Resource class is decorated.
-            func.__dict__['__latest_oauth_decorator_id__'] = id(decorator)
 
             # Automatically apply `permissions.ActiveUserRolePermisson`
             # guard if none is yet applied.
@@ -132,44 +134,7 @@ class Namespace(BaseNamespace):
                     permissions.ActiveUserRolePermission()
                 )(func)
 
-            # Accumulate OAuth2 scopes if @login_required decorator is applied
-            # several times
-            if hasattr(protected_func, '__apidoc__') \
-                    and 'security' in protected_func.__apidoc__ \
-                    and '__oauth__' in protected_func.__apidoc__['security']:
-                _oauth_scopes = (
-                    oauth_scopes + protected_func.__apidoc__['security']['__oauth__']['scopes']
-                )
-            else:
-                _oauth_scopes = oauth_scopes
-
-            def oauth_protection_decorator(func):
-                """
-                This helper decorator is necessary to be able to skip redundant
-                checks when Resource class is also decorated.
-                """
-                oauth_protected_func = oauth2.require_oauth(*_oauth_scopes)(func)
-
-                @wraps(oauth_protected_func)
-                def wrapper(self, *args, **kwargs):
-                    """
-                    This wrapper decides whether OAuth2.require_oauth should be
-                    executed to avoid unnecessary calls when ``login_required``
-                    decorator is applied several times.
-                    """
-                    latest_oauth_decorator_id = getattr(
-                        getattr(self, func.__name__),
-                        '__latest_oauth_decorator_id__',
-                        None
-                    )
-                    if id(decorator) == latest_oauth_decorator_id:
-                        _func = oauth_protected_func
-                    else:
-                        _func = func
-                    return _func(self, *args, **kwargs)
-
-                return wrapper
-
+            oauth_protection_decorator = oauth2.require_oauth(*oauth_scopes)
             self._register_access_restriction_decorator(protected_func, oauth_protection_decorator)
             oauth_protected_func = oauth_protection_decorator(protected_func)
 
@@ -179,7 +144,7 @@ class Namespace(BaseNamespace):
                     # `Api.add_namespace`.
                     '__oauth__': {
                         'type': 'oauth',
-                        'scopes': _oauth_scopes,
+                        'scopes': oauth_scopes,
                     }
                 }
             )(
@@ -187,9 +152,9 @@ class Namespace(BaseNamespace):
                     code=http_exceptions.Unauthorized.code,
                     description=(
                         "Authentication is required"
-                        if not _oauth_scopes else
+                        if not oauth_scopes else
                         "Authentication with %s OAuth scope(s) is required" % (
-                            ', '.join(_oauth_scopes)
+                            ', '.join(oauth_scopes)
                         )
                     ),
                 )(oauth_protected_func)
