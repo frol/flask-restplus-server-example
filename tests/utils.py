@@ -46,7 +46,7 @@ class AutoAuthFlaskClient(FlaskClient):
                 user=self._user,
                 token_type='Bearer',
                 access_token='test_access_token',
-                _scopes=' '.join(self._auth_scopes),
+                scopes=self._auth_scopes,
                 expires=datetime.utcnow() + timedelta(days=1),
             )
 
@@ -96,7 +96,8 @@ def generate_user_instance(
         updated=None,
         is_active=True,
         is_regular_user=True,
-        is_admin=False
+        is_admin=False,
+        is_internal=False
 ):
     """
     Returns:
@@ -119,6 +120,7 @@ def generate_user_instance(
         is_active=is_active,
         is_regular_user=is_regular_user,
         is_admin=is_admin,
+        is_internal=is_internal
     )
     user_instance.password_secret = password
     return user_instance

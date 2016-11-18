@@ -57,12 +57,11 @@ class OAuth2RequestValidator(provider.OAuth2RequestValidator):
         expires_in = token.pop('expires_in')
         expires = datetime.utcnow() + timedelta(seconds=expires_in)
 
-        # TODO: map token_type string to an integer id to save DB space and performance
         token_instance = self._token_class(
             access_token=token['access_token'],
             refresh_token=token.get('refresh_token'),
             token_type=token['token_type'],
-            _scopes=token['scope'],
+            scopes=token['scope'].split(' '),
             expires=expires,
             client_id=request.client.client_id,
             user_id=request.user.id,
@@ -85,7 +84,7 @@ class OAuth2RequestValidator(provider.OAuth2RequestValidator):
             client_id=client_id,
             code=code['code'],
             redirect_uri=request.redirect_uri,
-            _scopes=' '.join(request.scopes),
+            scopes=request.scopes,
             user=current_user,
             expires=expires
         )
@@ -97,13 +96,6 @@ class OAuth2RequestValidator(provider.OAuth2RequestValidator):
             log.exception("Grant-setter has failed.")
             return None
         return grant_instance
-
-    def client_authentication_required(self, request, *args, **kwargs):
-        # XXX: patched version
-        # TODO: implement it better in oauthlib, but for now we excluded
-        # password flow from `client_secret` requirement.
-        grant_types = ('authorization_code', 'refresh_token')
-        return request.grant_type in grant_types
 
 
 def api_invalid_response(req):

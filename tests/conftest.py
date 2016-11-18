@@ -76,3 +76,22 @@ def admin_user(flask_app):
     yield admin_user_instance
     db.session.delete(admin_user_instance)
     db.session.commit()
+
+@pytest.yield_fixture(scope='session')
+def internal_user(flask_app):
+    # pylint: disable=invalid-name,unused-argument
+    from app.extensions import db
+
+    internal_user_instance = utils.generate_user_instance(
+        username='internal_user',
+        is_regular_user=False,
+        is_admin=False,
+        is_active=True,
+        is_internal=True
+    )
+
+    db.session.add(internal_user_instance)
+    db.session.commit()
+    yield internal_user_instance
+    db.session.delete(internal_user_instance)
+    db.session.commit()

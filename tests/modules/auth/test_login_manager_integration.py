@@ -30,7 +30,7 @@ def test_loading_user_from_request_with_bearer_token(flask_app, db, regular_user
         user=regular_user,
         token_type='Bearer',
         access_token='test_access_token',
-        _scopes='',
+        scopes=[],
         expires=datetime.utcnow() + timedelta(days=1),
     )
 

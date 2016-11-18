@@ -15,7 +15,7 @@ except ImportError:  # Invoke 0.13 renamed ctask to task
 from tasks.utils import download_file
 
 
-log = logging.getLogger(__name__) # pylint: disable=invalid-name
+log = logging.getLogger(__name__)  # pylint: disable=invalid-name
 
 
 @task
@@ -60,7 +60,7 @@ def install_swagger_ui(context, force=False):
     # We are going to install Swagger UI from a fork which includes useful patches
     log.info("Downloading Swagger UI assets...")
     download_file(
-        url="https://github.com/frol/swagger-ui/archive/master.zip",
+        url="https://github.com/frol/swagger-ui/archive/implement-oauth2-password-flow-rebased.zip",
         local_filepath=swagger_ui_zip_filepath
     )
 
@@ -68,7 +68,10 @@ def install_swagger_ui(context, force=False):
     log.info("Unpacking Swagger UI assets...")
     with zipfile.ZipFile(swagger_ui_zip_filepath) as swagger_ui_zip_file:
         for zipped_member in swagger_ui_zip_file.infolist():
-            zipped_member_path = os.path.relpath(zipped_member.filename, 'swagger-ui-master')
+            zipped_member_path = os.path.relpath(
+                zipped_member.filename,
+                'swagger-ui-implement-oauth2-password-flow-rebased'
+            )
 
             # We only need the 'dist' folder
             try:

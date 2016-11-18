@@ -9,14 +9,17 @@ More details are available here:
 * http://flask-oauthlib.readthedocs.org/en/latest/oauth2.html
 * http://lepture.com/en/2013/create-oauth-server
 """
+import enum
+
+from sqlalchemy_utils.types import ScalarListType
 
 from app.extensions import db
+from app.modules.users.models import User
 
 
 class OAuth2Client(db.Model):
     """
-    Model that stores (Client ID, Client Secret), and connect it to a specific
-    User.
+    Model that binds OAuth2 Client ID and Secret to a specific User.
     """
 
     __tablename__ = 'oauth2_client'
@@ -27,18 +30,13 @@ class OAuth2Client(db.Model):
     user_id = db.Column(db.ForeignKey('user.id', ondelete='CASCADE'), index=True, nullable=False)
     user = db.relationship('User')
 
-    _redirect_uris = db.Column(db.Text, default='', nullable=False)
-    _default_scopes = db.Column(db.Text, default='', nullable=False)
+    class ClientTypes(str, enum.Enum):
+        public = 'public'
+        confidential = 'confidential'
 
-    @property
-    def client_type(self):
-        return 'public'
-
-    @property
-    def redirect_uris(self):
-        if self._redirect_uris:
-            return self._redirect_uris.split()
-        return []
+    client_type = db.Column(db.Enum(ClientTypes), default=ClientTypes.public, nullable=False)
+    redirect_uris = db.Column(ScalarListType(separator=' '), default=[], nullable=False)
+    default_scopes = db.Column(ScalarListType(separator=' '), nullable=False)
 
     @property
     def default_redirect_uri(self):
@@ -47,14 +45,10 @@ class OAuth2Client(db.Model):
             return redirect_uris[0]
         return None
 
-    @property
-    def default_scopes(self):
-        if self._default_scopes:
-            return self._default_scopes.split()
-        return []
-
     @classmethod
     def find(cls, client_id):
+        if not client_id:
+            return
         return cls.query.get(client_id)
 
 
@@ -65,7 +59,7 @@ class OAuth2Grant(db.Model):
 
     __tablename__ = 'oauth2_grant'
 
-    id = db.Column(db.Integer, primary_key=True) # pylint: disable=invalid-name
+    id = db.Column(db.Integer, primary_key=True)  # pylint: disable=invalid-name
 
     user_id = db.Column(db.ForeignKey('user.id', ondelete='CASCADE'), index=True, nullable=False)
     user = db.relationship('User')
@@ -83,18 +77,12 @@ class OAuth2Grant(db.Model):
     redirect_uri = db.Column(db.String(length=255), nullable=False)
     expires = db.Column(db.DateTime, nullable=False)
 
-    _scopes = db.Column(db.Text, nullable=False)
+    scopes = db.Column(ScalarListType(separator=' '), nullable=False)
 
     def delete(self):
         db.session.delete(self)
         db.session.commit()
         return self
-
-    @property
-    def scopes(self):
-        if self._scopes:
-            return self._scopes.split()
-        return []
 
     @classmethod
     def find(cls, client_id, code):
@@ -108,7 +96,7 @@ class OAuth2Token(db.Model):
 
     __tablename__ = 'oauth2_token'
 
-    id = db.Column(db.Integer, primary_key=True) # pylint: disable=invalid-name
+    id = db.Column(db.Integer, primary_key=True)  # pylint: disable=invalid-name
     client_id = db.Column(
         db.String(length=40),
         db.ForeignKey('oauth2_client.client_id'),
@@ -120,19 +108,15 @@ class OAuth2Token(db.Model):
     user_id = db.Column(db.ForeignKey('user.id', ondelete='CASCADE'), index=True, nullable=False)
     user = db.relationship('User')
 
-    # currently only bearer is supported
-    token_type = db.Column(db.String(length=40), nullable=False)
+    class TokenTypes(str, enum.Enum):
+        # currently only bearer is supported
+        Bearer = 'Bearer'
+    token_type = db.Column(db.Enum(TokenTypes), nullable=False)
 
     access_token = db.Column(db.String(length=255), unique=True, nullable=False)
     refresh_token = db.Column(db.String(length=255), unique=True, nullable=True)
     expires = db.Column(db.DateTime, nullable=False)
-    _scopes = db.Column(db.Text, nullable=False)
-
-    @property
-    def scopes(self):
-        if self._scopes:
-            return self._scopes.split()
-        return []
+    scopes = db.Column(ScalarListType(separator=' '), nullable=False)
 
     @classmethod
     def find(cls, access_token=None, refresh_token=None):
