@@ -28,4 +28,4 @@ def abort(code, message=None, **kwargs):
     # pylint: disable=unused-argument
     if message is None:
         message = API_DEFAULT_HTTP_CODE_MESSAGES.get(code)
-    restplus_abort(code=code, status=code, message=message)
+    restplus_abort(code=code, status=code, message=message, **kwargs)
