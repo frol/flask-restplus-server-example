@@ -11,6 +11,11 @@ class Task(BaseTask):
     """
     A patched Invoke Task adding support for decorated functions.
     """
+    def __init__(self, *args, **kwargs):
+        super(Task, self).__init__(*args, **kwargs)
+        # Make these tasks always contextualized (this is the only option in
+        # Invoke >=0.13), so we just backport this default on Invoke 0.12.
+        self.contextualized = True
 
     def argspec(self, body):
         """
