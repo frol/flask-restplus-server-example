@@ -86,7 +86,7 @@ class User(db.Model, Timestamp):
             "username=\"{self.username}\", "
             "email=\"{self.email}\", "
             "is_internal={self.is_internal}, "
-            "is_admin={self.is_admin}"
+            "is_admin={self.is_admin}, "
             "is_regular_user={self.is_regular_user}, "
             "is_active={self.is_active}, "
             ")>".format(

@@ -46,7 +46,6 @@ class AddUserParameters(PostFormParameters, schemas.BaseUserSchema):
         NOTE: we remove 'recaptcha_key' from data once checked because we don't need it
         in the resource
         """
-
         recaptcha_key = data.pop('recaptcha_key', None)
         captcha_is_valid = False
         if not recaptcha_key:
