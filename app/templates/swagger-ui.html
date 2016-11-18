@@ -40,7 +40,7 @@
                 url: "{{ specs_url }}",
                 validatorUrl: "{{ config.SWAGGER_VALIDATOR_URL }}" || null,
                 dom_id: "swagger-ui-container",
-                supportedSubmitMethods: ['get', 'post', 'put', 'delete', 'patch'],
+                supportedSubmitMethods: ['get', 'post', 'put', 'delete', 'patch', 'options'],
                 onComplete: function(swaggerApi, swaggerUi){
                     if(typeof initOAuth == "function") {
                         {% if config.SWAGGER_UI_OAUTH_CLIENT_ID -%}
