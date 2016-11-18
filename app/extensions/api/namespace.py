@@ -115,12 +115,6 @@ class Namespace(BaseNamespace):
             else:
                 func = func_or_class
 
-            # Only the first @login_required is respected because it is the
-            # most specific.
-            if getattr(func, '_require_oauth_applied', False):
-                return func
-            func.__dict__['_require_oauth_applied'] = True
-
             # Avoid circilar dependency
             from app.extensions import oauth2
             from app.modules.users import permissions
@@ -134,7 +128,16 @@ class Namespace(BaseNamespace):
                     permissions.ActiveUserRolePermission()
                 )(func)
 
-            oauth_protection_decorator = oauth2.require_oauth(*oauth_scopes)
+            # Ignore the current OAuth2 scopes if another @login_required
+            # decorator was applied and just copy the already applied scopes.
+            if hasattr(protected_func, '__apidoc__') \
+                    and 'security' in protected_func.__apidoc__ \
+                    and '__oauth__' in protected_func.__apidoc__['security']:
+                _oauth_scopes = protected_func.__apidoc__['security']['__oauth__']['scopes']
+            else:
+                _oauth_scopes = oauth_scopes
+
+            oauth_protection_decorator = oauth2.require_oauth(*_oauth_scopes)
             self._register_access_restriction_decorator(protected_func, oauth_protection_decorator)
             oauth_protected_func = oauth_protection_decorator(protected_func)
 
@@ -144,7 +147,7 @@ class Namespace(BaseNamespace):
                     # `Api.add_namespace`.
                     '__oauth__': {
                         'type': 'oauth',
-                        'scopes': oauth_scopes,
+                        'scopes': _oauth_scopes,
                     }
                 }
             )(
