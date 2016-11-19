@@ -34,6 +34,11 @@ def run(
     app = create_app()
 
     if upgrade_db:
+        # After the installed dependencies the app.db.* tasks might need to be
+        # reloaded to import all necessary dependencies.
+        from . import db as db_tasks
+        reload(db_tasks)
+
         context.invoke_execute(context, 'app.db.upgrade', app=app)
         if app.debug:
             context.invoke_execute(
