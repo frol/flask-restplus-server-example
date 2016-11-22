@@ -49,6 +49,7 @@ class OAuth2Clients(Resource):
     @api.response(schemas.DetailedOAuth2ClientSchema())
     @api.response(code=http_exceptions.Forbidden.code)
     @api.response(code=http_exceptions.Conflict.code)
+    @api.doc(id='create_oauth_client')
     def post(self, args):
         """
         Create a new OAuth2 Client.

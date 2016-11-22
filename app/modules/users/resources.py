@@ -44,6 +44,7 @@ class Users(Resource):
     @api.response(schemas.DetailedUserSchema())
     @api.response(code=http_exceptions.Forbidden.code)
     @api.response(code=http_exceptions.Conflict.code)
+    @api.doc(id='create_user')
     def post(self, args):
         """
         Create a new user.
