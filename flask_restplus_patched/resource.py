@@ -34,12 +34,18 @@ class Resource(OriginalResource):
 
     def options(self, *args, **kwargs):
         """
-        Implementation  of universal OPTIONS method for resources
+        Check which methods are allowed.
 
-        This method checks every permissions provided as decorators
-        for other methods to provide information about what methods
-        current_user can use
+        Use this method if you need to know what operations are allowed to be
+        performed on this endpoint, e.g. to decide wether to display a button
+        in your UI.
+
+        The list of allowed methods is provided in `Allow` response header.
         """
+        # This is a generic implementation of OPTIONS method for resources.
+        # This method checks every permissions provided as decorators for other
+        # methods to provide information about what methods `current_user` can
+        # use.
         method_funcs = [getattr(self, m.lower()) for m in self.methods]
         allowed_methods = []
         request_oauth_backup = getattr(flask.request, 'oauth', None)
