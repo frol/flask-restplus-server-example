@@ -5,6 +5,10 @@ Application execution related tasks for Invoke.
 """
 
 import os
+try:
+    from importlib import reload
+except ImportError:
+    pass  # Python 2 has built-in reload() function
 
 try:
     from invoke import ctask as task
@@ -36,10 +40,6 @@ def run(
     if upgrade_db:
         # After the installed dependencies the app.db.* tasks might need to be
         # reloaded to import all necessary dependencies.
-        try:
-            from importlib import reload
-        except ImportError:
-            pass  # Python 2 has built-in reload() function
         from . import db as db_tasks
         reload(db_tasks)
 
