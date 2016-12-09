@@ -2,6 +2,7 @@
 [![Coverage Status](https://coveralls.io/repos/frol/flask-restplus-server-example/badge.svg?branch=master&service=github)](https://coveralls.io/github/frol/flask-restplus-server-example?branch=master)
 [![Codacy Coverage Status](https://api.codacy.com/project/badge/coverage/b0fc91ce77d3437ea5f107c4b7ccfa26)](https://www.codacy.com/app/frolvlad/flask-restplus-server-example)
 [![Codacy Quality Status](https://api.codacy.com/project/badge/grade/b0fc91ce77d3437ea5f107c4b7ccfa26)](https://www.codacy.com/app/frolvlad/flask-restplus-server-example)
+[![Heroku](http://heroku-badge.herokuapp.com/?app=flask-restplus-example-server&root=api/v1/&style=flat&svg=1)](http://flask-restplus-example-server.herokuapp.com/api/v1/)
 
 
 RESTful API Server Example
@@ -25,7 +26,7 @@ The goals that were achived in this example:
 I had to patch Flask-RESTplus (see `flask_restplus_patched` folder), so it can
 handle Marshmallow schemas and Webargs arguments.
 
-Here is how it looks at this point of time:
+Here is how it looks at this point of time ([live demo](http://flask-restplus-example-server.herokuapp.com/api/v1/)):
 
 ![Flask RESTplus Example API](https://raw.githubusercontent.com/frol/flask-restplus-server-example/master/docs/static/Flask_RESTplus_Example_API.png)
 
