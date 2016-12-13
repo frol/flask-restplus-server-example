@@ -9,8 +9,9 @@ import logging
 
 from flask_login import current_user
 from flask_restplus_patched import Resource
+from flask_restplus_patched._http import HTTPStatus
 
-from app.extensions.api import Namespace, http_exceptions
+from app.extensions.api import Namespace
 from app.extensions.api.parameters import PaginationParameters
 
 from . import permissions, schemas, parameters
@@ -42,8 +43,8 @@ class Users(Resource):
 
     @api.parameters(parameters.AddUserParameters())
     @api.response(schemas.DetailedUserSchema())
-    @api.response(code=http_exceptions.Forbidden.code)
-    @api.response(code=http_exceptions.Conflict.code)
+    @api.response(code=HTTPStatus.FORBIDDEN)
+    @api.response(code=HTTPStatus.CONFLICT)
     @api.doc(id='create_user')
     def post(self, args):
         """
@@ -76,7 +77,7 @@ class UserSignupForm(Resource):
 @api.route('/<int:user_id>')
 @api.login_required(oauth_scopes=['users:read'])
 @api.response(
-    code=http_exceptions.NotFound.code,
+    code=HTTPStatus.NOT_FOUND,
     description="User not found.",
 )
 @api.resolve_object_by_model(User, 'user')
@@ -104,7 +105,7 @@ class UserByID(Resource):
     @api.permission_required(permissions.WriteAccessPermission())
     @api.parameters(parameters.PatchUserDetailsParameters())
     @api.response(schemas.DetailedUserSchema())
-    @api.response(code=http_exceptions.Conflict.code)
+    @api.response(code=HTTPStatus.CONFLICT)
     def patch(self, args, user):
         """
         Patch user details by ID.

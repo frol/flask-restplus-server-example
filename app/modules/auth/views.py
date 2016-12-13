@@ -10,14 +10,12 @@ More details are available here:
 * http://lepture.com/en/2013/create-oauth-server
 """
 
-from flask import Blueprint, request, render_template, jsonify
+from flask import Blueprint, request, render_template
 from flask_login import current_user
-import webargs
-from werkzeug import exceptions as http_exceptions
+from flask_restplus_patched._http import HTTPStatus
 
-from app.extensions import db, api, oauth2
+from app.extensions import api, oauth2
 
-from . import parameters
 from .models import OAuth2Client
 
 
@@ -60,7 +58,7 @@ def authorize(*args, **kwargs):
     # ALTERNATIVELY, authorize page can be implemented as SPA (single page
     # application)
     if not current_user.is_authenticated:
-        return api.abort(code=http_exceptions.Unauthorized.code)
+        return api.abort(code=HTTPStatus.UNAUTHORIZED)
 
     if request.method == 'GET':
         client_id = kwargs.get('client_id')

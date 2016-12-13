@@ -5,12 +5,8 @@ RESTful API permissions
 -----------------------
 """
 import logging
-from contextlib import contextmanager
 from flask_sqlalchemy import BaseQuery
 from permission import Permission as BasePermission
-
-from app.extensions.api import abort, http_exceptions
-
 
 from . import rules
 

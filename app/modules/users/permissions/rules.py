@@ -5,9 +5,10 @@ RESTful API Rules
 -----------------------
 """
 from flask_login import current_user
+from flask_restplus_patched._http import HTTPStatus
 from permission import Rule as BaseRule
 
-from app.extensions.api import abort, http_exceptions
+from app.extensions.api import abort
 
 
 class DenyAbortMixin(object):
@@ -19,7 +20,7 @@ class DenyAbortMixin(object):
     deny method.
     """
 
-    DENY_ABORT_HTTP_CODE = http_exceptions.Forbidden.code
+    DENY_ABORT_HTTP_CODE = HTTPStatus.FORBIDDEN
     DENY_ABORT_MESSAGE = None
 
     def deny(self):
@@ -46,6 +47,15 @@ class Rule(BaseRule):
                 return base_class()
 
 
+class AllowAllRule(Rule):
+    """
+    Helper rule that always grants access.
+    """
+
+    def check(self):
+        return True
+
+
 class WriteAccessRule(DenyAbortMixin, Rule):
     """
     Ensure that the current_user has has write access.
@@ -63,7 +73,7 @@ class ActiveUserRoleRule(DenyAbortMixin, Rule):
     def check(self):
         # Do not override DENY_ABORT_HTTP_CODE because inherited classes will
         # better use HTTP 403/Forbidden code on denial.
-        self.DENY_ABORT_HTTP_CODE = http_exceptions.Unauthorized.code
+        self.DENY_ABORT_HTTP_CODE = HTTPStatus.UNAUTHORIZED
         # NOTE: `is_active` implies `is_authenticated`.
         return current_user.is_active
 
@@ -136,12 +146,3 @@ class OwnerRoleRule(ActiveUserRoleRule):
         if not hasattr(self._obj, 'check_owner'):
             return False
         return self._obj.check_owner(current_user) is True
-
-
-class AllowAllRule(Rule):
-    """
-    Helper rule that always grants access.
-    """
-
-    def check(self):
-        return True

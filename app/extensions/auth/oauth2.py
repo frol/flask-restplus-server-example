@@ -16,8 +16,8 @@ import logging
 
 from flask_login import current_user
 from flask_oauthlib import provider
+from flask_restplus_patched._http import HTTPStatus
 import sqlalchemy
-from werkzeug import exceptions as http_exceptions
 
 from app.extensions import api, db
 
@@ -104,7 +104,7 @@ def api_invalid_response(req):
     with error message in JSON format.
     """
     # pylint: disable=unused-argument
-    api.abort(code=http_exceptions.Unauthorized.code)
+    api.abort(code=HTTPStatus.UNAUTHORIZED.value)
 
 
 class OAuth2Provider(provider.OAuth2Provider):

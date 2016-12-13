@@ -9,9 +9,10 @@ import logging
 
 from flask_login import current_user
 from flask_restplus_patched import Resource
+from flask_restplus_patched._http import HTTPStatus
 from werkzeug import security
 
-from app.extensions.api import Namespace, http_exceptions
+from app.extensions.api import Namespace
 
 from . import schemas, parameters
 from .models import db, OAuth2Client
@@ -47,8 +48,8 @@ class OAuth2Clients(Resource):
     @api.login_required(oauth_scopes=['auth:write'])
     @api.parameters(parameters.CreateOAuth2ClientParameters())
     @api.response(schemas.DetailedOAuth2ClientSchema())
-    @api.response(code=http_exceptions.Forbidden.code)
-    @api.response(code=http_exceptions.Conflict.code)
+    @api.response(code=HTTPStatus.FORBIDDEN)
+    @api.response(code=HTTPStatus.CONFLICT)
     @api.doc(id='create_oauth_client')
     def post(self, args):
         """

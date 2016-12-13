@@ -63,7 +63,7 @@ class Namespace(OriginalNamespace):
         """
         Model registration decorator.
         """
-        if isinstance(model, flask_marshmallow.Schema):
+        if isinstance(model, (flask_marshmallow.Schema, flask_marshmallow.base_fields.FieldABC)):
             if not name:
                 name = model.__class__.__name__
             api_model = Model(name, model, mask=mask)
@@ -84,7 +84,7 @@ class Namespace(OriginalNamespace):
                 parameters.context['in'] = _locations
 
             return self.doc(params=parameters)(
-                self.response(code=http_exceptions.UnprocessableEntity.code)(
+                self.response(code=HTTPStatus.UNPROCESSABLE_ENTITY)(
                     self.WEBARGS_PARSER.use_args(parameters, locations=_locations)(
                         func
                     )
@@ -93,7 +93,7 @@ class Namespace(OriginalNamespace):
 
         return decorator
 
-    def response(self, model=None, code=200, description=None, **kwargs):
+    def response(self, model=None, code=HTTPStatus.OK, description=None, **kwargs):
         """
         Endpoint response OpenAPI documentation decorator.
 
@@ -110,26 +110,24 @@ class Namespace(OriginalNamespace):
 
         Example:
         >>> @namespace.response(BaseTeamSchema(many=True))
-        ... @namespace.response(code=403)
+        ... @namespace.response(code=HTTPStatus.FORBIDDEN)
         ... def get_teams():
         ...     if not user.is_admin:
-        ...         abort(403)
+        ...         abort(HTTPStatus.FORBIDDEN)
         ...     return Team.query.all()
         """
-        ALLOWED_EMPTY_BODY_STATUSES = (HTTPStatus.NO_CONTENT, HTTPStatus.ACCEPTED)
-
-        if model is None and code not in ALLOWED_EMPTY_BODY_STATUSES:
-            if code not in http_exceptions.default_exceptions:
+        code = HTTPStatus(code)
+        if code is HTTPStatus.NO_CONTENT:
+            assert model is None
+        if model is None and code not in {HTTPStatus.ACCEPTED, HTTPStatus.NO_CONTENT}:
+            if code.value not in http_exceptions.default_exceptions:
                 raise ValueError("`model` parameter is required for code %d" % code)
             model = self.model(
                 name='HTTPError%d' % code,
                 model=DefaultHTTPErrorSchema(http_code=code)
             )
         if description is None:
-            if code in http_exceptions.default_exceptions:
-                description = http_exceptions.default_exceptions[code].description
-            elif code in ALLOWED_EMPTY_BODY_STATUSES:
-                description = 'Request fulfilled, nothing follows'
+            description = code.description
 
         def response_serializer_decorator(func):
             """
@@ -141,12 +139,9 @@ class Namespace(OriginalNamespace):
                 response = func(*args, **kwargs)
 
                 if response is None:
-                    if code in ALLOWED_EMPTY_BODY_STATUSES:
-                        return flask.Response(
-                            status=code,
-                            content_type='application/json'
-                        )
-                    raise ValueError("Reponse must not be empty with code 200")
+                    if model is not None:
+                        raise ValueError("Reponse cannot not be None with HTTP status %d" % code)
+                    return flask.Response(status=code)
                 elif isinstance(response, flask.Response) or model is None:
                     return response
                 elif isinstance(response, tuple):
@@ -154,12 +149,14 @@ class Namespace(OriginalNamespace):
                 else:
                     _code = code
 
-                return model.dump(response).data, _code
+                if HTTPStatus(_code) is code:
+                    response = model.dump(response).data
+                return response, _code
 
             return dump_wrapper
 
         def decorator(func_or_class):
-            if code in http_exceptions.default_exceptions:
+            if code.value in http_exceptions.default_exceptions:
                 # If the code is handled by raising an exception, it will
                 # produce a response later, so we don't need to apply a useless
                 # wrapper.
@@ -174,7 +171,7 @@ class Namespace(OriginalNamespace):
                     response_serializer_decorator(func_or_class)
                 )
 
-            if code in ALLOWED_EMPTY_BODY_STATUSES:
+            if model is None:
                 api_model = None
             else:
                 if isinstance(model, Model):
@@ -184,7 +181,12 @@ class Namespace(OriginalNamespace):
                 if getattr(model, 'many', False):
                     api_model = [api_model]
 
-            return self.doc(responses={code: (description, api_model)})(decorated_func_or_class)
+            doc_decorator = self.doc(
+                    responses={
+                            code.value: (description, api_model)
+                        }
+                )
+            return doc_decorator(decorated_func_or_class)
 
         return decorator
 
@@ -205,9 +207,7 @@ class Namespace(OriginalNamespace):
 
         def wrapper(cls):
             if 'OPTIONS' in cls.methods:
-                cls.options = self.preflight_options_handler(
-                    self.response(code=204)(cls.options)
-                )
+                cls.options = self.response(code=HTTPStatus.NO_CONTENT)(cls.options)
             return base_wrapper(cls)
 
         return wrapper

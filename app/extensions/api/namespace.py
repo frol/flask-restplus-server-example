@@ -11,6 +11,7 @@ import sqlalchemy
 from werkzeug.exceptions import HTTPException
 
 from flask_restplus_patched import Namespace as BaseNamespace
+from flask_restplus_patched._http import HTTPStatus
 
 from . import http_exceptions
 from .webargs_parser import CustomWebargsParser
@@ -152,7 +153,7 @@ class Namespace(BaseNamespace):
                 }
             )(
                 self.response(
-                    code=http_exceptions.Unauthorized.code,
+                    code=HTTPStatus.UNAUTHORIZED.value,
                     description=(
                         "Authentication is required"
                         if not oauth_scopes else
@@ -240,7 +241,7 @@ class Namespace(BaseNamespace):
                 description="**PERMISSIONS: %s**\n\n" % permission_description
             )(
                 self.response(
-                    code=http_exceptions.Forbidden.code,
+                    code=HTTPStatus.FORBIDDEN.value,
                     description=permission_description,
                 )(protected_func)
             )
@@ -277,10 +278,10 @@ class Namespace(BaseNamespace):
                 yield session
                 session.commit()
             except ValueError as exception:
-                http_exceptions.abort(code=http_exceptions.Conflict.code, message=str(exception))
+                http_exceptions.abort(code=HTTPStatus.CONFLICT, message=str(exception))
             except sqlalchemy.exc.IntegrityError:
                 http_exceptions.abort(
-                    code=http_exceptions.Conflict.code,
+                    code=HTTPStatus.CONFLICT,
                     message=default_error_message
                 )
         except HTTPException:

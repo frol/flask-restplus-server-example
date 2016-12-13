@@ -1,4 +1,4 @@
-from apispec.ext.marshmallow.swagger import fields2jsonschema
+from apispec.ext.marshmallow.swagger import fields2jsonschema, field2property
 import flask_marshmallow
 from werkzeug import cached_property
 
@@ -39,4 +39,9 @@ class Model(OriginalModel):
 
     @cached_property
     def __schema__(self):
-        return fields2jsonschema(self['__schema__'].fields)
+        schema = self['__schema__']
+        if isinstance(schema, flask_marshmallow.Schema):
+            return fields2jsonschema(schema.fields)
+        elif isinstance(schema, flask_marshmallow.base_fields.FieldABC):
+            return field2property(schema)
+        raise NotImplementedError()

@@ -1,7 +1,8 @@
 from flask import jsonify
 from flask_restplus import Api as OriginalApi
-from werkzeug import cached_property, exceptions as http_exceptions
+from werkzeug import cached_property
 
+from ._http import HTTPStatus
 from .namespace import Namespace
 from .swagger import Swagger
 
@@ -15,7 +16,7 @@ class Api(OriginalApi):
 
     def init_app(self, app):
         super(Api, self).init_app(app)
-        app.errorhandler(http_exceptions.UnprocessableEntity.code)(handle_validation_error)
+        app.errorhandler(HTTPStatus.UNPROCESSABLE_ENTITY.value)(handle_validation_error)
 
     def namespace(self, *args, **kwargs):
         # The only purpose of this method is to pass a custom Namespace class
@@ -28,6 +29,6 @@ class Api(OriginalApi):
 def handle_validation_error(err):
     exc = err.data['exc']
     return jsonify({
-        'status': http_exceptions.UnprocessableEntity.code,
+        'status': HTTPStatus.UNPROCESSABLE_ENTITY.value,
         'message': exc.messages
-    }), http_exceptions.UnprocessableEntity.code
+    }), HTTPStatus.UNPROCESSABLE_ENTITY.value

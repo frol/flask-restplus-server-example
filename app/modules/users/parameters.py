@@ -8,9 +8,10 @@ Input arguments (Parameters) for User resources RESTful API
 from flask_login import current_user
 from flask_marshmallow import base_fields
 from flask_restplus_patched import PostFormParameters, PatchJSONParameters
+from flask_restplus_patched._http import HTTPStatus
 from marshmallow import validates_schema, ValidationError
 
-from app.extensions.api import abort, http_exceptions
+from app.extensions.api import abort
 
 from . import schemas, permissions
 from .models import User
@@ -52,11 +53,12 @@ class AddUserParameters(PostFormParameters, schemas.BaseUserSchema):
             no_captcha_permission = permissions.AdminRolePermission()
             if no_captcha_permission.check():
                 captcha_is_valid = True
+        # NOTE: This hardcoded CAPTCHA key is just for demo purposes.
         elif recaptcha_key == 'secret_key':
             captcha_is_valid = True
 
         if not captcha_is_valid:
-            abort(code=http_exceptions.Forbidden.code, message="CAPTCHA key is incorrect.")
+            abort(code=HTTPStatus.FORBIDDEN, message="CAPTCHA key is incorrect.")
 
 
 class PatchUserDetailsParameters(PatchJSONParameters):
@@ -86,7 +88,7 @@ class PatchUserDetailsParameters(PatchJSONParameters):
         """
         if field == 'current_password':
             if current_user.password != value and obj.password != value:
-                abort(code=http_exceptions.Forbidden.code, message="Wrong password")
+                abort(code=HTTPStatus.FORBIDDEN, message="Wrong password")
             else:
                 state['current_password'] = value
                 return True
@@ -110,7 +112,7 @@ class PatchUserDetailsParameters(PatchJSONParameters):
                 "performed before replacements."
             )
 
-        if field in {'is_active', 'is_readonly'}:
+        if field in {User.is_active.fget.__name__, User.is_regular_user.fget.__name__}:
             with permissions.SupervisorRolePermission(
                     obj=obj,
                     password_required=True,
@@ -118,7 +120,7 @@ class PatchUserDetailsParameters(PatchJSONParameters):
                 ):
                 # Access granted
                 pass
-        elif field == 'is_admin':
+        elif field == User.is_admin.fget.__name__:
             with permissions.AdminRolePermission(
                     password_required=True,
                     password=state['current_password']
