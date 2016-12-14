@@ -1,11 +1,12 @@
 # encoding: utf-8
-# pylint: disable=invalid-name
+# pylint: disable=invalid-name,wrong-import-position
 """
 The starting point of Invoke tasks for Example RESTful API Server project.
 """
 
 import logging
 import os
+import platform
 import sys
 import sysconfig
 
@@ -75,7 +76,7 @@ def invoke_execute(context, command_name, **kwargs):
 
 namespace.configure({
     'run': {
-        'shell': '/bin/sh',
+        'shell': '/bin/sh' if platform.system() != 'Windows' else os.environ.get('COMSPEC'),
     },
     'root_namespace': namespace,
     'invoke_execute': invoke_execute,
