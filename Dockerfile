@@ -2,6 +2,7 @@ FROM frolvlad/alpine-python3
 
 ENV API_SERVER_HOME=/opt/www
 WORKDIR "$API_SERVER_HOME"
+COPY "./requirements.txt" "./"
 COPY "./app/requirements.txt" "./app/"
 COPY "./config.py" "./"
 COPY "./tasks" "./tasks"
