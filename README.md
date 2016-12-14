@@ -251,7 +251,7 @@ dependencies. Please, learn details yourself.
 You will need `invoke` package to work with everything related to this project.
 
 ```bash
-$ pip install invoke colorlog
+$ pip install -r tasks/requirements.txt
 ```
 
 
