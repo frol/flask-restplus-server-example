@@ -140,7 +140,7 @@ class Namespace(OriginalNamespace):
 
                 if response is None:
                     if model is not None:
-                        raise ValueError("Reponse cannot not be None with HTTP status %d" % code)
+                        raise ValueError("Response cannot not be None with HTTP status %d" % code)
                     return flask.Response(status=code)
                 elif isinstance(response, flask.Response) or model is None:
                     return response
