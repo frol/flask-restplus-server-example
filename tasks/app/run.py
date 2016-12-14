@@ -4,11 +4,13 @@
 Application execution related tasks for Invoke.
 """
 
-import os
 try:
     from importlib import reload
 except ImportError:
     pass  # Python 2 has built-in reload() function
+import os
+import platform
+import warnings
 
 try:
     from invoke import ctask as task
@@ -53,4 +55,12 @@ def run(
                 skip_on_failure=True
             )
 
-    app.run(host=host, port=port)
+    use_reloader = app.debug
+    if platform.system() == 'Windows':
+        warnings.warn(
+                "Auto-reloader feature doesn't work on Windows. "
+                "Follow the issue for more details: "
+                "https://github.com/frol/flask-restplus-server-example/issues/16"
+            )
+        use_reloader = False
+    app.run(host=host, port=port, use_reloader=use_reloader)
