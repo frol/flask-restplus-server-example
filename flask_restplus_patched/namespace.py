@@ -188,10 +188,26 @@ class Namespace(OriginalNamespace):
 
         return decorator
 
+    def preflight_options_handler(self, func):
+
+        @wraps(func)
+        def wrapper(self, *args, **kwargs):
+            if 'Access-Control-Request-Method' in flask.request.headers:
+                response = flask.Response(status=200)
+                response.headers['Access-Control-Allow-Methods'] = ", ".join(self.methods)
+                return response
+            return func(self, *args, **kwargs)
+
+        return wrapper
+
     def route(self, *args, **kwargs):
         base_wrapper = super(Namespace, self).route(*args, **kwargs)
+
         def wrapper(cls):
             if 'OPTIONS' in cls.methods:
-                cls.options = self.response(code=204)(cls.options)
+                cls.options = self.preflight_options_handler(
+                    self.response(code=204)(cls.options)
+                )
             return base_wrapper(cls)
+
         return wrapper
