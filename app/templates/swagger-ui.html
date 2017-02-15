@@ -21,7 +21,7 @@
             alert(token.error)
           }
           else {
-            var access_token = token[window.swaggerUi.tokenName]
+            var access_token = token[window.swaggerUiAuth.tokenName]
 
             if (!OAuthSchemeKey) {
               OAuthSchemeKey = token.state;

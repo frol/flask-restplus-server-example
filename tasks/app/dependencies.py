@@ -60,7 +60,7 @@ def install_swagger_ui(context, force=False):
     # We are going to install Swagger UI from a fork which includes useful patches
     log.info("Downloading Swagger UI assets...")
     download_file(
-        url="https://github.com/frol/swagger-ui/archive/implement-oauth2-password-flow-rebased.zip",
+        url="https://github.com/swagger-api/swagger-ui/archive/v2.2.10.zip",
         local_filepath=swagger_ui_zip_filepath
     )
 
@@ -68,10 +68,7 @@ def install_swagger_ui(context, force=False):
     log.info("Unpacking Swagger UI assets...")
     with zipfile.ZipFile(swagger_ui_zip_filepath) as swagger_ui_zip_file:
         for zipped_member in swagger_ui_zip_file.infolist():
-            zipped_member_path = os.path.relpath(
-                zipped_member.filename,
-                'swagger-ui-implement-oauth2-password-flow-rebased'
-            )
+            zipped_member_path = os.path.relpath(zipped_member.filename, 'swagger-ui-2.2.10')
 
             # We only need the 'dist' folder
             try:
