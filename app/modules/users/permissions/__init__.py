@@ -80,7 +80,7 @@ class WriteAccessPermission(Permission):
     """
 
     def rule(self):
-        return rules.InternalRoleRule() | rules.WriteAccessRule()
+        return rules.InternalRoleRule() | rules.AdminRoleRule() | rules.WriteAccessRule()
 
 
 class RolePermission(Permission):
