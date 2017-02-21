@@ -207,7 +207,9 @@ class Namespace(OriginalNamespace):
 
         def wrapper(cls):
             if 'OPTIONS' in cls.methods:
-                cls.options = self.response(code=HTTPStatus.NO_CONTENT)(cls.options)
+                cls.options = self.preflight_options_handler(
+                    self.response(code=HTTPStatus.NO_CONTENT)(cls.options)
+                )
             return base_wrapper(cls)
 
         return wrapper

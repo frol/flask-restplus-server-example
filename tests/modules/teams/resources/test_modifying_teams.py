@@ -157,7 +157,6 @@ def test_team_deletion(flask_app_client, regular_user, team_for_regular_user):
         )
 
     assert response.status_code == 204
-    assert response.content_type == 'application/json'
 
 
 def test_add_new_team_member(flask_app_client, db, regular_user, admin_user, team_for_regular_user):

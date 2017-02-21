@@ -12,7 +12,7 @@ from flask_restplus_patched import Resource
 from flask_restplus_patched._http import HTTPStatus
 
 from app.extensions import db
-from app.extensions.api import Namespace, abort, http_exceptions
+from app.extensions.api import Namespace, abort
 from app.extensions.api.parameters import PaginationParameters
 from app.modules.users import permissions
 from app.modules.users.models import User
@@ -47,7 +47,7 @@ class Teams(Resource):
     @api.login_required(oauth_scopes=['teams:write'])
     @api.parameters(parameters.CreateTeamParameters())
     @api.response(schemas.DetailedTeamSchema())
-    @api.response(code=http_exceptions.Conflict.code)
+    @api.response(code=HTTPStatus.CONFLICT)
     def post(self, args):
         """
         Create a new team.
@@ -66,7 +66,7 @@ class Teams(Resource):
 @api.route('/<int:team_id>')
 @api.login_required(oauth_scopes=['teams:read'])
 @api.response(
-    code=http_exceptions.NotFound.code,
+    code=HTTPStatus.NOT_FOUND,
     description="Team not found.",
 )
 @api.resolve_object_by_model(Team, 'team')
@@ -94,7 +94,7 @@ class TeamByID(Resource):
     @api.permission_required(permissions.WriteAccessPermission())
     @api.parameters(parameters.PatchTeamDetailsParameters())
     @api.response(schemas.DetailedTeamSchema())
-    @api.response(code=http_exceptions.Conflict.code)
+    @api.response(code=HTTPStatus.CONFLICT)
     def patch(self, args, team):
         """
         Patch team details by ID.
@@ -113,7 +113,7 @@ class TeamByID(Resource):
         kwargs_on_request=lambda kwargs: {'obj': kwargs['team']}
     )
     @api.permission_required(permissions.WriteAccessPermission())
-    @api.response(code=http_exceptions.Conflict.code)
+    @api.response(code=HTTPStatus.CONFLICT)
     @api.response(code=HTTPStatus.NO_CONTENT)
     def delete(self, team):
         """
@@ -130,7 +130,7 @@ class TeamByID(Resource):
 @api.route('/<int:team_id>/members/')
 @api.login_required(oauth_scopes=['teams:read'])
 @api.response(
-    code=http_exceptions.NotFound.code,
+    code=HTTPStatus.NOT_FOUND,
     description="Team not found.",
 )
 @api.resolve_object_by_model(Team, 'team')
@@ -160,7 +160,7 @@ class TeamMembers(Resource):
     @api.permission_required(permissions.WriteAccessPermission())
     @api.parameters(parameters.AddTeamMemberParameters())
     @api.response(schemas.BaseTeamMemberSchema())
-    @api.response(code=http_exceptions.Conflict.code)
+    @api.response(code=HTTPStatus.CONFLICT)
     def post(self, args, team):
         """
         Add a new member to a team.
@@ -173,7 +173,7 @@ class TeamMembers(Resource):
             user = User.query.get(user_id)
             if user is None:
                 abort(
-                    code=http_exceptions.NotFound.code,
+                    code=HTTPStatus.NOT_FOUND,
                     message="User with id %d does not exist" % user_id
                 )
 
@@ -186,7 +186,7 @@ class TeamMembers(Resource):
 @api.route('/<int:team_id>/members/<int:user_id>')
 @api.login_required(oauth_scopes=['teams:read'])
 @api.response(
-    code=http_exceptions.NotFound.code,
+    code=HTTPStatus.NOT_FOUND,
     description="Team or member not found.",
 )
 @api.resolve_object_by_model(Team, 'team')
@@ -201,7 +201,7 @@ class TeamMemberByID(Resource):
         kwargs_on_request=lambda kwargs: {'obj': kwargs['team']}
     )
     @api.permission_required(permissions.WriteAccessPermission())
-    @api.response(code=http_exceptions.Conflict.code)
+    @api.response(code=HTTPStatus.CONFLICT)
     def delete(self, team, user_id):
         """
         Remove a member from a team.
