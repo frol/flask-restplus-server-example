@@ -28,6 +28,9 @@ class HTTPStatus(IntEnum):
         obj.description = description
         return obj
 
+    def __str__(self):
+        return str(self.value)
+
     # informational
     CONTINUE = 100, 'Continue', 'Request received, please continue'
     SWITCHING_PROTOCOLS = (101, 'Switching Protocols',
