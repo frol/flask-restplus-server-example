@@ -15,16 +15,28 @@ import sqlalchemy as sa
 
 
 def upgrade():
+    connection = op.get_bind()
+
+
     with op.batch_alter_table('oauth2_token') as batch_op:
+        tokentypes = sa.dialects.postgresql.ENUM('Bearer', name='tokentypes')
+        tokentypes.create(connection)
+
         batch_op.alter_column('token_type',
                existing_type=sa.VARCHAR(length=40),
                type_=sa.Enum('Bearer', name='tokentypes'),
-               existing_nullable=False)
+               existing_nullable=False,
+               postgresql_using='token_type::tokentypes')
 
 
 def downgrade():
+    connection = op.get_bind()
+
     with op.batch_alter_table('oauth2_token') as batch_op:
         batch_op.alter_column('token_type',
                existing_type=sa.Enum('Bearer', name='tokentypes'),
                type_=sa.VARCHAR(length=40),
                existing_nullable=False)
+
+    tokentypes = sa.dialects.postgresql.ENUM('Bearer', name='tokentypes')
+    tokentypes.drop(connection)
