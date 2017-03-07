@@ -44,11 +44,14 @@ OAuth2Token = sa.Table(
 def upgrade():
     connection = op.get_bind()
 
+    clienttypes = sa.dialects.postgresql.ENUM('public', 'confidential', name='clienttypes')
+    clienttypes.create(connection)
+
     with op.batch_alter_table('oauth2_client') as batch_op:
         batch_op.add_column(
             sa.Column(
                 'client_type',
-                sa.Enum('public', 'confidential'),
+                sa.Enum('public', 'confidential', name='clienttypes'),
                 server_default='public',
                 nullable=False
             )
@@ -172,3 +175,6 @@ def downgrade():
         batch_op.drop_column('redirect_uris')
         batch_op.drop_column('default_scopes')
         batch_op.drop_column('client_type')
+
+    clienttypes = sa.dialects.postgresql.ENUM('public', 'confidential', name='clienttypes')
+    clienttypes.drop(connection)
