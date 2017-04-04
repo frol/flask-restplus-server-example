@@ -18,4 +18,4 @@ class Swagger(OriginalSwagger):
             default_location = 'body'
         else:
             default_location = 'query'
-        return schema2parameters(schema, default_in=default_location, required=True, dump=False)
+        return schema2parameters(schema, default_in=default_location, required=True)
