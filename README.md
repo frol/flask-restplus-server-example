@@ -288,7 +288,9 @@ Authentication Details
 This example server features OAuth2 Authentication protocol support, but don't
 be afraid of it! If you learn it, OAuth2 will save you from a lot of troubles.
 
-Here is how you authenticate using cURL:
+### Authentication with Login and Password (Resource Owner Password Credentials Grant)
+
+Here is how you authenticate with user login and password credentials using cURL:
 
 ```
 $ curl 'http://127.0.0.1:5000/auth/oauth2/token?grant_type=password&client_id=documentation&username=root&password=q'
@@ -319,6 +321,23 @@ $ curl --header 'Authorization: Bearer oqvUpO4aKg5KgYK2EUY2HPsbOlAyEZ' 'http://1
     "updated": "2016-10-20T14:00:35.912602+00:00"
 }
 ```
+
+### Authentication with Client ID and Secret (Client Credentials Grant)
+
+Here is how you authenticate with user login and password credentials using cURL:
+
+```
+$ curl 'http://127.0.0.1:5000/auth/oauth2/token?grant_type=client_credentials' --user 'documentation:KQ()SWK)SQK)QWSKQW(SKQ)S(QWSQW(SJ*HQ&HQW*SQ*^SSQWSGQSG'
+{
+	"token_type": "Bearer",
+	"access_token": "oqvUpO4aKg5KgYK2EUY2HPsbOlAyEZ",
+	"refresh_token": "3UTjLPlnomJPx5FvgsC2wS7GfVNrfH",
+	"scope": "teams:read users:read users:write teams:write"
+}
+```
+
+The same way as in the previous section, you can grab the `access_token` and
+access protected resources.
 
 
 Tips
