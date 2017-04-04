@@ -331,7 +331,6 @@ $ curl 'http://127.0.0.1:5000/auth/oauth2/token?grant_type=client_credentials' -
 {
 	"token_type": "Bearer",
 	"access_token": "oqvUpO4aKg5KgYK2EUY2HPsbOlAyEZ",
-	"refresh_token": "3UTjLPlnomJPx5FvgsC2wS7GfVNrfH",
 	"scope": "teams:read users:read users:write teams:write"
 }
 ```
