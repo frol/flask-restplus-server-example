@@ -385,6 +385,9 @@ Database schema migration is handled via `app.db.*` tasks group. The most
 common migration commands are `app.db.upgrade` (it is automatically run on
 `app.run`), and `app.db.migrate` (creates a new migration).
 
+You can use [`better_exceptions`](https://github.com/Qix-/better-exceptions)
+package to enable detailed tracebacks. Just add `better_exceptions` to the
+`app/requirements.txt` and `import better_exceptions` in the `app/__init__.py`.
 
 Useful Links
 ============

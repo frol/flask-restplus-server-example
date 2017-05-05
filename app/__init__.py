@@ -54,11 +54,6 @@ def create_app(flask_config_name=None, **kwargs):
         logging.getLogger('flask_oauthlib').setLevel(logging.DEBUG)
         app.logger.setLevel(logging.DEBUG)
 
-        # We don't need default Flask's loggers when using invoke tasks as the
-        # latter set up colorful loggers.
-        for handler in app.logger.handlers:
-            app.logger.removeHandler(handler)
-
     from . import extensions
     extensions.init_app(app)
 
