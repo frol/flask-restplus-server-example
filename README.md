@@ -392,7 +392,7 @@ package to enable detailed tracebacks. Just add `better_exceptions` to the
 Useful Links
 ============
 
-* "[The big Picture](https://identityserver.github.io/Documentation/docs/overview/bigPicture.html)" -
+* "[The big Picture](https://identityserver.github.io/Documentation/docsv2/overview/bigPicture.html)" -
   short yet complete idea about how the modern apps should talk.
 * "[Please. Don't PATCH Like An Idiot.](http://williamdurand.fr/2014/02/14/please-do-not-patch-like-an-idiot/)"
 * "[A Concise RESTful API Design Guide](https://twincl.com/programming/*6af/rest-api-design)"
