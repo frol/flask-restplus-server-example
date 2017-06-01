@@ -1,6 +1,4 @@
 # encoding: utf-8
-# pylint: disable=missing-docstring
-
 import pytest
 
 
@@ -13,7 +11,6 @@ def test_getting_list_of_teams_by_unauthorized_user_must_fail(
         regular_user,
         auth_scopes
 ):
-    # pylint: disable=invalid-name
     with flask_app_client.login(regular_user, auth_scopes=auth_scopes):
         response = flask_app_client.get('/api/v1/teams/')
 
@@ -32,7 +29,6 @@ def test_getting_list_of_teams_by_authorized_user(
         team_for_regular_user,
         auth_scopes
 ):
-    # pylint: disable=invalid-name
     with flask_app_client.login(regular_user, auth_scopes=auth_scopes):
         response = flask_app_client.get('/api/v1/teams/')
 
@@ -54,7 +50,6 @@ def test_getting_team_info_by_unauthorized_user_must_fail(
         team_for_regular_user,
         auth_scopes
 ):
-    # pylint: disable=invalid-name
     with flask_app_client.login(regular_user, auth_scopes=auth_scopes):
         response = flask_app_client.get('/api/v1/teams/%d' % team_for_regular_user.id)
 
@@ -73,7 +68,6 @@ def test_getting_team_info_by_authorized_user(
         team_for_regular_user,
         auth_scopes
 ):
-    # pylint: disable=invalid-name
     with flask_app_client.login(regular_user, auth_scopes=auth_scopes):
         response = flask_app_client.get('/api/v1/teams/%d' % team_for_regular_user.id)
 
@@ -94,7 +88,6 @@ def test_getting_list_of_team_members_by_unauthorized_user_must_fail(
         team_for_regular_user,
         auth_scopes
 ):
-    # pylint: disable=invalid-name
     with flask_app_client.login(regular_user, auth_scopes=auth_scopes):
         response = flask_app_client.get('/api/v1/teams/%d/members/' % team_for_regular_user.id)
 
@@ -113,7 +106,6 @@ def test_getting_list_of_team_members_by_authorized_user(
         team_for_regular_user,
         auth_scopes
 ):
-    # pylint: disable=invalid-name
     with flask_app_client.login(regular_user, auth_scopes=auth_scopes):
         response = flask_app_client.get('/api/v1/teams/%d/members/' % team_for_regular_user.id)
 

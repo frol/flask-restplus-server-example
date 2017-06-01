@@ -16,11 +16,13 @@ def regular_user_oauth2_client(regular_user ,db):
         default_scopes=[]
     )
 
-    db.session.add(admin_oauth2_client_instance)
-    db.session.commit()
+    with db.session.begin():
+        db.session.add(admin_oauth2_client_instance)
+
     yield admin_oauth2_client_instance
-    db.session.delete(admin_oauth2_client_instance)
-    db.session.commit()
+
+    with db.session.begin():
+        db.session.delete(admin_oauth2_client_instance)
 
 
 @pytest.yield_fixture()
@@ -37,8 +39,10 @@ def regular_user_oauth2_token(regular_user_oauth2_client, db):
         scopes=[]
     )
 
-    db.session.add(regular_user_token)
-    db.session.commit()
+    with db.session.begin():
+        db.session.add(regular_user_token)
+
     yield regular_user_token
-    db.session.delete(regular_user_token)
-    db.session.commit()
+
+    with db.session.begin():
+        db.session.delete(regular_user_token)

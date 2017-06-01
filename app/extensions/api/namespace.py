@@ -274,16 +274,12 @@ class Namespace(BaseNamespace):
         ...     return team
         """
         try:
-            try:
-                yield session
-                session.commit()
-            except ValueError as exception:
-                http_exceptions.abort(code=HTTPStatus.CONFLICT, message=str(exception))
-            except sqlalchemy.exc.IntegrityError:
-                http_exceptions.abort(
-                    code=HTTPStatus.CONFLICT,
-                    message=default_error_message
-                )
-        except HTTPException:
-            session.rollback()
-            raise
+            with session.begin():
+                yield
+        except ValueError as exception:
+            http_exceptions.abort(code=HTTPStatus.CONFLICT, message=str(exception))
+        except sqlalchemy.exc.IntegrityError:
+            http_exceptions.abort(
+                code=HTTPStatus.CONFLICT,
+                message=default_error_message
+            )

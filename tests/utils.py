@@ -50,8 +50,8 @@ class AutoAuthFlaskClient(FlaskClient):
                 expires=datetime.utcnow() + timedelta(days=1),
             )
 
-            db.session.add(oauth2_bearer_token)
-            db.session.commit()
+            with db.session.begin():
+                db.session.add(oauth2_bearer_token)
 
             extra_headers = (
                 (
@@ -67,8 +67,8 @@ class AutoAuthFlaskClient(FlaskClient):
         response = super(AutoAuthFlaskClient, self).open(*args, **kwargs)
 
         if self._user is not None:
-            db.session.delete(oauth2_bearer_token)
-            db.session.commit()
+            with db.session.begin():
+                db.session.delete(oauth2_bearer_token)
 
         return response
 

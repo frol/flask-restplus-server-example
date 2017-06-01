@@ -1,5 +1,4 @@
 # encoding: utf-8
-# pylint: disable=redefined-outer-name,missing-docstring
 import pytest
 
 from tests import utils
@@ -17,12 +16,12 @@ def flask_app():
         yield app
         db.drop_all()
 
-@pytest.yield_fixture()
+
+@pytest.yield_fixture(scope='session')
 def db(flask_app):
-    # pylint: disable=unused-argument,invalid-name
     from app.extensions import db as db_instance
     yield db_instance
-    db_instance.session.rollback()
+
 
 @pytest.fixture(scope='session')
 def flask_app_client(flask_app):
@@ -30,58 +29,56 @@ def flask_app_client(flask_app):
     flask_app.response_class = utils.JSONResponse
     return flask_app.test_client()
 
-@pytest.yield_fixture(scope='session')
-def regular_user(flask_app):
-    # pylint: disable=invalid-name,unused-argument
-    from app.extensions import db
 
+@pytest.yield_fixture(scope='session')
+def regular_user(db):
     regular_user_instance = utils.generate_user_instance(
         username='regular_user'
     )
 
-    db.session.add(regular_user_instance)
-    db.session.commit()
+    with db.session.begin():
+        db.session.add(regular_user_instance)
+
     yield regular_user_instance
-    db.session.delete(regular_user_instance)
-    db.session.commit()
+
+    with db.session.begin():
+        db.session.delete(regular_user_instance)
+
 
 @pytest.yield_fixture(scope='session')
-def readonly_user(flask_app):
-    # pylint: disable=invalid-name,unused-argument
-    from app.extensions import db
-
+def readonly_user(db):
     readonly_user_instance = utils.generate_user_instance(
         username='readonly_user',
         is_regular_user=False
     )
 
-    db.session.add(readonly_user_instance)
-    db.session.commit()
+    with db.session.begin():
+        db.session.add(readonly_user_instance)
+
     yield readonly_user_instance
-    db.session.delete(readonly_user_instance)
-    db.session.commit()
+
+    with db.session.begin():
+        db.session.delete(readonly_user_instance)
+
 
 @pytest.yield_fixture(scope='session')
-def admin_user(flask_app):
-    # pylint: disable=invalid-name,unused-argument
-    from app.extensions import db
-
+def admin_user(db):
     admin_user_instance = utils.generate_user_instance(
         username='admin_user',
         is_admin=True
     )
 
-    db.session.add(admin_user_instance)
-    db.session.commit()
+    with db.session.begin():
+        db.session.add(admin_user_instance)
+
     yield admin_user_instance
-    db.session.delete(admin_user_instance)
-    db.session.commit()
+
+    with db.session.begin():
+        db.session.delete(admin_user_instance)
+
 
 @pytest.yield_fixture(scope='session')
-def internal_user(flask_app):
-    # pylint: disable=invalid-name,unused-argument
-    from app.extensions import db
-
+def internal_user(db):
     internal_user_instance = utils.generate_user_instance(
         username='internal_user',
         is_regular_user=False,
@@ -90,8 +87,10 @@ def internal_user(flask_app):
         is_internal=True
     )
 
-    db.session.add(internal_user_instance)
-    db.session.commit()
+    with db.session.begin():
+        db.session.add(internal_user_instance)
+
     yield internal_user_instance
-    db.session.delete(internal_user_instance)
-    db.session.commit()
+
+    with db.session.begin():
+        db.session.delete(internal_user_instance)

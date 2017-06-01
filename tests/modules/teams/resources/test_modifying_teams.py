@@ -20,8 +20,8 @@ def test_new_team_creation(flask_app_client, db, regular_user):
     # Cleanup
     team = models.Team.query.get(response.json['id'])
     assert team.title == team_title
-    db.session.delete(team)
-    db.session.commit()
+    with db.session.begin():
+        db.session.delete(team)
 
 def test_new_team_first_member_is_creator(flask_app_client, db, regular_user):
     # pylint: disable=invalid-name
@@ -43,8 +43,8 @@ def test_new_team_first_member_is_creator(flask_app_client, db, regular_user):
     # Cleanup
     team = models.Team.query.get(response.json['id'])
     assert team.title == team_title
-    db.session.delete(team)
-    db.session.commit()
+    with db.session.begin():
+        db.session.delete(team)
 
 
 def test_new_team_creation_with_invalid_data_must_fail(flask_app_client, regular_user):
@@ -178,8 +178,8 @@ def test_add_new_team_member(flask_app_client, db, regular_user, admin_user, tea
     # Cleanup
     team_members = models.TeamMember.query.filter_by(team=team_for_regular_user, user=admin_user)
     assert team_members.count() == 1
-    team_members.delete()
-    db.session.commit()
+    with db.session.begin():
+        team_members.delete()
 
 
 def test_delete_team_member(

@@ -102,9 +102,9 @@ def test_User_find_with_password(patch_User_password_scheme, db): # pylint: disa
 
     user1 = create_user("user1", "user1password")
     user2 = create_user("user2", "user2password")
-    db.session.add(user1)
-    db.session.add(user2)
-    db.session.commit()
+    with db.session.begin():
+        db.session.add(user1)
+        db.session.add(user2)
 
     assert models.User.find_with_password("user1", "user1password") == user1
     assert models.User.find_with_password("user1", "wrong-user1password") is None
@@ -112,6 +112,6 @@ def test_User_find_with_password(patch_User_password_scheme, db): # pylint: disa
     assert models.User.find_with_password("user2", "user2password") == user2
     assert models.User.find_with_password("nouser", "userpassword") is None
 
-    db.session.delete(user1)
-    db.session.delete(user2)
-    db.session.commit()
+    with db.session.begin():
+        db.session.delete(user1)
+        db.session.delete(user2)

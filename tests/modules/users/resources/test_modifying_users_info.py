@@ -39,8 +39,8 @@ def test_modifying_user_info_by_owner(flask_app_client, regular_user, db):
     assert user1_instance.middle_name == "Modified Middle Name"
 
     user1_instance.middle_name = saved_middle_name
-    db.session.merge(user1_instance)
-    db.session.commit()
+    with db.session.begin():
+        db.session.merge(user1_instance)
 
 def test_modifying_user_info_by_admin(flask_app_client, admin_user, regular_user, db):
     # pylint: disable=invalid-name
@@ -99,8 +99,8 @@ def test_modifying_user_info_by_admin(flask_app_client, admin_user, regular_user
     user1_instance.is_active = True
     user1_instance.is_regular_user = True
     user1_instance.is_admin = False
-    db.session.merge(user1_instance)
-    db.session.commit()
+    with db.session.begin():
+        db.session.merge(user1_instance)
 
 def test_modifying_user_info_admin_fields_by_not_admin(flask_app_client, regular_user, db):
     # pylint: disable=invalid-name

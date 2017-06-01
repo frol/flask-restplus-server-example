@@ -45,8 +45,8 @@ def test_new_user_creation(patch_User_password_scheme, flask_app_client, db):
     assert user1_instance.email == "user1@email.com"
     assert user1_instance.password == "user1_password"
 
-    db.session.delete(user1_instance)
-    db.session.commit()
+    with db.session.begin():
+        db.session.delete(user1_instance)
 
 def test_new_user_creation_without_captcha_must_fail(flask_app_client):
     # pylint: disable=invalid-name
@@ -107,8 +107,8 @@ def test_new_user_creation_without_captcha_but_admin_user(
     assert user1_instance.email == "user1@email.com"
     assert user1_instance.password == "user1_password"
 
-    db.session.delete(user1_instance)
-    db.session.commit()
+    with db.session.begin():
+        db.session.delete(user1_instance)
 
 def test_new_user_creation_duplicate_must_fail(flask_app_client, db):
     # pylint: disable=invalid-name
@@ -137,5 +137,5 @@ def test_new_user_creation_duplicate_must_fail(flask_app_client, db):
     from app.modules.users.models import User
 
     user1_instance = User.query.get(user_id)
-    db.session.delete(user1_instance)
-    db.session.commit()
+    with db.session.begin():
+        db.session.delete(user1_instance)

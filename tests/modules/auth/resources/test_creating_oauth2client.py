@@ -1,5 +1,4 @@
 # encoding: utf-8
-# pylint: disable=missing-docstring
 import pytest
 import six
 
@@ -11,7 +10,6 @@ import six
 def test_creating_oauth2_client(
         flask_app_client, regular_user, db, auth_scopes, redirect_uris
 ):
-    # pylint: disable=invalid-name
     with flask_app_client.login(regular_user, auth_scopes=auth_scopes):
         response = flask_app_client.post(
             '/api/v1/auth/oauth2_clients/',
@@ -44,8 +42,8 @@ def test_creating_oauth2_client(
     oauth2_client_instance = OAuth2Client.query.get(response.json['client_id'])
     assert oauth2_client_instance.client_secret == response.json['client_secret']
 
-    db.session.delete(oauth2_client_instance)
-    db.session.commit()
+    with db.session.begin():
+        db.session.delete(oauth2_client_instance)
 
 
 @pytest.mark.parametrize('auth_scopes', (
@@ -57,7 +55,6 @@ def test_creating_oauth2_client(
 def test_creating_oauth2_client_by_unauthorized_user_must_fail(
         flask_app_client, regular_user, auth_scopes
 ):
-    # pylint: disable=invalid-name
     with flask_app_client.login(regular_user, auth_scopes=auth_scopes):
         response = flask_app_client.post(
             '/api/v1/auth/oauth2_clients/',
@@ -74,7 +71,6 @@ def test_creating_oauth2_client_by_unauthorized_user_must_fail(
 def test_creating_oauth2_client_must_fail_for_invalid_scopes(
         flask_app_client, regular_user
 ):
-    # pylint: disable=invalid-name
     with flask_app_client.login(regular_user, auth_scopes=['auth:write']):
         response = flask_app_client.post(
             '/api/v1/auth/oauth2_clients/',

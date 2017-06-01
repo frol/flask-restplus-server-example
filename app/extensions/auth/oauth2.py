@@ -22,7 +22,7 @@ import sqlalchemy
 from app.extensions import api, db
 
 
-log = logging.getLogger(__name__)  # pylint: disable=invalid-name
+log = logging.getLogger(__name__)
 
 
 class OAuth2RequestValidator(provider.OAuth2RequestValidator):
@@ -57,20 +57,19 @@ class OAuth2RequestValidator(provider.OAuth2RequestValidator):
         expires_in = token.pop('expires_in')
         expires = datetime.utcnow() + timedelta(seconds=expires_in)
 
-        token_instance = self._token_class(
-            access_token=token['access_token'],
-            refresh_token=token.get('refresh_token'),
-            token_type=token['token_type'],
-            scopes=[scope for scope in token['scope'].split(' ') if scope],
-            expires=expires,
-            client_id=request.client.client_id,
-            user_id=request.user.id,
-        )
-        db.session.add(token_instance)
         try:
-            db.session.commit()
+            with db.session.begin():
+                token_instance = self._token_class(
+                    access_token=token['access_token'],
+                    refresh_token=token.get('refresh_token'),
+                    token_type=token['token_type'],
+                    scopes=[scope for scope in token['scope'].split(' ') if scope],
+                    expires=expires,
+                    client_id=request.client.client_id,
+                    user_id=request.user.id,
+                )
+                db.session.add(token_instance)
         except sqlalchemy.exc.IntegrityError:
-            db.session.rollback()
             log.exception("Token-setter has failed.")
             return None
         return token_instance
@@ -80,19 +79,18 @@ class OAuth2RequestValidator(provider.OAuth2RequestValidator):
         # TODO: review expiration time
         # decide the expires time yourself
         expires = datetime.utcnow() + timedelta(seconds=100)
-        grant_instance = self._grant_class(
-            client_id=client_id,
-            code=code['code'],
-            redirect_uri=request.redirect_uri,
-            scopes=request.scopes,
-            user=current_user,
-            expires=expires
-        )
-        db.session.add(grant_instance)
         try:
-            db.session.commit()
+            with db.session.begin():
+                grant_instance = self._grant_class(
+                    client_id=client_id,
+                    code=code['code'],
+                    redirect_uri=request.redirect_uri,
+                    scopes=request.scopes,
+                    user=current_user,
+                    expires=expires
+                )
+                db.session.add(grant_instance)
         except sqlalchemy.exc.IntegrityError:
-            db.session.rollback()
             log.exception("Grant-setter has failed.")
             return None
         return grant_instance
