@@ -195,7 +195,7 @@ class Namespace(OriginalNamespace):
         @wraps(func)
         def wrapper(self, *args, **kwargs):
             if 'Access-Control-Request-Method' in flask.request.headers:
-                response = flask.Response(status=200)
+                response = flask.Response(status=HTTPStatus.OK)
                 response.headers['Access-Control-Allow-Methods'] = ", ".join(self.methods)
                 return response
             return func(self, *args, **kwargs)

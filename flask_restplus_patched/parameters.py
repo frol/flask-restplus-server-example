@@ -13,6 +13,9 @@ log = logging.getLogger(__name__)  # pylint: disable=invalid-name
 
 class Parameters(Schema):
 
+    class Meta:
+        ordered = True
+
     def __init__(self, **kwargs):
         super(Parameters, self).__init__(strict=True, **kwargs)
 
@@ -187,10 +190,7 @@ class PatchJSONParameters(Parameters):
         Returns:
             processing_status (bool): True
         """
-        if getattr(obj, field) == value:
-            return True
-        else:
-            return False
+        return getattr(obj, field) == value
 
     @classmethod
     def add(cls, obj, field, value, state):

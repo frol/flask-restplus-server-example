@@ -10,6 +10,7 @@ Flask-SQLAlchemy==2.2
 Alembic==0.8.10
 werkzeug==0.11.15
 
+marshmallow>=2.13.5
 flask-marshmallow==0.7.0
 marshmallow-sqlalchemy==0.12.0
 webargs>=1.4.0
