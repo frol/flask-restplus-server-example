@@ -25,6 +25,7 @@ class BaseConfig(object):
     SQLALCHEMY_DATABASE_URI = 'sqlite:///%s' % (os.path.join(PROJECT_ROOT, "example.db"))
 
     DEBUG = False
+    ERROR_404_HELP = False
 
     AUTHORIZATIONS = {
         'oauth2_password': {

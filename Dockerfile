@@ -7,12 +7,12 @@ COPY "./app/requirements.txt" "./app/"
 COPY "./config.py" "./"
 COPY "./tasks" "./tasks"
 
-RUN apk add --no-cache --virtual=build_dependencies musl-dev gcc python3-dev libffi-dev && \
+RUN apk add --no-cache --virtual=.build_dependencies musl-dev gcc python3-dev libffi-dev && \
     cd /opt/www && \
     pip install -r tasks/requirements.txt && \
     invoke app.dependencies.install && \
     rm -rf ~/.cache/pip && \
-    apk del build_dependencies
+    apk del .build_dependencies
 
 COPY "./" "./"
 
