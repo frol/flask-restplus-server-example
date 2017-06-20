@@ -54,7 +54,7 @@ class OAuth2RequestValidator(provider.OAuth2RequestValidator):
     def _tokensetter(self, token, request, *args, **kwargs):
         # pylint: disable=method-hidden,unused-argument
         # TODO: review expiration time
-        expires_in = token.pop('expires_in')
+        expires_in = token['expires_in']
         expires = datetime.utcnow() + timedelta(seconds=expires_in)
 
         try:
