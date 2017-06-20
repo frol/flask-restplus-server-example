@@ -339,6 +339,53 @@ The same way as in the previous section, you can grab the `access_token` and
 access protected resources.
 
 
+API Integration
+---------------
+
+One of the key point of using OpenAPI (Swagger) specification is that it
+enables automatic code generation.
+[Swagger Codegen project](https://github.com/swagger-api/swagger-codegen)
+implements client library and server stub generators for over 18
+programming languages! There are also many other projects with OpenAPI
+specification support, so if you lack anything in the official tooling,
+search for third-party solutions.
+
+I have had a need to work with my API servers from Python and JavaScript, so
+I started with Swagger Codegen Python and JavaScript generators. Very soon I
+realized that most (if not all) Swagger Codegen generators lack OAuth2 support,
+but other than that, the client libraries look fine (I have contributed a few
+changes to Python and JavaScript generators over the time, and the nice thing
+all the clients benefit from contributions into a single project). Thus,
+@khorolets and I implemented hacky OAuth2 support for Python client and even
+more hacky out-of-client helpers for JavaScript (hopefully, one day OAuth2
+support will be contributed into the Swagger Codegen upstream).
+
+To use Swagger Codegen, you only need a `swagger.json` file describing your API
+server. You can get one by accessing http://127.0.0.1:5000/api/v1/swagger.json,
+or by running an Invoke task:
+
+```bash
+$ invoke app.swagger
+```
+
+NOTE: Use stdout rediction to save the output into a file.
+
+To further simplify the codegeneration, there is another Invoke task:
+
+```bash
+$ invoke app.swagger.codegen --language python --version 1.0.0
+```
+
+To run that, however, you will need Docker installed on your machine since we
+use Swagger Codegen as a Docker image. Once that is completed, you will have a
+Python client in the `clients/python/dist/` folder. The `javascript` client can
+be generated just the same way. Read the generated `clients/*/dist/README.md`
+to learn how to use those clients.
+
+NOTE: As mentioned above, a slightly modified Swagger Codegen version is used
+to enable OAuth2 support in Python client.
+
+
 Tips
 ----
 

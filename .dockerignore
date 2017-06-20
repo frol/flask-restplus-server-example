@@ -1,11 +1,14 @@
 .dockerignore
 Dockerfile
+Procfile
 
 example.db
 
 .git*
 
-deploy/*
+deploy
+tests
+clients
 
 __pycache__
 */__pycache__

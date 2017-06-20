@@ -1,0 +1,6 @@
+{
+  "projectName": "flask-restplus-server-example-client",
+  "moduleName": "FlaskRESTplusServerExample",
+  "projectLicenseName": "MIT",
+  "usePromises": true
+}

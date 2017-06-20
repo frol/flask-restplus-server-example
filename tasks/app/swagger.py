@@ -29,7 +29,7 @@ def export(context, output_format='json', quiet=False):
 
 
 @task
-def codegen(context, language, dry_run=False):
+def codegen(context, language, version, dry_run=False):
     if dry_run:
         run = print
     else:
@@ -65,13 +65,14 @@ def codegen(context, language, dry_run=False):
         "          --lang '%(language)s'"
         "          --output './dist'"
         "          --config './swagger_codegen_config.json'"
-        "          --additional-properties 'packageVersion=%(version)s' >&2 ;"
+        "          --additional-properties 'packageVersion=%(version)s,projectVersion=%(version)s'"
+        "          >&2 ;"
         # tar the generated code and return it.
         "      tar -c dist\""
         # Finally, untar library source into current directory.
         "  | tar -x"
         % {
             'language': language,
-            'version': os.environ['EXAMPLE_API_VERSION'],
+            'version': version,
         }
     )
