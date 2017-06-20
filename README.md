@@ -295,14 +295,33 @@ Here is how you authenticate with user login and password credentials using cURL
 ```
 $ curl 'http://127.0.0.1:5000/auth/oauth2/token?grant_type=password&client_id=documentation&username=root&password=q'
 {
-	"token_type": "Bearer",
-	"access_token": "oqvUpO4aKg5KgYK2EUY2HPsbOlAyEZ",
-	"refresh_token": "3UTjLPlnomJPx5FvgsC2wS7GfVNrfH",
-	"scope": "teams:read users:read users:write teams:write"
+    "token_type": "Bearer",
+    "access_token": "oqvUpO4aKg5KgYK2EUY2HPsbOlAyEZ",
+    "refresh_token": "3UTjLPlnomJPx5FvgsC2wS7GfVNrfH",
+    "expires_in": 3600,
+    "scope": "auth:read auth:write users:read users:write teams:read teams:write"
 }
 ```
 
-That is it! You grab the `access_token` and put it into `Authorization` header
+That is it!
+
+Well, the above request uses query parameters to pass client ID, user login and
+password which is not recommended (even discouraged) for production use since
+most of the web servers logs the requested URLs in plain text and we don't want
+to leak sensitive data this way.  Thus, in practice you would use form
+parameters to pass credentials:
+
+```
+$ curl 'http://127.0.0.1:5000/auth/oauth2/token?grant_type=password' -F 'client_id=documentation' -F 'username=root' -F 'password=q'
+```
+
+, or even pass `client_id` as Basic HTTP Auth:
+
+```
+$ curl 'http://127.0.0.1:5000/auth/oauth2/token?grant_type=password' --user 'documentation:' -F 'username=root' -F 'password=q'
+```
+
+You grab the `access_token` and put it into `Authorization` header
 to request "protected" resources:
 
 ```
@@ -322,6 +341,21 @@ $ curl --header 'Authorization: Bearer oqvUpO4aKg5KgYK2EUY2HPsbOlAyEZ' 'http://1
 }
 ```
 
+Once the access token expires, you can refresh it with `refresh_token`. To do
+that, OAuth2 RFC defines Refresh Token Flow (notice that there is no need to
+store user credentials to do the refresh procedure):
+
+```
+$ curl 'http://127.0.0.1:5000/auth/oauth2/token?grant_type=refresh_token' --user 'documentation:' -F 'refresh_token=3UTjLPlnomJPx5FvgsC2wS7GfVNrfH'
+{
+    "token_type": "Bearer",
+    "access_token": "FwaS90XWwBpM1sLeAytaGGTubhHaok",
+    "refresh_token": "YD5Rc1FojKX1ZY9vltMSnFxhm9qpbb",
+    "expires_in": 3600,
+    "scope": "auth:read auth:write users:read users:write teams:read teams:write"
+}
+```
+
 ### Authentication with Client ID and Secret (Client Credentials Grant)
 
 Here is how you authenticate with user login and password credentials using cURL:
@@ -329,9 +363,10 @@ Here is how you authenticate with user login and password credentials using cURL
 ```
 $ curl 'http://127.0.0.1:5000/auth/oauth2/token?grant_type=client_credentials' --user 'documentation:KQ()SWK)SQK)QWSKQW(SKQ)S(QWSQW(SJ*HQ&HQW*SQ*^SSQWSGQSG'
 {
-	"token_type": "Bearer",
-	"access_token": "oqvUpO4aKg5KgYK2EUY2HPsbOlAyEZ",
-	"scope": "teams:read users:read users:write teams:write"
+    "token_type": "Bearer",
+    "access_token": "oqvUpO4aKg5KgYK2EUY2HPsbOlAyEZ",
+    "expires_in": 3600,
+    "scope": "teams:read users:read users:write teams:write"
 }
 ```
 
