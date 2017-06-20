@@ -21,7 +21,13 @@ def test_regular_user_can_retrieve_token(
     )
 
     assert response.status_code == 200
-    assert set(response.json.keys()) >= {'access_token', 'refresh_token'}
+    assert set(response.json.keys()) >= {
+        'token_type',
+        'access_token',
+        'refresh_token',
+        'expires_in',
+        'scope',
+    }
 
 
 def test_regular_user_cant_retrieve_token_without_credentials(
@@ -88,7 +94,13 @@ def test_regular_user_can_refresh_token(
     )
 
     assert refresh_token_response.status_code == 200
-    assert set(refresh_token_response.json.keys()) >= {'access_token'}
+    assert set(refresh_token_response.json.keys()) >= {
+        'token_type',
+        'access_token',
+        'refresh_token',
+        'expires_in',
+        'scope',
+    }
 
 
 def test_regular_user_cant_refresh_token_with_invalid_refresh_token(
@@ -121,8 +133,6 @@ def test_user_cant_refresh_token_without_any_data(
     assert refresh_token_response.status_code == 400
 
 
-# There is a bug in flask-oauthlib: https://github.com/lepture/flask-oauthlib/issues/233
-@pytest.mark.xfail
 def test_regular_user_can_revoke_token(
         flask_app_client,
         regular_user_oauth2_token,
@@ -136,7 +146,14 @@ def test_regular_user_can_revoke_token(
         '/auth/oauth2/revoke',
         content_type='application/x-www-form-urlencoded',
         headers={
-            'Authorization': 'Basic %s' % b64encode(('%s:%s' % (regular_user_oauth2_token.client.client_id, regular_user_oauth2_token.client.client_secret)).encode('utf-8')),
+            'Authorization': 'Basic %s' % b64encode(
+                (
+                    '%s:%s' % (
+                        regular_user_oauth2_token.client.client_id,
+                        regular_user_oauth2_token.client.client_secret
+                    )
+                ).encode('utf-8')
+            ),
         },
         data=data,
     )

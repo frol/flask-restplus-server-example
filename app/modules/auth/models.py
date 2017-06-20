@@ -124,3 +124,7 @@ class OAuth2Token(db.Model):
             return cls.query.filter_by(access_token=access_token).first()
         elif refresh_token:
             return cls.query.filter_by(refresh_token=refresh_token).first()
+
+    def delete(self):
+        with db.session.begin():
+            db.session.delete(self)
