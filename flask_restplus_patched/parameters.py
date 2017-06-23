@@ -18,6 +18,11 @@ class Parameters(Schema):
 
     def __init__(self, **kwargs):
         super(Parameters, self).__init__(strict=True, **kwargs)
+        # This is an add-hoc implementation of the feature which didn't make
+        # into Marshmallow upstream:
+        # https://github.com/marshmallow-code/marshmallow/issues/344
+        for required_field_name in getattr(self.Meta, 'required', []):
+            self.fields[required_field_name].required = True
 
     def __contains__(self, field):
         return field in self.fields
