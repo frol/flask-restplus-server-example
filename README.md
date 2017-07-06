@@ -31,6 +31,89 @@ Here is how it looks at this point of time ([live demo](http://flask-restplus-ex
 ![Flask RESTplus Example API](https://raw.githubusercontent.com/frol/flask-restplus-server-example/master/docs/static/Flask_RESTplus_Example_API.png)
 
 
+Single File Example
+-------------------
+
+This example should give you a basic understanding of what you can get with
+Flask, SQLAlchemy, Marshmallow, Flask-RESTplus (+ my patched extension), and
+OpenAPI.
+
+```python
+from flask import Flask
+from flask_sqlalchemy import SQLAlchemy
+from flask_restplus_patched import Api, Namespace, Resource, ModelSchema
+
+# Extensions initialization
+# =========================
+app = Flask(__name__)
+db = SQLAlchemy(app)
+api = Api(app)
+
+
+# Database table definition (SQLAlchemy)
+# ======================================
+class User(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(), nullable=False)
+
+
+# Serialization/Deserialization schema definition
+# ===============================================
+class UserSchema(ModelSchema):
+    class Meta:
+        model = User
+
+
+# "Users" resource RESTful API definitions
+# ========================================
+users_api = Namespace('users')
+api.add_namespace(users_api)
+
+@users_api.route('/')
+class UsersList(Resource):
+
+    @users_api.response(UserSchema(many=True))
+    def get(self):
+        return User.query.all()
+
+
+@users_api.route('/<int:user_id>')
+@users_api.resolve_object('user', lambda kwargs: User.query.get_or_404(kwargs.pop('user_id')))
+class UserByID(Resource):
+
+    @users_api.response(UserSchema())
+    def get(self, user):
+        return user
+
+
+# Run the RESTful API server
+# ==========================
+if __name__ == '__main__':
+    db.create_all()
+    with db.session.begin(nested=True):
+        db.session.add(User(name='user1'))
+        db.session.add(User(name='user2'))
+    app.run()
+```
+
+Save it, install the dependencies, and run it:
+
+```
+$ pip install -r app/requirements.txt
+$ python server.py
+```
+
+Open http://127.0.0.1:5000 and examine the interactive documentation for your
+new RESTful API server! You can use any HTTP tools (e.g. `cURL`, `wget`,
+Python `requests`, or just a web browser) to communicate with it, or generate
+specialized API client libraries for many programming languages using
+[Swagger Codegen](https://github.com/swagger-api/swagger-codegen) (learn more
+in the [API Integration](#api-integration) section).
+
+Note, this whole repo features much more than that; it demonstrates how I would
+organize a production-ready RESTful API server *project*, so stay tunned.
+
+
 Project Structure
 -----------------
 
