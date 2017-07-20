@@ -48,6 +48,7 @@ class BaseConfig(object):
 
         'users',
         'teams',
+        'evidences',
 
         'api',
     )
