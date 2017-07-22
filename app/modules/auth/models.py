@@ -28,7 +28,7 @@ class OAuth2Client(db.Model):
     client_secret = db.Column(db.String(length=55), nullable=False)
 
     user_id = db.Column(db.ForeignKey('user.id', ondelete='CASCADE'), index=True, nullable=False)
-    user = db.relationship('User')
+    user = db.relationship(User)
 
     class ClientTypes(str, enum.Enum):
         public = 'public'

@@ -33,7 +33,7 @@ def init_app(app, **kwargs):
     api_v1.add_oauth_scope('auth:write', "Provide write access to auth details")
 
     # Touch underlying modules
-    from . import models, views, resources
+    from . import models, views, resources  # pylint: disable=unused-variable
 
     # Mount authentication routes
     app.register_blueprint(views.auth_blueprint)

@@ -25,9 +25,13 @@ API_DEFAULT_HTTP_CODE_MESSAGES = {
 
 
 def abort(code, message=None, **kwargs):
+    """
+    Custom abort function used to provide extra information in the error
+    response, namely, ``status`` and ``message`` info.
+    """
     if message is None:
         if code in API_DEFAULT_HTTP_CODE_MESSAGES:
             message = API_DEFAULT_HTTP_CODE_MESSAGES[code]
         else:
-            message = HTTPStatus(code).description
+            message = HTTPStatus(code).description  # pylint: disable=no-value-for-parameter
     restplus_abort(code=code, status=code, message=message, **kwargs)

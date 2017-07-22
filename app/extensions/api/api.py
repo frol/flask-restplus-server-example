@@ -28,7 +28,7 @@ class Api(BaseApi):
                     "OAuth scope %s already exists" % scope_name
                 authorization_settings['scopes'][scope_name] = scope_description
 
-    def add_namespace(self, ns):
+    def add_namespace(self, ns, path=None):
         # Rewrite security rules for OAuth scopes since Namespaces don't have
         # enough information about authorization methods.
         for resource, _, _ in ns.resources:
@@ -49,4 +49,4 @@ class Api(BaseApi):
                         if auth_settings['type'].startswith('oauth')
                     }
 
-        super(Api, self).add_namespace(ns)
+        super(Api, self).add_namespace(ns, path=path)

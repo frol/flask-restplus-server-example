@@ -69,7 +69,7 @@ class Namespace(OriginalNamespace):
             api_model = Model(name, model, mask=mask)
             api_model.__apidoc__ = kwargs
             return self.add_model(name, api_model)
-        return super(Namespace, self).model(name, model, **kwargs)
+        return super(Namespace, self).model(name=name, model=model, **kwargs)
 
     def parameters(self, parameters, locations=None):
         """

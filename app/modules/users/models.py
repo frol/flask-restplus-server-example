@@ -59,6 +59,7 @@ class User(db.Model, Timestamp):
     last_name = db.Column(db.String(length=30), default='', nullable=False)
 
     class StaticRoles(enum.Enum):
+        # pylint: disable=missing-docstring,unsubscriptable-object
         INTERNAL = (0x8000, "Internal")
         ADMIN = (0x4000, "Admin")
         REGULAR_USER = (0x2000, "Regular User")
