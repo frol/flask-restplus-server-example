@@ -12,6 +12,7 @@ More details are available here:
 """
 
 from datetime import datetime, timedelta
+import functools
 import logging
 
 from flask_login import current_user
@@ -26,6 +27,7 @@ log = logging.getLogger(__name__)
 
 
 class OAuth2RequestValidator(provider.OAuth2RequestValidator):
+    # pylint: disable=abstract-method
     """
     A project-specific implementation of OAuth2RequestValidator, which connects
     our User and OAuth2* implementations together.
@@ -117,3 +119,41 @@ class OAuth2Provider(provider.OAuth2Provider):
     def init_app(self, app):
         super(OAuth2Provider, self).init_app(app)
         self._validator = OAuth2RequestValidator()
+
+    def require_oauth(self, *args, **kwargs):
+        # pylint: disable=arguments-differ
+        """
+        A decorator to protect a resource with specified scopes. Access Token
+        can be fetched from the specified locations (``headers`` or ``form``).
+
+        Arguments:
+            locations (list): a list of locations (``headers``, ``form``) where
+                the access token should be looked up.
+
+        Returns:
+            function: a decorator.
+        """
+        locations = kwargs.pop('locations', ('cookies',))
+        origin_decorator = super(OAuth2Provider, self).require_oauth(*args, **kwargs)
+
+        def decorator(func):
+            # pylint: disable=missing-docstring
+            from flask import request
+
+            origin_decorated_func = origin_decorator(func)
+
+            @functools.wraps(origin_decorated_func)
+            def wrapper(*args, **kwargs):
+                # pylint: disable=missing-docstring
+                if 'headers' not in locations:
+                    # Invalidate authorization if developer specifically
+                    # disables the lookup in the headers.
+                    request.authorization = '!'
+                if 'form' in locations:
+                    if 'access_token' in request.form:
+                        request.authorization = 'Bearer %s' % request.form['access_token']
+                return origin_decorated_func(*args, **kwargs)
+
+            return wrapper
+
+        return decorator

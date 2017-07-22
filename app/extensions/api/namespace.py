@@ -8,7 +8,6 @@ from functools import wraps
 
 import flask_marshmallow
 import sqlalchemy
-from werkzeug.exceptions import HTTPException
 
 from flask_restplus_patched import Namespace as BaseNamespace
 from flask_restplus_patched._http import HTTPStatus
@@ -51,6 +50,7 @@ class Namespace(BaseNamespace):
         )
 
     def model(self, name=None, model=None, **kwargs):
+        # pylint: disable=arguments-differ
         """
         A decorator which registers a model (aka schema / definition).
 
@@ -64,7 +64,7 @@ class Namespace(BaseNamespace):
                 name = name[:-len('Schema')]
         return super(Namespace, self).model(name=name, model=model, **kwargs)
 
-    def login_required(self, oauth_scopes):
+    def login_required(self, oauth_scopes, locations=('headers',)):
         """
         A decorator which restricts access for authorized users only.
 
@@ -77,7 +77,9 @@ class Namespace(BaseNamespace):
           relevant options and in a text description.
 
         Arguments:
-            oauth_scopes (list) - a list of required OAuth2 Scopes (strings)
+            oauth_scopes (list): a list of required OAuth2 Scopes (strings)
+            locations (list): a list of locations (``headers``, ``form``) where
+                the access token should be looked up.
 
         Example:
         >>> class Users(Resource):
@@ -138,14 +140,26 @@ class Namespace(BaseNamespace):
             else:
                 _oauth_scopes = oauth_scopes
 
-            oauth_protection_decorator = oauth2.require_oauth(*_oauth_scopes)
+            oauth_protection_decorator = oauth2.require_oauth(*_oauth_scopes, locations=locations)
             self._register_access_restriction_decorator(protected_func, oauth_protection_decorator)
             oauth_protected_func = oauth_protection_decorator(protected_func)
 
+            if 'form' in locations:
+                oauth_protected_func = self.param(
+                    name='access_token',
+                    description=(
+                        "This is an alternative way of passing the access_token, useful for "
+                        "making authenticated requests from the browser native forms."
+                    ),
+                    _in='formData',
+                    type='string',
+                    required=False
+                )(oauth_protected_func)
+
             return self.doc(
                 security={
-                    # This is a temporary configuration which is overriden in
-                    # `Api.add_namespace`.
+                    # This is a temporary (namespace) configuration which gets
+                    # overriden on a namespace registration (in `Api.add_namespace`).
                     '__oauth__': {
                         'type': 'oauth',
                         'scopes': _oauth_scopes,
