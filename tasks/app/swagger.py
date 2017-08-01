@@ -21,7 +21,7 @@ def export(context, output_format='json', quiet=False):
     logging.getLogger().setLevel(logging.ERROR)
 
     from app import create_app
-    app = create_app()
+    app = create_app(flask_config_name='testing')
     swagger_content = app.test_client().get('/api/v1/swagger.%s' % output_format).data
     if not quiet:
         print(swagger_content.decode('utf-8'))
@@ -29,7 +29,7 @@ def export(context, output_format='json', quiet=False):
 
 
 @task
-def codegen(context, language, version, dry_run=False):
+def codegen(context, language, version, dry_run=False, offline=False):
     if dry_run:
         run = print
     else:
@@ -48,9 +48,10 @@ def codegen(context, language, version, dry_run=False):
         with open(os.path.join('.', 'clients', language, 'swagger.json'), 'wb') as swagger_json:
             swagger_json.write(swagger_json_content)
 
-    run(
-        "docker pull 'khorolets/swagger-codegen'"
-    )
+    if not offline:
+        run(
+            "docker pull 'khorolets/swagger-codegen'"
+        )
 
     run(
         "cd './clients/%(language)s' ;"
