@@ -50,7 +50,7 @@ class Namespace(BaseNamespace):
         """
         if identity_arg_names is None:
             identity_arg_names = ('%s_id' % object_arg_name, )
-        elif isinstance(identity_arg_names, (list, tuple)):
+        elif not isinstance(identity_arg_names, (list, tuple)):
             identity_arg_names = (identity_arg_names, )
         return self.resolve_object(
             object_arg_name,
