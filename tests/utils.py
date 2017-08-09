@@ -39,10 +39,17 @@ class AutoAuthFlaskClient(FlaskClient):
     def open(self, *args, **kwargs):
         if self._user is not None:
             from app.extensions import db
-            from app.modules.auth.models import OAuth2Token
+            from app.modules.auth.models import OAuth2Client, OAuth2Token
+
+            oauth2_client = OAuth2Client(
+                client_id='OAUTH2_%s' % self._user.username,
+                client_secret='SECRET',
+                user=self._user,
+                default_scopes=[],
+            )
 
             oauth2_bearer_token = OAuth2Token(
-                client_id=0,
+                client=oauth2_client,
                 user=self._user,
                 token_type='Bearer',
                 access_token='test_access_token',
@@ -69,6 +76,7 @@ class AutoAuthFlaskClient(FlaskClient):
         if self._user is not None:
             with db.session.begin():
                 db.session.delete(oauth2_bearer_token)
+                db.session.delete(oauth2_bearer_token.client)
 
         return response
 

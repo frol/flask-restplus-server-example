@@ -46,6 +46,6 @@ script:
   py.test --cov=app
 
 after_success:
-  - pylint app
+  - pylint --disable=fixme app
   - coveralls
   - coverage xml && python-codacy-coverage -r coverage.xml

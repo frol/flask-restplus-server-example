@@ -19,10 +19,10 @@ def test_loading_user_from_request_with_oauth_user_cached(flask_app):
         assert auth.load_user_from_request(request) == mock_user
         del request.oauth
 
-def test_loading_user_from_request_with_bearer_token(flask_app, db, regular_user):
+def test_loading_user_from_request_with_bearer_token(flask_app, db, regular_user_oauth2_client):
     oauth2_bearer_token = auth.models.OAuth2Token(
-        client_id=0,
-        user=regular_user,
+        client=regular_user_oauth2_client,
+        user=regular_user_oauth2_client.user,
         token_type='Bearer',
         access_token='test_access_token',
         scopes=[],
@@ -38,7 +38,7 @@ def test_loading_user_from_request_with_bearer_token(flask_app, db, regular_user
             ('Authorization', 'Bearer %s' % oauth2_bearer_token.access_token),
         )
     ):
-        assert auth.load_user_from_request(request) == regular_user
+        assert auth.load_user_from_request(request) == regular_user_oauth2_client.user
 
     with db.session.begin():
         db.session.delete(oauth2_bearer_token)

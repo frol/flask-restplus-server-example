@@ -16,17 +16,20 @@ class TeamMember(db.Model):
     __tablename__ = 'team_member'
 
     team_id = db.Column(db.Integer, db.ForeignKey('team.id'), primary_key=True)
-    team = db.relationship('Team')
+    team = db.relationship(
+        'Team',
+        backref=db.backref('members', cascade='delete, delete-orphan')
+    )
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), primary_key=True)
     user = db.relationship(
         'User',
         backref=db.backref('teams_membership', cascade='delete, delete-orphan')
     )
 
-    is_leader = db.Column(db.Boolean, default=False, nullable=False)
+    is_leader = db.Column(db.Boolean(name='is_leader'), default=False, nullable=False)
 
     __table_args__ = (
-        db.UniqueConstraint('team_id', 'user_id', name='_team_user_uc'),
+        db.UniqueConstraint(team_id, user_id),
     )
 
     def __repr__(self):
@@ -53,10 +56,8 @@ class Team(db.Model, Timestamp):
     Team database model.
     """
 
-    id = db.Column(db.Integer, primary_key=True) # pylint: disable=invalid-name
+    id = db.Column(db.Integer, primary_key=True)  # pylint: disable=invalid-name
     title = db.Column(db.String(length=50), nullable=False)
-
-    members = db.relationship('TeamMember', cascade='delete, delete-orphan')
 
     def __repr__(self):
         return (
@@ -70,7 +71,7 @@ class Team(db.Model, Timestamp):
         )
 
     @db.validates('title')
-    def validate_title(self, key, title): # pylint: disable=unused-argument,no-self-use
+    def validate_title(self, key, title):  # pylint: disable=unused-argument,no-self-use
         if len(title) < 3:
             raise ValueError("Title has to be at least 3 characters long.")
         return title

@@ -8,7 +8,7 @@ def regular_user_oauth2_client(regular_user ,db):
     # pylint: disable=invalid-name,unused-argument
     from app.modules.auth.models import OAuth2Client
 
-    admin_oauth2_client_instance = OAuth2Client(
+    regular_user_oauth2_client_instance = OAuth2Client(
         user=regular_user,
         client_id='regular_user_client',
         client_secret='regular_user_secret',
@@ -17,12 +17,12 @@ def regular_user_oauth2_client(regular_user ,db):
     )
 
     with db.session.begin():
-        db.session.add(admin_oauth2_client_instance)
+        db.session.add(regular_user_oauth2_client_instance)
 
-    yield admin_oauth2_client_instance
+    yield regular_user_oauth2_client_instance
 
     with db.session.begin():
-        db.session.delete(admin_oauth2_client_instance)
+        db.session.delete(regular_user_oauth2_client_instance)
 
 
 @pytest.yield_fixture()
