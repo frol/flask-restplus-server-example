@@ -1,0 +1,21 @@
+# encoding: utf-8
+"""
+{{ module_title }} module
+============
+"""
+
+from app.extensions.api import api_v1
+
+
+def init_app(app, **kwargs):
+    # pylint: disable=unused-argument,unused-variable
+    """
+    Init {{ module_title }} module.
+    """
+    api_v1.add_oauth_scope('{{ module_name }}:read', "Provide access to {{ module_title }} details")
+    api_v1.add_oauth_scope('{{ module_name }}:write', "Provide write access to {{ module_title }} details")
+
+    # Touch underlying modules
+    from . import models, resources
+
+    api_v1.add_namespace(resources.api)
