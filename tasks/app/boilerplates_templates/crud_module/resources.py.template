@@ -1,0 +1,112 @@
+# encoding: utf-8
+# pylint: disable=bad-continuation
+"""
+RESTful API {{ module_title }} resources
+--------------------------
+"""
+
+import logging
+
+from flask_login import current_user
+from flask_restplus_patched import Resource
+from flask_restplus_patched._http import HTTPStatus
+
+from app.extensions import db
+from app.extensions.api import Namespace, abort
+from app.extensions.api.parameters import PaginationParameters
+from app.modules.users import permissions
+
+
+from . import parameters, schemas
+from .models import {{ model_name }}
+
+
+log = logging.getLogger(__name__)  # pylint: disable=invalid-name
+api = Namespace('{{ module_name }}', description="{{ module_title }}")  # pylint: disable=invalid-name
+
+
+@api.route('/')
+@api.login_required(oauth_scopes=['{{ module_name }}:read'])
+class {{ module_title.replace(' ','') }}(Resource):
+    """
+    Manipulations with {{ module_title }}.
+    """
+
+    @api.parameters(PaginationParameters())
+    @api.response(schemas.Base{{ model_name }}Schema(many=True))
+    def get(self, args):
+        """
+        List of {{ module_name }}.
+
+        Returns a list of {{ module_title }} starting from ``offset`` limited by ``limit``
+        parameter.
+        """
+        return {{ model_name }}.query.offset(args['offset']).limit(args['limit'])
+
+    @api.login_required(oauth_scopes=['{{ module_name }}:write'])
+    @api.parameters(parameters.Create{{ model_name }}Parameters())
+    @api.response(schemas.Detailed{{ model_name }}Schema())
+    @api.response(code=HTTPStatus.CONFLICT)
+    def post(self, args):
+        """
+        Create a new {{ model_name }}.
+        """
+        with api.commit_or_abort(
+                db.session,
+                default_error_message="Failed to create a new {{ module_name_singular }}"
+            ):
+            {{ module_name_singular }} = {{ model_name }}(**args)
+            db.session.add({{ module_name_singular }})
+        return {{ module_name_singular }}
+
+
+@api.route('/<int:{{ module_name_singular }}_id>')
+@api.login_required(oauth_scopes=['{{ module_name }}:read'])
+@api.response(
+    code=HTTPStatus.NOT_FOUND,
+    description="{{ model_name }} not found.",
+)
+@api.resolve_object_by_model({{ model_name }}, '{{ module_name_singular }}')
+class {{ model_name }}ByID(Resource):
+    """
+    Manipulations with a specific {{ model_name }}.
+    """
+
+    @api.response(schemas.Detailed{{ model_name }}Schema())
+    def get(self, {{ module_name_singular }}):
+        """
+        Get {{ model_name }} details by ID.
+        """
+        return {{ module_name_singular }}
+
+    @api.login_required(oauth_scopes=['{{ module_name }}:write'])
+    @api.permission_required(permissions.WriteAccessPermission())
+    @api.parameters(parameters.Patch{{ model_name }}DetailsParameters())
+    @api.response(schemas.Detailed{{ model_name }}Schema())
+    @api.response(code=HTTPStatus.CONFLICT)
+    def patch(self, args, {{ module_name_singular }}):
+        """
+        Patch {{ model_name }} details by ID.
+        """
+        with api.commit_or_abort(
+                db.session,
+                default_error_message="Failed to update {{ model_name }} details."
+            ):
+            parameters.Patch{{ model_name }}DetailsParameters.perform_patch(args, obj={{ module_name_singular }})
+            db.session.merge({{ module_name_singular }})
+        return {{ module_name_singular }}
+
+    @api.login_required(oauth_scopes=['{{ module_name }}:write'])
+    @api.permission_required(permissions.WriteAccessPermission())
+    @api.response(code=HTTPStatus.CONFLICT)
+    @api.response(code=HTTPStatus.NO_CONTENT)
+    def delete(self, {{ module_name_singular }}):
+        """
+        Delete a {{ model_name }} by ID.
+        """
+        with api.commit_or_abort(
+                db.session,
+                default_error_message="Failed to delete the {{ model_name }}."
+            ):
+            db.session.delete({{ module_name_singular }})
+        return None
