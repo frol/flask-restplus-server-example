@@ -65,8 +65,8 @@ class BaseConfig(object):
 
 
 class ProductionConfig(BaseConfig):
-    SECRET_KEY = os.getenv('CLOUDSML_API_SERVER_SECRET_KEY')
-    SQLALCHEMY_DATABASE_URI = os.getenv('CLOUDSML_API_SERVER_SQLALCHEMY_DATABASE_URI')
+    SECRET_KEY = os.getenv('EXAMPLE_API_SERVER_SECRET_KEY')
+    SQLALCHEMY_DATABASE_URI = os.getenv('EXAMPLE_API_SERVER_SQLALCHEMY_DATABASE_URI')
 
 
 class DevelopmentConfig(BaseConfig):
