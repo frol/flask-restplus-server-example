@@ -8,8 +8,6 @@ import logging
 import os
 import re
 
-from jinja2 import Environment, FileSystemLoader
-
 try:
     from invoke import ctask as task
 except ImportError:  # Invoke 0.13 renamed ctask to task
@@ -19,12 +17,31 @@ except ImportError:  # Invoke 0.13 renamed ctask to task
 log = logging.getLogger(__name__)  # pylint: disable=invalid-name
 
 
-@task(default=True)
-def crud_module(context, name='new_module', singular=None):
+@task
+def crud_module(context, name='', singular=''):
+    # pylint: disable=unused-argument
     """
-    Create CRUD empty module with `name` (app.boilerplates.crud_module --name=articles --singular=article)
+    Create CRUD (Create-Read-Update-Delete) empty module.
+
+    Usage:
+    $ invoke app.boilerplates.crud-module --name=articles --singular=article
     """
-    assert re.match('^[a-zA-Z0-9_]+$', name)
+    try:
+        import jinja2
+    except ImportError:
+        log.critical("jinja2 is required to create boilerplates. Please, do `pip install jinja2`")
+        return
+
+    if not name:
+        log.critical("Module name is required")
+        return
+
+    if not re.match('^[a-zA-Z0-9_]+$', name):
+        log.critical(
+            "Module name is allowed to contain only letters, numbers and underscores "
+            "([a-zA-Z0-9_]+)"
+        )
+        return
 
     if not singular:
         singular = name[:-1]
@@ -44,13 +61,13 @@ def crud_module(context, name='new_module', singular=None):
     )
 
     if os.path.exists(module_path):
-        log.critical('Module `%s` already exists.' % name)
+        log.critical('Module `%s` already exists.', name)
         return
 
     os.makedirs(module_path)
 
-    env = Environment(
-        loader=FileSystemLoader('tasks/app/boilerplates_templates/crud_module')
+    env = jinja2.Environment(
+        loader=jinja2.FileSystemLoader('tasks/app/boilerplates_templates/crud_module')
     )
     for template_file in (
         '__init__',
