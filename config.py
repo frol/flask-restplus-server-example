@@ -27,6 +27,8 @@ class BaseConfig(object):
     DEBUG = False
     ERROR_404_HELP = False
 
+    REVERSE_PROXY_SETUP = os.getenv('EXAMPLE_API_REVERSE_PROXY_SETUP', False)
+
     AUTHORIZATIONS = {
         'oauth2_password': {
             'type': 'oauth2',
