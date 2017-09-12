@@ -7,6 +7,7 @@ import os
 import sys
 
 from flask import Flask
+from werkzeug.contrib.fixers import ProxyFix
 
 
 CONFIG_NAME_MAPPER = {
@@ -50,9 +51,8 @@ def create_app(flask_config_name=None, **kwargs):
             sys.exit(1)
         raise
 
-    if app.debug:
-        logging.getLogger('flask_oauthlib').setLevel(logging.DEBUG)
-        app.logger.setLevel(logging.DEBUG)
+    if app.config['REVERSE_PROXY_SETUP']:
+        app.wsgi_app = ProxyFix(app.wsgi_app)
 
     from . import extensions
     extensions.init_app(app)

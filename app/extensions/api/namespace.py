@@ -5,6 +5,7 @@ Extended Api Namespace implementation with an application-specific helpers
 """
 from contextlib import contextmanager
 from functools import wraps
+import logging
 
 import flask_marshmallow
 import sqlalchemy
@@ -14,6 +15,9 @@ from flask_restplus_patched._http import HTTPStatus
 
 from . import http_exceptions
 from .webargs_parser import CustomWebargsParser
+
+
+log = logging.getLogger(__name__)
 
 
 class Namespace(BaseNamespace):
@@ -301,8 +305,10 @@ class Namespace(BaseNamespace):
             with session.begin():
                 yield
         except ValueError as exception:
+            log.info("Database transaction was rolled back due to: %r", exception)
             http_exceptions.abort(code=HTTPStatus.CONFLICT, message=str(exception))
-        except sqlalchemy.exc.IntegrityError:
+        except sqlalchemy.exc.IntegrityError as exception:
+            log.info("Database transaction was rolled back due to: %r", exception)
             http_exceptions.abort(
                 code=HTTPStatus.CONFLICT,
                 message=default_error_message

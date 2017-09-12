@@ -26,6 +26,18 @@ def set_sqlite_pragma(dbapi_connection, connection_record):
     cursor.close()
 
 
+class AlembicDatabaseMigrationConfig(object):
+    """
+    Helper config holder that provides missing functions of Flask-Alembic
+    package since we use custom invoke tasks instead.
+    """
+
+    def __init__(self, database, directory='migrations', **kwargs):
+        self.db = database  # pylint: disable=invalid-name
+        self.directory = directory
+        self.configure_args = kwargs
+
+
 class SQLAlchemy(BaseSQLAlchemy):
     """
     Customized Flask-SQLAlchemy adapter with enabled autocommit, constraints
@@ -55,3 +67,5 @@ class SQLAlchemy(BaseSQLAlchemy):
         database_uri = app.config['SQLALCHEMY_DATABASE_URI']
         if database_uri and database_uri.startswith('sqlite:'):
             self.event.listens_for(engine.Engine, "connect")(set_sqlite_pragma)
+
+        app.extensions['migrate'] = AlembicDatabaseMigrationConfig(self, compare_type=True)
