@@ -59,13 +59,13 @@ def create_oauth2_client(
 
     if default_scopes is None:
         from app.extensions.api import api_v1
-        default_scopes = ' '.join(api_v1.authorizations['oauth2_password']['scopes'])
+        default_scopes = list(api_v1.authorizations['oauth2_password']['scopes'].keys())
 
     oauth2_client = OAuth2Client(
         client_id=client_id,
         client_secret=client_secret,
         user=user,
-        _default_scopes=default_scopes
+        default_scopes=default_scopes
     )
 
     from app.extensions import db
