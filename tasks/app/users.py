@@ -34,6 +34,7 @@ def create_user(
     )
 
     from app.extensions import db
+    db.session.begin()
     db.session.add(new_user)
     db.session.commit()
 
@@ -68,5 +69,6 @@ def create_oauth2_client(
     )
 
     from app.extensions import db
+    db.session.begin()
     db.session.add(oauth2_client)
     db.session.commit()
