@@ -34,9 +34,9 @@ def create_user(
     )
 
     from app.extensions import db
-    db.session.begin()
-    db.session.add(new_user)
-    db.session.commit()
+    with db.session.begin():
+        db.session.add(new_user)
+
 
 
 @app_context_task
@@ -69,6 +69,5 @@ def create_oauth2_client(
     )
 
     from app.extensions import db
-    db.session.begin()
-    db.session.add(oauth2_client)
-    db.session.commit()
+    with db.session.begin():
+        db.session.add(oauth2_client)
