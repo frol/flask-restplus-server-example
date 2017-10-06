@@ -53,7 +53,7 @@ def create_oauth2_client(
     from app.modules.users.models import User
     from app.modules.auth.models import OAuth2Client
 
-    user = User.query.first(User.username == username)
+    user = User.query.filter(User.username == username).first()
     if not user:
         raise Exception("User with username '%s' does not exist." % username)
 
