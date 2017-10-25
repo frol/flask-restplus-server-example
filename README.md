@@ -347,6 +347,12 @@ so go ahead and turn the server ON! (Read more details on this in Tips section)
 $ invoke app.run
 ```
 
+#### Deploy Server
+
+In general, you deploy this app as any other Flask/WSGI application. There are
+a few basic deployment strategies documented in the [`./deploy/`](./deploy/)
+folder.
+
 
 Quickstart
 ----------

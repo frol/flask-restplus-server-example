@@ -9,6 +9,6 @@ revproxy:
 api:
   restart: always
   build: ../../
-  expose:
-    - "5000"
-
+  environment:
+    EXAMPLE_API_REVERSE_PROXY_SETUP: 'true'
+    FLASK_CONFIG: 'production'
