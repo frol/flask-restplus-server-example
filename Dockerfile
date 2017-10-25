@@ -7,10 +7,12 @@ COPY "./app/requirements.txt" "./app/"
 COPY "./config.py" "./"
 COPY "./tasks" "./tasks"
 
-RUN apk add --no-cache --virtual=.build_dependencies musl-dev gcc python3-dev libffi-dev && \
+ARG INCLUDE_UWSGI=false
+RUN apk add --no-cache --virtual=.build_dependencies musl-dev gcc python3-dev libffi-dev linux-headers && \
     cd /opt/www && \
     pip install -r tasks/requirements.txt && \
     invoke app.dependencies.install && \
+    ( if [ "$INCLUDE_UWSGI" = 'true' ]; then pip install uwsgi ; fi ) && \
     rm -rf ~/.cache/pip && \
     apk del .build_dependencies
 

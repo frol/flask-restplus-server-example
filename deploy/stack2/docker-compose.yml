@@ -1,0 +1,21 @@
+version: '3'
+
+services:
+  revproxy:
+    restart: always
+    build: ./revproxy
+    ports:
+      - "80:80"
+    links:
+      - api:api
+
+  api:
+    restart: always
+    build:
+      context: ../../
+      args:
+        INCLUDE_UWSGI: 'true'
+    environment:
+      EXAMPLE_API_REVERSE_PROXY_SETUP: 'true'
+      FLASK_CONFIG: 'production'
+    command: 'uwsgi --uwsgi-socket 0.0.0.0:5000 --manage-script-name --mount /=app:create_app()'
