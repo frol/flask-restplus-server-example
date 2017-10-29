@@ -14,8 +14,8 @@ class Api(OriginalApi):
         # The only purpose of this method is to pass custom Swagger class
         return Swagger(self).as_dict()
 
-    def init_app(self, app):
-        super(Api, self).init_app(app)
+    def init_app(self, app, **kwargs):
+        super(Api, self).init_app(app, **kwargs)
         app.errorhandler(HTTPStatus.UNPROCESSABLE_ENTITY.value)(handle_validation_error)
 
     def namespace(self, *args, **kwargs):
