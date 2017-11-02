@@ -23,6 +23,23 @@ def db(flask_app):
     yield db_instance
 
 
+@pytest.yield_fixture(scope='session')
+def temp_db_instance_helper(db):
+    def temp_db_instance_manager(instance):
+        with db.session.begin():
+            db.session.add(instance)
+
+        yield instance
+
+        mapper = instance.__class__.__mapper__
+        assert len(mapper.primary_key) == 1
+        instance.__class__.query\
+            .filter(mapper.primary_key[0] == mapper.primary_key_from_instance(instance)[0])\
+            .delete()
+
+    return temp_db_instance_manager
+
+
 @pytest.fixture(scope='session')
 def flask_app_client(flask_app):
     flask_app.test_client_class = utils.AutoAuthFlaskClient
@@ -31,66 +48,34 @@ def flask_app_client(flask_app):
 
 
 @pytest.yield_fixture(scope='session')
-def regular_user(db):
-    regular_user_instance = utils.generate_user_instance(
-        username='regular_user'
+def regular_user(temp_db_instance_helper):
+    yield from temp_db_instance_helper(
+        utils.generate_user_instance(username='regular_user')
     )
-
-    with db.session.begin():
-        db.session.add(regular_user_instance)
-
-    yield regular_user_instance
-
-    with db.session.begin():
-        db.session.delete(regular_user_instance)
 
 
 @pytest.yield_fixture(scope='session')
-def readonly_user(db):
-    readonly_user_instance = utils.generate_user_instance(
-        username='readonly_user',
-        is_regular_user=False
+def readonly_user(temp_db_instance_helper):
+    yield from temp_db_instance_helper(
+        utils.generate_user_instance(username='readonly_user', is_regular_user=False)
     )
-
-    with db.session.begin():
-        db.session.add(readonly_user_instance)
-
-    yield readonly_user_instance
-
-    with db.session.begin():
-        db.session.delete(readonly_user_instance)
 
 
 @pytest.yield_fixture(scope='session')
-def admin_user(db):
-    admin_user_instance = utils.generate_user_instance(
-        username='admin_user',
-        is_admin=True
+def admin_user(temp_db_instance_helper):
+    yield from temp_db_instance_helper(
+        utils.generate_user_instance(username='admin_user', is_admin=True)
     )
-
-    with db.session.begin():
-        db.session.add(admin_user_instance)
-
-    yield admin_user_instance
-
-    with db.session.begin():
-        db.session.delete(admin_user_instance)
 
 
 @pytest.yield_fixture(scope='session')
-def internal_user(db):
-    internal_user_instance = utils.generate_user_instance(
-        username='internal_user',
-        is_regular_user=False,
-        is_admin=False,
-        is_active=True,
-        is_internal=True
+def internal_user(temp_db_instance_helper):
+    yield from temp_db_instance_helper(
+        utils.generate_user_instance(
+            username='internal_user',
+            is_regular_user=False,
+            is_admin=False,
+            is_active=True,
+            is_internal=True
+        )
     )
-
-    with db.session.begin():
-        db.session.add(internal_user_instance)
-
-    yield internal_user_instance
-
-    with db.session.begin():
-        db.session.delete(internal_user_instance)
