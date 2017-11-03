@@ -23,7 +23,7 @@ def db(flask_app):
     yield db_instance
 
 
-@pytest.yield_fixture(scope='session')
+@pytest.fixture(scope='session')
 def temp_db_instance_helper(db):
     def temp_db_instance_manager(instance):
         with db.session.begin():
