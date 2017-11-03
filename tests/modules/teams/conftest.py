@@ -28,4 +28,5 @@ def team_for_nobody(temp_db_instance_helper):
     Create a team that not belongs to regural user
     """
     from app.modules.teams.models import Team
-    yield from temp_db_instance_helper(Team(title="Admin User's team"))
+    for _ in temp_db_instance_helper(Team(title="Admin User's team")):
+        yield _
