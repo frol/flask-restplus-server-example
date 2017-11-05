@@ -43,8 +43,8 @@ def crud_module(context, module_name='', module_name_singular=''):
         )
         return
 
-    if not module_singular:
-        module_singular = module_name[:-1]
+    if not module_name_singular:
+        module_name_singular = module_name[:-1]
 
     module_path = 'app/modules/%s' % module_name
 
