@@ -1,6 +1,6 @@
 # encoding: utf-8
 """
-Serialization schemas for {{ module_name|title }} resources RESTful API
+Serialization schemas for {{ module_title }} resources RESTful API
 ----------------------------------------------------
 """
 
@@ -34,6 +34,10 @@ class Detailed{{ model_name }}Schema(Base{{ model_name }}Schema):
 
     class Meta(Base{{ model_name }}Schema.Meta):
         fields = Base{{ model_name }}Schema.Meta.fields + (
+            {{ model_name }}.created.key,
+            {{ model_name }}.updated.key,
+        )
+        dump_only = Base{{ model_name }}Schema.Meta.dump_only + (
             {{ model_name }}.created.key,
             {{ model_name }}.updated.key,
         )

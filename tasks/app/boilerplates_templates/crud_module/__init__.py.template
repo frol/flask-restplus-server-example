@@ -12,8 +12,8 @@ def init_app(app, **kwargs):
     """
     Init {{ module_title }} module.
     """
-    api_v1.add_oauth_scope('{{ module_name }}:read', "Provide access to {{ module_title }} details")
-    api_v1.add_oauth_scope('{{ module_name }}:write', "Provide write access to {{ module_title }} details")
+    api_v1.add_oauth_scope('{{ module_namespace }}:read', "Provide access to {{ module_title }} details")
+    api_v1.add_oauth_scope('{{ module_namespace }}:write', "Provide write access to {{ module_title }} details")
 
     # Touch underlying modules
     from . import models, resources
