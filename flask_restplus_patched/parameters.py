@@ -121,10 +121,16 @@ class PatchJSONParameters(Parameters):
         for operation in operations:
             if not cls._process_patch_operation(operation, obj=obj, state=state):
                 log.info(
-                    "%s patching has stopped because of unknown operation %s",
-                    (obj.__name__, operation)
+                    "%s patching has been stopped because of unknown operation %s",
+                    obj.__class__.__name__,
+                    operation
                 )
-                raise ValidationError("Failed to update %s details." % obj.__name__)
+                raise ValidationError(
+                    "Failed to update %s details. Operation %s could not succeed." % (
+                        obj.__class__.__name__,
+                        operation
+                    )
+                )
         return True
 
     @classmethod
