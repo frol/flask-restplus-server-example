@@ -24,7 +24,7 @@ def crud_module(context, module_name='', module_name_singular=''):
     Create CRUD (Create-Read-Update-Delete) empty module.
 
     Usage:
-    $ invoke app.boilerplates.crud-module --name=articles --singular=article
+    $ invoke app.boilerplates.crud-module --module-name=articles --module-name-singular=article
     """
     try:
         import jinja2
@@ -56,7 +56,7 @@ def crud_module(context, module_name='', module_name_singular=''):
 
     model_name = "".join(
         [word.capitalize()
-            for word in singular.split('_')
+            for word in module_name_singular.split('_')
         ]
     )
 
