@@ -79,8 +79,9 @@ class PatchJSONParameters(Parameters):
 
     value = base_fields.Raw(required=False)
 
-    def __init__(self, *args, **kwargs):
-        super(PatchJSONParameters, self).__init__(*args, many=True, **kwargs)
+    def __init__(self, *args, many=True, **kwargs):
+        assert many, "PATCH Parameters must be marked as 'many'"
+        super(PatchJSONParameters, self).__init__(*args, many=many, **kwargs)
         if not self.PATH_CHOICES:
             raise ValueError("%s.PATH_CHOICES has to be set" % self.__class__.__name__)
         # Make a copy of `validators` as otherwise we will modify the behaviour
