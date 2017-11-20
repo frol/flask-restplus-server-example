@@ -117,6 +117,7 @@ class OAuth2Provider(provider.OAuth2Provider):
         self.invalid_response(api_invalid_response)
 
     def init_app(self, app):
+        assert app.config['SECRET_KEY'], "SECRET_KEY must be configured!"
         super(OAuth2Provider, self).init_app(app)
         self._validator = OAuth2RequestValidator()
 
