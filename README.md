@@ -629,6 +629,7 @@ class MyObjects(Resource):
 Useful Links
 ============
 
+* [Q&A about this project](https://github.com/frol/flask-restplus-server-example/issues?utf8=%E2%9C%93&q=is%3Aissue+label%3Aquestion)
 * "[The big Picture](https://identityserver.github.io/Documentation/docsv2/overview/bigPicture.html)" -
   short yet complete idea about how the modern apps should talk.
 * "[Please. Don't PATCH Like An Idiot.](http://williamdurand.fr/2014/02/14/please-do-not-patch-like-an-idiot/)"
