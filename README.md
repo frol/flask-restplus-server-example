@@ -560,6 +560,72 @@ You can use [`better_exceptions`](https://github.com/Qix-/better-exceptions)
 package to enable detailed tracebacks. Just add `better_exceptions` to the
 `app/requirements.txt` and `import better_exceptions` in the `app/__init__.py`.
 
+
+Marshmallow Tricks
+------------------
+
+There are a few helpers already available in the `flask_restplus_patched`:
+
+* `flask_restplus_patched.parameters.Parameters` - base class, which is a thin
+  wrapper on top of Marshmallow Schema.
+* `flask_restplus_patched.parameters.PostFormParameters` - a helper class,
+  which automatically mark all the fields that has no explicitly defined
+  location to be form data parameters.
+* `flask_restplus_patched.parameters.PatchJSONParameters` - a helper class for
+  the common use-case of [RFC 6902](http://tools.ietf.org/html/rfc6902)
+  describing JSON PATCH.
+* `flask_restplus_patched.namespace.Namespace.parameters` - a helper decorator,
+  which automatically handles and documents the passed `Parameters`.
+
+You can find the examples of the usage throughout the code base (in
+`/app/modules/*`).
+
+
+### JSON Parameters
+
+While there is an implementation for JSON PATCH Parameters, there are other
+use-cases, where you may need to handle JSON as input parameters. Naturally,
+JSON input is just a form data body text which is treated as JSON on a server
+side, so you only need define a single variable called `body` with
+`location='json'`:
+
+```python
+class UserSchema(Schema):
+    id = base_fields.Integer(required=False)
+    username = base_fields.String(required=True)
+
+
+class MyObjectSchema(Schema):
+    id = base_fields.Integer(required=True)
+    priority = base_fields.String(required=True)
+    owner = base_fields.Nested(UserSchema, required=False)
+
+
+class CreateMyObjectParameters(Parameters):
+    body = base_fields.Nested(MyObjectSchema, location='json', required=True)
+
+
+api = Namespace('my-objects-controller', description="My Objects Controller", path='/my-objects')
+
+
+@api.route('/')
+class MyObjects(Resource):
+    """
+    Manipulations with My Objects.
+    """
+
+    @api.parameters(CreateMyObjectParameters())
+    @api.response(MyObjectSchema())
+    @api.response(code=HTTPStatus.CONFLICT)
+    @api.doc(id='create_my_object')
+    def post(self, args):
+        """
+        Create a new My Object.
+        """
+        return create_my_object(args)
+```
+
+
 Useful Links
 ============
 
