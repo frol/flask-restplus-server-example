@@ -9,6 +9,9 @@ import os
 import platform
 import sys
 import sysconfig
+from logging.handlers import RotatingFileHandler
+from flask_log_request_id import RequestIDLogFilter
+import datetime, time
 
 logging.basicConfig()
 logger = logging.getLogger()
@@ -23,6 +26,7 @@ else:
     formatter = colorlog.ColoredFormatter(
         (
             '%(asctime)s '
+            '[%(request_id)s]'
             '[%(log_color)s%(levelname)s%(reset)s] '
             '[%(cyan)s%(name)s%(reset)s] '
             '%(message_log_color)s%(message)s'
@@ -53,8 +57,15 @@ else:
     else:
         handler = logging.StreamHandler()
         logger.addHandler(handler)
+    formatter.converter = time.gmtime
     handler.setFormatter(formatter)
-
+    handler.addFilter(RequestIDLogFilter())
+    
+    # Log to file handler
+    handler = RotatingFileHandler(datetime.datetime.utcnow().strftime("/tmp/flask-stack2_%Y_%m_%d.log"), maxBytes=100*1024*1024, backupCount=999)
+    handler.setFormatter(formatter)
+    handler.addFilter(RequestIDLogFilter())
+    logger.addHandler(handler)
 
 from invoke import Collection
 from invoke.executor import Executor
