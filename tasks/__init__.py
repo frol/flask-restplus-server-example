@@ -62,7 +62,8 @@ else:
     handler.addFilter(RequestIDLogFilter())
 
     # Log to file handler
-    handler = RotatingFileHandler(datetime.datetime.utcnow().strftime("/tmp/flask-stack2_%Y_%m_%d.log"),
+    handler = RotatingFileHandler(datetime.datetime.utcnow()
+                                  .strftime("/tmp/flask-stack2_%Y_%m_%d.log"),
                                   maxBytes=100*1024*1024, backupCount=999)
     handler.setFormatter(formatter)
     handler.addFilter(RequestIDLogFilter())
