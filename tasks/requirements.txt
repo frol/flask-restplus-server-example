@@ -2,3 +2,4 @@ invoke
 colorlog
 lockfile
 requests
+flask-log-request-id
