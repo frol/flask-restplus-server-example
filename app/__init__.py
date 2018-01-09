@@ -6,8 +6,11 @@ import logging
 import os
 import sys
 
-from flask import Flask
+import datetime
+
+from flask import Flask, jsonify
 from werkzeug.contrib.fixers import ProxyFix
+from flask_log_request_id import RequestID
 
 
 CONFIG_NAME_MAPPER = {
@@ -27,6 +30,7 @@ def create_app(flask_config_name=None, **kwargs):
     threading.stack_size(2*1024*1024)
 
     app = Flask(__name__, **kwargs)
+    RequestID(app)
 
     env_flask_config_name = os.getenv('FLASK_CONFIG')
     if not env_flask_config_name and flask_config_name is None:

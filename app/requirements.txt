@@ -26,3 +26,5 @@ arrow==0.8.0
 
 six
 enum34; python_version < '3.4'
+
+flask-log-request-id
