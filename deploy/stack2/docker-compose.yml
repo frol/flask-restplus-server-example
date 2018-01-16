@@ -11,8 +11,6 @@ services:
 
   api:
     restart: always
-    volumes:
-      - "/tmp:/tmp"
     build:
       context: ../../
       args:
@@ -20,4 +18,4 @@ services:
     environment:
       EXAMPLE_API_REVERSE_PROXY_SETUP: 'true'
       FLASK_CONFIG: 'production'
-    command: 'uwsgi --need-app --manage-script-name --mount /=app:create_app() --uwsgi-socket 0.0.0.0:5000 --enable-threads --logger file:logfile=/tmp/flask-stack2.log,maxsize=104857600'
+    command: 'uwsgi --need-app --manage-script-name --mount /=app:create_app() --uwsgi-socket 0.0.0.0:5000'

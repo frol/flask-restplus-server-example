@@ -31,6 +31,5 @@ RUN chown -R nobody "." && \
         cp "./local_config.py.template" "./local_config.py" ; \
     fi
 
-VOLUME /tmp
 USER nobody
 CMD [ "invoke", "app.run", "--no-install-dependencies", "--host", "0.0.0.0" ]
