@@ -37,7 +37,7 @@ def test_creating_oauth2_client(
     assert isinstance(response.json['redirect_uris'], list)
 
     # Cleanup
-    from app.modules.auth.models import OAuth2Client
+    from app.modules.auth.models2 import OAuth2Client
 
     oauth2_client_instance = OAuth2Client.query.get(response.json['client_id'])
     assert oauth2_client_instance.client_secret == response.json['client_secret']

@@ -8,7 +8,7 @@ You can execute this code via ``invoke app.db.init_development_data``
 from app.extensions import db, api
 
 from app.modules.users.models import User
-from app.modules.auth.models import OAuth2Client
+from app.modules.auth.models2 import OAuth2Client
 
 
 def init_users():
@@ -55,9 +55,9 @@ def init_auth(docs_user):
             client_id='documentation',
             client_secret='KQ()SWK)SQK)QWSKQW(SKQ)S(QWSQW(SJ*HQ&HQW*SQ*^SSQWSGQSG',
             user_id=docs_user.id,
-            redirect_uris=[],
             default_scopes=api.api_v1.authorizations['oauth2_password']['scopes']
         )
+        oauth2_client.redirect_uris = []
         db.session.add(oauth2_client)
     return oauth2_client
 
@@ -69,8 +69,9 @@ def init():
             OAuth2Client.default_scopes: api.api_v1.authorizations['oauth2_password']['scopes'],
         })
 
-    assert User.query.count() == 0, \
-        "Database is not empty. You should not re-apply fixtures! Aborted."
-
-    root_user, docs_user, regular_user = init_users()  # pylint: disable=unused-variable
+    # assert User.query.count() == 0, \
+    #     "Database is not empty. You should not re-apply fixtures! Aborted."
+    #
+    # root_user, docs_user, regular_user = init_users()  # pylint: disable=unused-variable
+    docs_user = User.query.filter_by(username='documentation').first()
     init_auth(docs_user)

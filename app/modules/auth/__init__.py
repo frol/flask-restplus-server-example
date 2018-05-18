@@ -3,7 +3,6 @@
 Auth module
 ===========
 """
-from app.extensions import login_manager, oauth2
 from app.extensions.api import api_v1
 
 
@@ -11,14 +10,16 @@ def load_user_from_request(request):
     """
     Load user from OAuth2 Authentication header.
     """
-    user = None
-    if hasattr(request, 'oauth'):
-        user = request.oauth.user
-    else:
-        is_valid, oauth = oauth2.verify_request(scopes=[])
-        if is_valid:
-            user = oauth.user
-    return user
+    from authlib.flask.oauth2 import current_token
+    from app.modules.users.models import User
+    if current_token:
+        user_id = current_token.user_id
+        if user_id:
+            return User.query.get(user_id)
+        elif current_token.user:
+            return current_token.user
+    return None
+
 
 def init_app(app, **kwargs):
     # pylint: disable=unused-argument
@@ -26,6 +27,8 @@ def init_app(app, **kwargs):
     Init auth module.
     """
     # Bind Flask-Login for current_user
+    from app.extensions import login_manager
+
     login_manager.request_loader(load_user_from_request)
 
     # Register OAuth scopes
@@ -33,7 +36,7 @@ def init_app(app, **kwargs):
     api_v1.add_oauth_scope('auth:write', "Provide write access to auth details")
 
     # Touch underlying modules
-    from . import models, views, resources  # pylint: disable=unused-variable
+    from . import models2, views, resources  # pylint: disable=unused-variable
 
     # Mount authentication routes
     app.register_blueprint(views.auth_blueprint)

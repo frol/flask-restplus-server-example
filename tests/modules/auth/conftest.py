@@ -6,7 +6,7 @@ import pytest
 @pytest.yield_fixture()
 def regular_user_oauth2_client(regular_user, temp_db_instance_helper):
     # pylint: disable=invalid-name,unused-argument
-    from app.modules.auth.models import OAuth2Client
+    from app.modules.auth.models2 import OAuth2Client
 
     for _ in temp_db_instance_helper(
             OAuth2Client(
@@ -22,7 +22,7 @@ def regular_user_oauth2_client(regular_user, temp_db_instance_helper):
 
 @pytest.yield_fixture()
 def regular_user_oauth2_token(regular_user_oauth2_client, temp_db_instance_helper):
-    from app.modules.auth.models import OAuth2Token
+    from app.modules.auth.models2 import OAuth2Token
 
     for _ in temp_db_instance_helper(
             OAuth2Token(

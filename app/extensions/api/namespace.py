@@ -154,7 +154,8 @@ class Namespace(BaseNamespace):
             else:
                 _oauth_scopes = oauth_scopes
 
-            oauth_protection_decorator = oauth2.require_oauth(*_oauth_scopes, locations=locations)
+            # oauth_protection_decorator = oauth2.require_oauth(*_oauth_scopes, locations=locations)
+            oauth_protection_decorator = oauth2.require_oauth( *_oauth_scopes )
             self._register_access_restriction_decorator(protected_func, oauth_protection_decorator)
             oauth_protected_func = oauth_protection_decorator(protected_func)
 

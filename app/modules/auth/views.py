@@ -10,41 +10,51 @@ More details are available here:
 * http://lepture.com/en/2013/create-oauth-server
 """
 
-from flask import Blueprint, request, render_template
+from flask import Blueprint, request, render_template, session
 from flask_login import current_user
 from flask_restplus_patched._http import HTTPStatus
-
+from authlib.flask.oauth2 import current_token
+from authlib.specs.rfc6749 import OAuth2Error
 from app.extensions import api, oauth2
 
-from .models import OAuth2Client
+from app.modules.users.models import User
+from .models2 import OAuth2Client
 
 
 auth_blueprint = Blueprint('auth', __name__, url_prefix='/auth')  # pylint: disable=invalid-name
 
 
+@auth_blueprint.route('/oauth2/invalid_request', methods=['GET'])
+def api_invalid_response(req):
+    """
+    This is a default handler for OAuth2Provider, which raises abort exception
+    with error message in JSON format.
+    """
+    # pylint: disable=unused-argument
+    api.abort(code=HTTPStatus.UNAUTHORIZED.value)
+
+
 @auth_blueprint.route('/oauth2/token', methods=['GET', 'POST'])
-@oauth2.token_handler
 def access_token(*args, **kwargs):
     # pylint: disable=unused-argument
     """
     This endpoint is for exchanging/refreshing an access token.
 
     Returns:
-        response (dict): a dictionary or None as the extra credentials for
-        creating the token response.
+        token response
     """
-    return None
+    return oauth2.create_token_response()
+
 
 @auth_blueprint.route('/oauth2/revoke', methods=['POST'])
-@oauth2.revoke_handler
 def revoke_token():
     """
     This endpoint allows a user to revoke their access token.
     """
-    pass
+    return oauth2.create_endpoint_response('revocation')
+
 
 @auth_blueprint.route('/oauth2/authorize', methods=['GET', 'POST'])
-@oauth2.authorize_handler
 def authorize(*args, **kwargs):
     # pylint: disable=unused-argument
     """
@@ -57,16 +67,20 @@ def authorize(*args, **kwargs):
     # can implement a login page and store cookies with a session id.
     # ALTERNATIVELY, authorize page can be implemented as SPA (single page
     # application)
-    if not current_user.is_authenticated:
-        return api.abort(code=HTTPStatus.UNAUTHORIZED)
+    user = current_user()
 
     if request.method == 'GET':
-        client_id = kwargs.get('client_id')
-        oauth2_client = OAuth2Client.query.get_or_404(client_id=client_id)
-        kwargs['client'] = oauth2_client
-        kwargs['user'] = current_user
-        # TODO: improve template design
-        return render_template('authorize.html', **kwargs)
+        try:
+            grant = oauth2.validate_consent_request(end_user=user)
+        except OAuth2Error as error:
+            return error.error
+        return render_template('authorize.html', user=user, grant=grant)
+    if not user and 'username' in request.form:
+        username = request.form.get('username')
+        user = User.query.filter_by(username=username).first()
+    if request.form['confirm']:
+        grant_user = user
+    else:
+        grant_user = None
 
-    confirm = request.form.get('confirm', 'no')
-    return confirm == 'yes'
+    return oauth2.create_authorization_response(grant_user)

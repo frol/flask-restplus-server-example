@@ -96,6 +96,9 @@ class User(db.Model, Timestamp):
             )
         )
 
+    def get_user_id( self ):
+        return self.id
+
     def has_static_role(self, role):
         return (self.static_roles & role.mask) != 0
 

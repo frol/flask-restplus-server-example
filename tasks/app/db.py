@@ -147,6 +147,23 @@ def merge(context, directory='migrations', revisions='', message=None, branch_la
     else:
         raise RuntimeError('Alembic 0.7.0 or greater is required')
 
+
+@app_context_task(
+    help={
+        'tag': "Arbitrary 'tag' name - can be used by custom env.py scripts",
+        'sql': "Don't emit SQL to database - dump to standard output instead",
+        'revision': "revision identifier",
+        'directory': "migration script directory",
+        'x_arg': "Additional arguments consumed by custom env.py scripts",
+    }
+)
+def droptables(context, directory='migrations', revision='head', sql=False, tag=None, x_arg=None,
+            app=None):
+    """Upgrade to a later version"""
+
+    db.drop_all()
+
+
 @app_context_task(
     help={
         'tag': "Arbitrary 'tag' name - can be used by custom env.py scripts",

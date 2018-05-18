@@ -39,7 +39,7 @@ class AutoAuthFlaskClient(FlaskClient):
     def open(self, *args, **kwargs):
         if self._user is not None:
             from app.extensions import db
-            from app.modules.auth.models import OAuth2Client, OAuth2Token
+            from app.modules.auth.models2 import OAuth2Client, OAuth2Token
 
             oauth2_client = OAuth2Client(
                 client_id='OAUTH2_%s' % self._user.username,

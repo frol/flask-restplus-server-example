@@ -15,7 +15,7 @@ from werkzeug import security
 from app.extensions.api import Namespace
 
 from . import schemas, parameters
-from .models import db, OAuth2Client
+from .models2 import db, OAuth2Client
 
 
 log = logging.getLogger(__name__)
