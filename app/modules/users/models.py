@@ -6,6 +6,7 @@ User database models
 import enum
 
 from sqlalchemy_utils import types as column_types, Timestamp
+from sqlalchemy.ext.hybrid import hybrid_property, hybrid_method
 
 from app.extensions import db
 
@@ -42,7 +43,6 @@ class User(db.Model, Timestamp):
     """
     User database model.
     """
-
     id = db.Column(db.Integer, primary_key=True) # pylint: disable=invalid-name
     username = db.Column(db.String(length=80), unique=True, nullable=False)
     password = db.Column(
@@ -96,6 +96,13 @@ class User(db.Model, Timestamp):
             )
         )
 
+    def __init__( self, **kwargs ):
+        super().__init__( **kwargs )
+        self._authenticated = False
+
+    def get_user_id( self ):
+        return self.id
+
     def has_static_role(self, role):
         return (self.static_roles & role.mask) != 0
 
@@ -112,9 +119,13 @@ class User(db.Model, Timestamp):
     def check_owner(self, user):
         return self == user
 
-    @property
+    @hybrid_property
     def is_authenticated(self):
-        return True
+        return self._authenticated
+
+    @is_authenticated.setter
+    def is_authenticated( self, value):
+        self._authenticated = value
 
     @property
     def is_anonymous(self):
@@ -135,5 +146,6 @@ class User(db.Model, Timestamp):
         if not user:
             return None
         if user.password == password:
+            user.is_authenticated = True
             return user
         return None
