@@ -3,21 +3,15 @@
 Auth module
 ===========
 """
-from app.extensions import login_manager, oauth2
+from flask_login import current_user
 from app.extensions.api import api_v1
-
 
 def load_user_from_request(request):
     """
     Load user from OAuth2 Authentication header.
     """
-    user = None
-    if hasattr(request, 'oauth'):
-        user = request.oauth.user
-    else:
-        is_valid, oauth = oauth2.verify_request(scopes=[])
-        if is_valid:
-            user = oauth.user
+    user = current_user
+
     return user
 
 def init_app(app, **kwargs):
@@ -26,7 +20,6 @@ def init_app(app, **kwargs):
     Init auth module.
     """
     # Bind Flask-Login for current_user
-    login_manager.request_loader(load_user_from_request)
 
     # Register OAuth scopes
     api_v1.add_oauth_scope('auth:read', "Provide access to auth details")

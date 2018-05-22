@@ -16,7 +16,6 @@ class BaseOAuth2ClientSchema(ModelSchema):
     Base OAuth2 client schema exposes only the most general fields.
     """
     default_scopes = base_fields.List(base_fields.String, required=True)
-    redirect_uris = base_fields.List(base_fields.String, required=True)
 
     class Meta:
         # pylint: disable=missing-docstring
@@ -26,7 +25,7 @@ class BaseOAuth2ClientSchema(ModelSchema):
             OAuth2Client.client_id.key,
             OAuth2Client.client_type.key,
             OAuth2Client.default_scopes.key,
-            OAuth2Client.redirect_uris.key,
+            # OAuth2Client.redirect_uris.fget.__name__,
         )
         dump_only = (
             OAuth2Client.user_id.key,

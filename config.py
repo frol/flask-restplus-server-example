@@ -29,6 +29,8 @@ class BaseConfig(object):
 
     REVERSE_PROXY_SETUP = os.getenv('EXAMPLE_API_REVERSE_PROXY_SETUP', False)
 
+    SQLALCHEMY_ECHO=True
+
     AUTHORIZATIONS = {
         'oauth2_password': {
             'type': 'oauth2',
@@ -54,6 +56,13 @@ class BaseConfig(object):
         'api',
     )
 
+    OAUTH2_ERROR_URIS = [('invalid_request', '/oauth2/invalid_request')]
+    OAUTH2_EXPIRES_IN = {
+        'authorization_code':864000,
+        'implicit':          3600,
+        'password':          864000,
+        'client_credentials':864000
+    }
     STATIC_ROOT = os.path.join(PROJECT_ROOT, 'static')
 
     SWAGGER_UI_JSONEDITOR = True

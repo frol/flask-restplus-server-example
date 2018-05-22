@@ -45,6 +45,7 @@ def run(
     if upgrade_db:
         # After the installed dependencies the app.db.* tasks might need to be
         # reloaded to import all necessary dependencies.
+        import sqlalchemy_utils
         from . import db as db_tasks
         reload(db_tasks)
 

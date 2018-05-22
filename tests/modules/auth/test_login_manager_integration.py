@@ -9,7 +9,10 @@ from app.modules import auth
 
 def test_loading_user_from_anonymous_request(flask_app):
     with flask_app.test_request_context('/'):
-        assert auth.load_user_from_request(request) is None
+        user = auth.load_user_from_request(request)
+        assert user.is_authenticated == False
+        assert user.is_active == False
+        assert user.get_id() == None
 
 def test_loading_user_from_request_with_oauth_user_cached(flask_app):
     mock_user = Mock()
