@@ -5,12 +5,21 @@ from authlib.flask.oauth2.sqla import (
     OAuth2TokenMixin,
 )
 from sqlalchemy_utils.types import ScalarListType
+from sqlalchemy.ext.hybrid import hybrid_property
 
 from app.extensions import db
-from app.modules.users.models import User
 
 
-class OAuth2Client(db.Model, OAuth2ClientMixin):
+class MyOAuth2ClientMixin(OAuth2ClientMixin):
+    def check_requested_scopes(self, scopes):
+        if type(self.scope) == str:
+            allowed = set(self.scope.split())
+        elif type(self.scope) == list:
+            allowed = set(self.scope)
+
+        return allowed.issuperset(set(scopes))
+
+class OAuth2Client(db.Model, MyOAuth2ClientMixin):
     __tablename__ = 'oauth2_client'
 
     id = db.Column(db.Integer, primary_key=True)
@@ -22,6 +31,7 @@ class OAuth2Client(db.Model, OAuth2ClientMixin):
 
     client_type = db.Column(db.Enum(ClientTypes), default=ClientTypes.public, nullable=False)
     default_scopes = db.Column(ScalarListType(separator=' '), nullable=False)
+    scope = db.Column(ScalarListType(separator=' '), nullable=False)
 
     user = db.relationship('User')
 

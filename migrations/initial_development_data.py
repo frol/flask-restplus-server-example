@@ -55,6 +55,7 @@ def init_auth(docs_user):
             client_id='documentation',
             client_secret='KQ()SWK)SQK)QWSKQW(SKQ)S(QWSQW(SJ*HQ&HQW*SQ*^SSQWSGQSG',
             user_id=docs_user.id,
+            scope=api.api_v1.authorizations['oauth2_password']['scopes'],
             default_scopes=api.api_v1.authorizations['oauth2_password']['scopes']
         )
         oauth2_client.redirect_uris = []
@@ -64,14 +65,15 @@ def init_auth(docs_user):
 def init():
     # Automatically update `default_scopes` for `documentation` OAuth2 Client,
     # as it is nice to have an ability to evaluate all available API calls.
-    with db.session.begin():
-        OAuth2Client.query.filter(OAuth2Client.client_id == 'documentation').update({
-            OAuth2Client.default_scopes: api.api_v1.authorizations['oauth2_password']['scopes'],
-        })
 
-    # assert User.query.count() == 0, \
-    #     "Database is not empty. You should not re-apply fixtures! Aborted."
-    #
-    # root_user, docs_user, regular_user = init_users()  # pylint: disable=unused-variable
-    docs_user = User.query.filter_by(username='documentation').first()
-    init_auth(docs_user)
+    if User.query.count()==0:
+        root_user, docs_user, regular_user = init_users()  # pylint: disable=unused-variable
+        init_auth( root_user )
+    # with db.session.begin():
+    root_user = User.query.filter(User.username == 'root').first()
+    client = OAuth2Client.query.filter(OAuth2Client.user_id == root_user.id).first()
+    client.default_scopes = api.api_v1.authorizations['oauth2_password']['scopes']
+    client.scope = api.api_v1.authorizations['oauth2_password']['scopes']
+    client.grant_types = ['authorization_code', 'password']
+    db.session.add(client)
+    db.session.commit()

@@ -1,6 +1,6 @@
 Flask
 
-flask-restplus
+flask-restplus==0.10.1
 
 Flask-Cors
 
@@ -18,8 +18,8 @@ apispec
 
 bcrypt
 passlib
-authlib
 Flask-Login
 permission
+Authlib>=0.6
 
 arrow

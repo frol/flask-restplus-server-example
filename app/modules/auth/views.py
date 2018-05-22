@@ -11,18 +11,22 @@ More details are available here:
 """
 
 from flask import Blueprint, request, render_template, session
-from flask_login import current_user
+# from flask_login import current_user
 from flask_restplus_patched._http import HTTPStatus
 from authlib.flask.oauth2 import current_token
 from authlib.specs.rfc6749 import OAuth2Error
-from app.extensions import api, oauth2
+from app.extensions import api, oauth2, db
 
 from app.modules.users.models import User
 from .models2 import OAuth2Client
 
-
 auth_blueprint = Blueprint('auth', __name__, url_prefix='/auth')  # pylint: disable=invalid-name
 
+def current_user():
+    if 'id' in session:
+        uid = session['id']
+        return User.query.get(uid)
+    return None
 
 @auth_blueprint.route('/oauth2/invalid_request', methods=['GET'])
 def api_invalid_response(req):
@@ -43,7 +47,10 @@ def access_token(*args, **kwargs):
     Returns:
         token response
     """
-    return oauth2.create_token_response()
+    # with db.session.begin():
+    response = oauth2.create_token_response()
+
+    return response
 
 
 @auth_blueprint.route('/oauth2/revoke', methods=['POST'])
@@ -51,7 +58,9 @@ def revoke_token():
     """
     This endpoint allows a user to revoke their access token.
     """
-    return oauth2.create_endpoint_response('revocation')
+    with db.session.begin():
+        response = oauth2.create_endpoint_response('revocation')
+    return response
 
 
 @auth_blueprint.route('/oauth2/authorize', methods=['GET', 'POST'])
@@ -67,8 +76,8 @@ def authorize(*args, **kwargs):
     # can implement a login page and store cookies with a session id.
     # ALTERNATIVELY, authorize page can be implemented as SPA (single page
     # application)
-    user = current_user()
 
+    user = current_user()
     if request.method == 'GET':
         try:
             grant = oauth2.validate_consent_request(end_user=user)
@@ -82,5 +91,7 @@ def authorize(*args, **kwargs):
         grant_user = user
     else:
         grant_user = None
+    with db.session.begin():
+        response = oauth2.create_authorization_response(grant_user=grant_user)
 
-    return oauth2.create_authorization_response(grant_user)
+    return response or None

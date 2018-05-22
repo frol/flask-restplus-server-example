@@ -1,5 +1,5 @@
 import functools, logging
-from authlib.flask.oauth2 import AuthorizationServer, ResourceProtector
+from authlib.flask.oauth2 import AuthorizationServer, ResourceProtector, current_token
 from authlib.flask.oauth2.sqla import (
     create_query_client_func,
     create_save_token_func,
@@ -8,7 +8,7 @@ from authlib.flask.oauth2.sqla import (
 )
 from authlib.specs.rfc6749 import grants
 from werkzeug.security import gen_salt
-from app.extensions import api, db
+from app.extensions import api, login_manager
 from app.modules.users.models import User
 from app.modules.auth.models2 import OAuth2Client, OAuth2AuthorizationCode, OAuth2Token
 from flask_restplus_patched._http import HTTPStatus
@@ -16,6 +16,20 @@ from authlib.specs.rfc6750 import BearerTokenValidator as _BearerTokenValidator
 
 log = logging.getLogger(__name__)
 
+
+@login_manager.request_loader
+def load_user_from_request(request):
+    """
+    Load user from OAuth2 Authentication header.
+    """
+    from app.modules.users.models import User
+    if current_token:
+        user_id = current_token.user.id
+        if user_id:
+            return User.query.get(user_id)
+        elif current_token.user:
+            return current_token.user
+    return None
 
 def api_invalid_response(req):
     """
@@ -39,6 +53,7 @@ class BearerTokenValidator(_BearerTokenValidator):
 
 class AuthorizationCodeGrant(grants.AuthorizationCodeGrant):
     def create_authorization_code(self, client, grant_user, request):
+        from app.extensions import db
         code = gen_salt(48)
         item = OAuth2AuthorizationCode(
             code=code,
@@ -91,6 +106,8 @@ class OAuth2Provider(AuthorizationServer):
         self._require_oauth = None
 
     def init_app( self, app, query_client=None, save_token=None ):
+        from app.extensions import db
+        db.init_app(app)
         if query_client is None:
             query_client = create_query_client_func(db.session, OAuth2Client)
         if save_token is None:

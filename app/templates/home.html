@@ -1,20 +1,20 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title></title>
-</head>
-<body>
-  {% if user %}
-    <p>You are {{ user.username }}</p>
-  {% else %}
-    <p>You are not authenticated</p>
-  {% endif %}
+{% if user %}
+<style>pre{white-space:wrap}</style>
+<div>Logged in as <strong>{{user}}</strong> (<a href="{{ url_for('.logout') }}">Log Out</a>)</div>
 
-  <p>Type any username:</p>
-  <form method="post" action="/auth/">
-    <input type="text" name="username">
-    <input type="submit">
-  </form>
-</body>
-</html>
+{% for client in clients %}
+<pre>
+{{ client.client_info|tojson }}
+{{ client.client_metadata|tojson }}
+</pre>
+<hr>
+{% endfor %}
+
+<br><a href="{{ url_for('.create_client') }}">Create Client</a>
+
+{% else %}
+<form action="" method="post">
+  <input type="text" name="username" placeholder="username">
+  <button type="submit">Login / Signup</button>
+</form>
+{% endif %}

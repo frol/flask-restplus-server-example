@@ -49,7 +49,6 @@ docs/_build/
 *.bak
 local_config.py
 static/
-example.db
 .idea/
 clients/*/swagger.json
 clients/*/dist
