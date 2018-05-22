@@ -296,21 +296,26 @@ class Namespace(BaseNamespace):
             session: db.session instance
             default_error_message: Custom error message
 
-        Exampple:
+        Example:
         >>> with api.commit_or_abort(db.session):
         ...     team = Team(**args)
         ...     db.session.add(team)
         ...     return team
         """
+        from werkzeug.exceptions import HTTPException
         try:
-            with session.begin():
-                yield
-        except ValueError as exception:
-            log.info("Database transaction was rolled back due to: %r", exception)
-            http_exceptions.abort(code=HTTPStatus.CONFLICT, message=str(exception))
-        except sqlalchemy.exc.IntegrityError as exception:
-            log.info("Database transaction was rolled back due to: %r", exception)
-            http_exceptions.abort(
-                code=HTTPStatus.CONFLICT,
-                message=default_error_message
-            )
+            try:
+                yield session
+                session.commit()
+            except ValueError as exception:
+                log.info( "Database transaction was rolled back due to: %r", exception )
+                http_exceptions.abort( code=HTTPStatus.CONFLICT, message=str( exception ) )
+            except sqlalchemy.exc.IntegrityError as exception:
+                log.info( "Database transaction was rolled back due to: %r", exception )
+                http_exceptions.abort(
+                    code=HTTPStatus.CONFLICT,
+                    message=default_error_message
+                )
+        except HTTPException:
+            session.rollback()
+            raise

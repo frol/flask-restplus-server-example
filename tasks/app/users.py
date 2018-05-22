@@ -51,7 +51,7 @@ def create_oauth2_client(
     Create a new OAuth2 Client associated with a given user (username).
     """
     from app.modules.users.models import User
-    from app.modules.auth.models2 import OAuth2Client
+    from app.modules.auth.models import OAuth2Client
 
     user = User.query.filter(User.username == username).first()
     if not user:

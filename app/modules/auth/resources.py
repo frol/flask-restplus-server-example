@@ -15,7 +15,7 @@ from werkzeug import security
 from app.extensions.api import Namespace
 
 from . import schemas, parameters
-from .models2 import db, OAuth2Client
+from .models import db, OAuth2Client
 
 
 log = logging.getLogger(__name__)
@@ -64,11 +64,17 @@ class OAuth2Clients(Resource):
             ):
 
             # TODO: reconsider using gen_salt
+            user = current_user
             new_oauth2_client = OAuth2Client(
-                user_id=current_user.id,
+                user_id=user.id,
                 client_id=security.gen_salt(40),
-                client_secret=security.gen_salt(50),
                 **args
             )
+
+            if new_oauth2_client.token_endpoint_auth_method=='none':
+                new_oauth2_client.client_secret = ''
+            else:
+                new_oauth2_client.client_secret = security.gen_salt( 48 )
+
             db.session.add(new_oauth2_client)
         return new_oauth2_client

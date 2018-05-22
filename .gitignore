@@ -4,14 +4,17 @@ __pycache__/
 
 # C extensions
 *.so
+.pytest_cache/
 
 # Distribution / packaging
 .Python
+/.venv/
 /env/
 /build/
 *.egg-info/
 .installed.cfg
 *.egg
+example.db
 
 # Installer logs
 pip-log.txt
@@ -33,6 +36,7 @@ coverage.xml
 .mr.developer.cfg
 .project
 .pydevproject
+
 
 # Rope
 .ropeproject

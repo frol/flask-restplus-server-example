@@ -24,9 +24,9 @@ class ListOAuth2ClientsParameters(PaginationParameters):
 
 class CreateOAuth2ClientParameters(PostFormParameters):
     redirect_uris = base_fields.List(base_fields.String, required=False)
-    default_scopes = base_fields.List(base_fields.String, required=True)
+    scopes = base_fields.List(base_fields.String, required=True)
 
-    @validates('default_scopes')
+    @validates('scopes')
     def validate_default_scopes(self, data):
         unknown_scopes = set(data) - set(api.api_v1.authorizations['oauth2_password']['scopes'])
         if unknown_scopes:

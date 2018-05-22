@@ -11,22 +11,21 @@ More details are available here:
 """
 
 from flask import Blueprint, request, render_template, session
-# from flask_login import current_user
+from flask_login import current_user
 from flask_restplus_patched._http import HTTPStatus
-from authlib.flask.oauth2 import current_token
 from authlib.specs.rfc6749 import OAuth2Error
 from app.extensions import api, oauth2, db
 
 from app.modules.users.models import User
-from .models2 import OAuth2Client
+from .models import OAuth2Client
 
 auth_blueprint = Blueprint('auth', __name__, url_prefix='/auth')  # pylint: disable=invalid-name
-
-def current_user():
-    if 'id' in session:
-        uid = session['id']
-        return User.query.get(uid)
-    return None
+#
+# def current_user():
+#     if 'id' in session:
+#         uid = session['id']
+#         return User.query.get(uid)
+#     return None
 
 @auth_blueprint.route('/oauth2/invalid_request', methods=['GET'])
 def api_invalid_response(req):
@@ -76,6 +75,7 @@ def authorize(*args, **kwargs):
     # can implement a login page and store cookies with a session id.
     # ALTERNATIVELY, authorize page can be implemented as SPA (single page
     # application)
+    from flask_login import login_user
 
     user = current_user()
     if request.method == 'GET':
@@ -86,7 +86,11 @@ def authorize(*args, **kwargs):
         return render_template('authorize.html', user=user, grant=grant)
     if not user and 'username' in request.form:
         username = request.form.get('username')
-        user = User.query.filter_by(username=username).first()
+        password = request.form.get('password')
+        user = User.find_with_password(username, password)
+        if user:
+            login_user(user)
+
     if request.form['confirm']:
         grant_user = user
     else:

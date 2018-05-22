@@ -8,7 +8,7 @@ You can execute this code via ``invoke app.db.init_development_data``
 from app.extensions import db, api
 
 from app.modules.users.models import User
-from app.modules.auth.models2 import OAuth2Client
+from app.modules.auth.models import OAuth2Client
 
 
 def init_users():
@@ -70,10 +70,10 @@ def init():
         root_user, docs_user, regular_user = init_users()  # pylint: disable=unused-variable
         init_auth( root_user )
     # with db.session.begin():
-    root_user = User.query.filter(User.username == 'root').first()
-    client = OAuth2Client.query.filter(OAuth2Client.user_id == root_user.id).first()
-    client.default_scopes = api.api_v1.authorizations['oauth2_password']['scopes']
-    client.scope = api.api_v1.authorizations['oauth2_password']['scopes']
-    client.grant_types = ['authorization_code', 'password']
-    db.session.add(client)
-    db.session.commit()
+    #     root_user = User.query.filter(User.username == 'root').first()
+    #     client = OAuth2Client.query.filter(OAuth2Client.user_id == root_user.id).first()
+    #     client.default_scopes = api.api_v1.authorizations['oauth2_password']['scopes']
+    #     client.scope = api.api_v1.authorizations['oauth2_password']['scopes']
+    #     client.grant_types = ['authorization_code', 'password']
+    #     db.session.add(client)
+    #     db.session.commit()

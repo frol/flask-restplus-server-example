@@ -8,7 +8,7 @@ Auth schemas
 from flask_marshmallow import base_fields
 from flask_restplus_patched import ModelSchema
 
-from .models2 import OAuth2Client
+from .models import OAuth2Client
 
 
 class BaseOAuth2ClientSchema(ModelSchema):

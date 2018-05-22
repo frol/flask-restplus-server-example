@@ -7,10 +7,13 @@
     <input type="checkbox" name="confirm">
     <span>Consent?</span>
   </label>
-  {% if not user %}
+  {% if not user or not user.is_authenticated %}
   <p>You haven't logged in. Log in with:</p>
   <div>
-    <input type="text" name="username">
+    Username: <input type="text" name="username">
+  </div>
+  <div>
+    Password: <input type="password" name="password">
   </div>
   {% endif %}
   <br>
