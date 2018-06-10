@@ -1,6 +1,6 @@
 Flask>=1.0,<2.0
 
-flask-restplus>=0.10.1
+flask-restplus>=0.11
 
 Flask-Cors==3.0.2
 

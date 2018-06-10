@@ -4,10 +4,10 @@ import flask
 import flask_marshmallow
 from flask_restplus import Namespace as OriginalNamespace
 from flask_restplus.utils import merge
+from flask_restplus._http import HTTPStatus
 from webargs.flaskparser import parser as webargs_parser
 from werkzeug import cached_property, exceptions as http_exceptions
 
-from ._http import HTTPStatus
 from .model import Model, DefaultHTTPErrorSchema
 
 

@@ -17,7 +17,7 @@ import logging
 
 from flask_login import current_user
 from flask_oauthlib import provider
-from flask_restplus_patched._http import HTTPStatus
+from flask_restplus._http import HTTPStatus
 import sqlalchemy
 
 from app.extensions import api, db

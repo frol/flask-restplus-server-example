@@ -1,8 +1,8 @@
 from flask import jsonify
 from flask_restplus import Api as OriginalApi
+from flask_restplus._http import HTTPStatus
 from werkzeug import cached_property
 
-from ._http import HTTPStatus
 from .namespace import Namespace
 from .swagger import Swagger
 
