@@ -14,7 +14,7 @@ marshmallow>=2.13.5
 flask-marshmallow==0.7.0
 marshmallow-sqlalchemy==0.12.0
 webargs>=1.4.0
-apispec>=0.20.0
+apispec>=0.20.0,<0.39
 
 bcrypt==3.1.3
 passlib==1.7.1
