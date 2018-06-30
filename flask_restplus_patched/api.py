@@ -15,6 +15,11 @@ class Api(OriginalApi):
         return Swagger(self).as_dict()
 
     def init_app(self, app, **kwargs):
+        # This solves the issue of late resources registration:
+        # https://github.com/frol/flask-restplus-server-example/issues/110
+        # https://github.com/noirbizarre/flask-restplus/pull/483
+        self.app = app
+
         super(Api, self).init_app(app, **kwargs)
         app.errorhandler(HTTPStatus.UNPROCESSABLE_ENTITY.value)(handle_validation_error)
 
