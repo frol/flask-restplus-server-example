@@ -17,7 +17,7 @@ class CustomWebargsParser(FlaskParser):
     https://github.com/sloria/webargs/issues/122
     """
 
-    def handle_error(self, error):
+    def handle_error(self, error, *args, **kwargs):
         """
         Handles errors during parsing. Aborts the current HTTP request and
         responds with a 422 error.
