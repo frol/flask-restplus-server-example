@@ -30,8 +30,8 @@ class Users(Resource):
 
     @api.login_required(oauth_scopes=['users:read'])
     @api.permission_required(permissions.AdminRolePermission())
-    @api.parameters(PaginationParameters())
     @api.response(schemas.BaseUserSchema(many=True))
+    @api.paginate()
     def get(self, args):
         """
         List of users.
