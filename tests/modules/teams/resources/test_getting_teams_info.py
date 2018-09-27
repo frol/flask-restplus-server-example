@@ -31,8 +31,9 @@ def test_getting_list_of_teams_by_authorized_user(
 ):
     with flask_app_client.login(regular_user, auth_scopes=auth_scopes):
         response = flask_app_client.get('/api/v1/teams/')
-
     assert response.status_code == 200
+    assert 'X-Total-Count' in response.headers
+    assert int(response.headers['X-Total-Count']) == 1
     assert response.content_type == 'application/json'
     assert isinstance(response.json, list)
     assert set(response.json[0].keys()) >= {'id', 'title'}
