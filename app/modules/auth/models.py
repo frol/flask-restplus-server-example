@@ -51,6 +51,12 @@ class OAuth2Client(db.Model):
             return
         return cls.query.get(client_id)
 
+    def validate_scopes(self, scopes):
+        # The only reason for this override is that Swagger UI has a bug which leads to that
+        # `scope` parameter contains extra spaces between scopes:
+        # https://github.com/frol/flask-restplus-server-example/issues/131
+        return set(self.default_scopes).issuperset(set(scopes) - {''})
+
 
 class OAuth2Grant(db.Model):
     """

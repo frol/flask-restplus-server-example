@@ -14,7 +14,7 @@ def regular_user_oauth2_client(regular_user, temp_db_instance_helper):
                 client_id='regular_user_client',
                 client_secret='regular_user_secret',
                 redirect_uris=[],
-                default_scopes=[]
+                default_scopes=['auth:read', 'auth:write']
             )
         ):
         yield _
@@ -32,7 +32,7 @@ def regular_user_oauth2_token(regular_user_oauth2_client, temp_db_instance_helpe
                 refresh_token='test_refresh_token',
                 expires=datetime.datetime.now() + datetime.timedelta(seconds=3600),
                 token_type=OAuth2Token.TokenTypes.Bearer,
-                scopes=[]
+                scopes=regular_user_oauth2_client.default_scopes
             )
         ):
         yield _
