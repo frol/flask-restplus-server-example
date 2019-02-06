@@ -560,6 +560,59 @@ You can use [`better_exceptions`](https://github.com/Qix-/better-exceptions)
 package to enable detailed tracebacks. Just add `better_exceptions` to the
 `app/requirements.txt` and `import better_exceptions` in the `app/__init__.py`.
 
+Integrations with flask-* projects
+----------------------------------
+Verified compatible projects: flask-limiter, ... (TODO: Add more)
+
+Example integration steps for selected projects:
+  
+1. flask-limiter
+In `app.requirements.txt` Add into `flask-limiter` to end of the file, so it will be installed when app starts.
+In `app/extensions/__init__.py`
+
+```
+# ... other imports.
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
+# change limiter configs per your project needs.
+limiter = Limiter(key_func=get_remote_address, default_limits=["1 per minute"])
+
+from . import api
+
+def init_app(app):
+    """
+    Application extensions initialization.
+    """
+    for extension in (
+            #... other extensions.
+            limiter, # Add this
+        ):
+        extension.init_app(app)
+```
+The add endpoint specific limit to similar to following:
+```
+from app.extensions import limiter
+
+// .... ignore all other resources
+
+@api.route('/account/verify')
+ class IdentityVerify(Resource):
+       """
+       Handle identity verification.
+       """
+       # Notice this is different from the simple example at the top of flask-limiter doc page.
+       # The reason is explained here: https://flask-limiter.readthedocs.io/en/stable/#using-flask-pluggable-views
+       decorators = [limiter.limit("10/second")] # config as you need. 
+
+       @api.parameters(parameters.SomeParameters())
+       @api.response(schemas.SomeSchema())
+       def post(self, args):
+            return {"verified": True}
+
+```
+
+
+
 Useful Links
 ============
 
