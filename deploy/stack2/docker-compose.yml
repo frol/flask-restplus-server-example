@@ -18,4 +18,4 @@ services:
     environment:
       EXAMPLE_API_REVERSE_PROXY_SETUP: 'true'
       FLASK_CONFIG: 'production'
-    command: 'uwsgi --uwsgi-socket 0.0.0.0:5000 --manage-script-name --mount /=app:create_app()'
+    command: 'uwsgi --need-app --manage-script-name --mount /=app:create_app() --uwsgi-socket 0.0.0.0:5000'

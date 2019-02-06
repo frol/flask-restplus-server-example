@@ -1,6 +1,6 @@
 # encoding: utf-8
 """
-Input arguments (Parameters) for {{ module_name|title }} resources RESTful API
+Input arguments (Parameters) for {{ module_title }} resources RESTful API
 -----------------------------------------------------------
 """
 
@@ -11,9 +11,9 @@ from . import schemas
 from .models import {{ model_name }}
 
 
-class Create{{ model_name }}Parameters(PostFormParameters, schemas.Base{{ model_name }}Schema):
+class Create{{ model_name }}Parameters(PostFormParameters, schemas.Detailed{{ model_name }}Schema):
 
-    class Meta(schemas.Base{{ model_name }}Schema.Meta):
+    class Meta(schemas.Detailed{{ model_name }}Schema.Meta):
         pass
 
 

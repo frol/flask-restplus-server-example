@@ -80,7 +80,10 @@ class PatchJSONParameters(Parameters):
     value = base_fields.Raw(required=False)
 
     def __init__(self, *args, **kwargs):
-        super(PatchJSONParameters, self).__init__(*args, many=True, **kwargs)
+        if 'many' in kwargs:
+            assert kwargs['many'], "PATCH Parameters must be marked as 'many'"
+        kwargs['many'] = True
+        super(PatchJSONParameters, self).__init__(*args, **kwargs)
         if not self.PATH_CHOICES:
             raise ValueError("%s.PATH_CHOICES has to be set" % self.__class__.__name__)
         # Make a copy of `validators` as otherwise we will modify the behaviour
@@ -121,10 +124,16 @@ class PatchJSONParameters(Parameters):
         for operation in operations:
             if not cls._process_patch_operation(operation, obj=obj, state=state):
                 log.info(
-                    "%s patching has stopped because of unknown operation %s",
-                    (obj.__name__, operation)
+                    "%s patching has been stopped because of unknown operation %s",
+                    obj.__class__.__name__,
+                    operation
                 )
-                raise ValidationError("Failed to update %s details." % obj.__name__)
+                raise ValidationError(
+                    "Failed to update %s details. Operation %s could not succeed." % (
+                        obj.__class__.__name__,
+                        operation
+                    )
+                )
         return True
 
     @classmethod

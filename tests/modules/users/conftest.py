@@ -19,14 +19,16 @@ def patch_User_password_scheme():
     us quite some time.
     """
     # NOTE: It seems a hacky way, but monkeypatching is a hack anyway.
-    password_field_context_config = models.User.password.property.columns[0].type.context._config
-    password_field_context_config._init_scheme_list(('plaintext', ))
-    password_field_context_config._init_records()
-    password_field_context_config._init_default_schemes()
+    password_field_context = models.User.password.property.columns[0].type.context
+    # NOTE: This is used here to forcefully resolve the LazyCryptContext
+    password_field_context.context_kwds
+    password_field_context._config._init_scheme_list(('plaintext', ))
+    password_field_context._config._init_records()
+    password_field_context._config._init_default_schemes()
     yield
-    password_field_context_config._init_scheme_list(('bcrypt', ))
-    password_field_context_config._init_records()
-    password_field_context_config._init_default_schemes()
+    password_field_context._config._init_scheme_list(('bcrypt', ))
+    password_field_context._config._init_records()
+    password_field_context._config._init_default_schemes()
 
 @pytest.fixture()
 def user_instance(patch_User_password_scheme):

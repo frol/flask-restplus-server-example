@@ -9,7 +9,7 @@ import logging
 
 from flask_login import current_user
 from flask_restplus_patched import Resource
-from flask_restplus_patched._http import HTTPStatus
+from flask_restplus._http import HTTPStatus
 
 from app.extensions import db
 from app.extensions.api import Namespace, abort
@@ -32,9 +32,8 @@ class Teams(Resource):
     """
     Manipulations with teams.
     """
-
-    @api.parameters(PaginationParameters())
     @api.response(schemas.BaseTeamSchema(many=True))
+    @api.paginate()
     def get(self, args):
         """
         List of teams.
@@ -42,7 +41,7 @@ class Teams(Resource):
         Returns a list of teams starting from ``offset`` limited by ``limit``
         parameter.
         """
-        return Team.query.offset(args['offset']).limit(args['limit'])
+        return Team.query
 
     @api.login_required(oauth_scopes=['teams:write'])
     @api.parameters(parameters.CreateTeamParameters())
@@ -144,13 +143,13 @@ class TeamMembers(Resource):
         kwargs_on_request=lambda kwargs: {'obj': kwargs['team']}
     )
     @api.permission_required(permissions.OwnerRolePermission(partial=True))
-    @api.parameters(PaginationParameters())
     @api.response(schemas.BaseTeamMemberSchema(many=True))
+    @api.paginate()
     def get(self, args, team):
         """
         Get team members by team ID.
         """
-        return team.members[args['offset']: args['offset'] + args['limit']]
+        return TeamMember.query.filter_by(team=team)
 
     @api.login_required(oauth_scopes=['teams:write'])
     @api.permission_required(

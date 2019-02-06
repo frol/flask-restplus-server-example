@@ -2,9 +2,8 @@
 # pylint: disable=protected-access
 import flask
 from flask_restplus import Resource as OriginalResource
+from flask_restplus._http import HTTPStatus
 from werkzeug.exceptions import HTTPException
-
-from ._http import HTTPStatus
 
 
 class Resource(OriginalResource):

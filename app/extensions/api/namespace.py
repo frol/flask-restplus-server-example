@@ -11,7 +11,7 @@ import flask_marshmallow
 import sqlalchemy
 
 from flask_restplus_patched import Namespace as BaseNamespace
-from flask_restplus_patched._http import HTTPStatus
+from flask_restplus._http import HTTPStatus
 
 from . import http_exceptions
 from .webargs_parser import CustomWebargsParser
@@ -285,6 +285,42 @@ class Namespace(BaseNamespace):
         if not hasattr(func, '_access_restriction_decorators'):
             func._access_restriction_decorators = []  # pylint: disable=protected-access
         func._access_restriction_decorators.append(decorator_to_register)  # pylint: disable=protected-access
+
+    def paginate(self, parameters=None, locations=None):
+        """
+        Endpoint parameters registration decorator special for pagination.
+        If ``parameters`` is not provided default PaginationParameters will be
+        used.
+
+        Also, any custom Parameters can be used, but it needs to have ``limit`` and ``offset`` fields
+        """
+        if not parameters:
+            # Use default parameters if None specified
+            from app.extensions.api.parameters import PaginationParameters
+            parameters = PaginationParameters()
+
+        if not all(
+            mandatory in parameters.declared_fields
+            for mandatory in ('limit', 'offset')
+        ):
+            raise AttributeError(
+                '`limit` and `offset` fields must be in Parameter passed to `paginate()`'
+            )
+
+        def decorator(func):
+            @wraps(func)
+            def wrapper(self_, parameters_args, *args, **kwargs):
+                queryset = func(self_, parameters_args, *args, **kwargs)
+                total_count = queryset.count()
+                return (
+                    queryset
+                        .offset(parameters_args['offset'])
+                        .limit(parameters_args['limit']),
+                    HTTPStatus.OK,
+                    {'X-Total-Count': total_count}
+                )
+            return self.parameters(parameters, locations)(wrapper)
+        return decorator
 
     @contextmanager
     def commit_or_abort(self, session, default_error_message="The operation failed to complete"):

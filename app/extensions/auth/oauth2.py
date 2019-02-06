@@ -17,7 +17,7 @@ import logging
 
 from flask_login import current_user
 from flask_oauthlib import provider
-from flask_restplus_patched._http import HTTPStatus
+from flask_restplus._http import HTTPStatus
 import sqlalchemy
 
 from app.extensions import api, db
@@ -117,6 +117,7 @@ class OAuth2Provider(provider.OAuth2Provider):
         self.invalid_response(api_invalid_response)
 
     def init_app(self, app):
+        assert app.config['SECRET_KEY'], "SECRET_KEY must be configured!"
         super(OAuth2Provider, self).init_app(app)
         self._validator = OAuth2RequestValidator()
 

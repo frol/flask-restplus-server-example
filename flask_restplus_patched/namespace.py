@@ -3,11 +3,11 @@ from functools import wraps
 import flask
 import flask_marshmallow
 from flask_restplus import Namespace as OriginalNamespace
-from flask_restplus.utils import merge
+from flask_restplus.utils import merge, unpack
+from flask_restplus._http import HTTPStatus
 from webargs.flaskparser import parser as webargs_parser
 from werkzeug import cached_property, exceptions as http_exceptions
 
-from ._http import HTTPStatus
 from .model import Model, DefaultHTTPErrorSchema
 
 
@@ -137,6 +137,7 @@ class Namespace(OriginalNamespace):
             def dump_wrapper(*args, **kwargs):
                 # pylint: disable=missing-docstring
                 response = func(*args, **kwargs)
+                extra_headers = None
 
                 if response is None:
                     if model is not None:
@@ -145,13 +146,13 @@ class Namespace(OriginalNamespace):
                 elif isinstance(response, flask.Response) or model is None:
                     return response
                 elif isinstance(response, tuple):
-                    response, _code = response
+                    response, _code, extra_headers = unpack(response)
                 else:
                     _code = code
 
                 if HTTPStatus(_code) is code:
                     response = model.dump(response).data
-                return response, _code
+                return response, _code, extra_headers
 
             return dump_wrapper
 

@@ -18,25 +18,15 @@ def team_for_regular_user(db, regular_user, readonly_user):
     yield team
 
     # Cleanup
-    with db.session.begin():
-        db.session.delete(readonly_user_team_member)
-        db.session.delete(regular_user_team_member)
-        db.session.delete(team)
+    TeamMember.query.filter(TeamMember.team == team).delete()
+    Team.query.filter(Team.id == team.id).delete()
 
 
 @pytest.yield_fixture()
-def team_for_nobody(db):
+def team_for_nobody(temp_db_instance_helper):
     """
     Create a team that not belongs to regural user
     """
     from app.modules.teams.models import Team
-
-    team = Team(title="Admin User's team")
-    with db.session.begin():
-        db.session.add(team)
-
-    yield team
-
-    # Cleanup
-    with db.session.begin():
-        db.session.delete(team)
+    for _ in temp_db_instance_helper(Team(title="Admin User's team")):
+        yield _

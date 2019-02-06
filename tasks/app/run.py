@@ -25,7 +25,10 @@ def run(
         port=5000,
         flask_config=None,
         install_dependencies=True,
-        upgrade_db=True
+        upgrade_db=True,
+        uwsgi=False,
+        uwsgi_mode='http',
+        uwsgi_extra_options='',
     ):
     """
     Run Example RESTful API Server.
@@ -56,11 +59,25 @@ def run(
             )
 
     use_reloader = app.debug
-    if platform.system() == 'Windows':
-        warnings.warn(
-                "Auto-reloader feature doesn't work on Windows. "
-                "Follow the issue for more details: "
-                "https://github.com/frol/flask-restplus-server-example/issues/16"
-            )
-        use_reloader = False
-    app.run(host=host, port=port, use_reloader=use_reloader)
+    if uwsgi:
+        uwsgi_args = [
+            "uwsgi",
+            "--need-app",
+            "--manage-script-name",
+            "--mount", "/=app:create_app()",
+            "--%s-socket" % uwsgi_mode, "%s:%d" % (host, port),
+        ]
+        if use_reloader:
+            uwsgi_args += ["--python-auto-reload", "2"]
+        if uwsgi_extra_options:
+            uwsgi_args += uwsgi_extra_options.split(' ')
+        os.execvpe('uwsgi', uwsgi_args, os.environ)
+    else:
+        if platform.system() == 'Windows':
+            warnings.warn(
+                    "Auto-reloader feature doesn't work on Windows. "
+                    "Follow the issue for more details: "
+                    "https://github.com/frol/flask-restplus-server-example/issues/16"
+                )
+            use_reloader = False
+        return app.run(host=host, port=port, use_reloader=use_reloader)

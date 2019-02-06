@@ -9,7 +9,7 @@ import logging
 
 from flask_login import current_user
 from flask_restplus_patched import Resource
-from flask_restplus_patched._http import HTTPStatus
+from flask_restplus._http import HTTPStatus
 
 from app.extensions.api import Namespace
 from app.extensions.api.parameters import PaginationParameters
@@ -30,8 +30,8 @@ class Users(Resource):
 
     @api.login_required(oauth_scopes=['users:read'])
     @api.permission_required(permissions.AdminRolePermission())
-    @api.parameters(PaginationParameters())
     @api.response(schemas.BaseUserSchema(many=True))
+    @api.paginate()
     def get(self, args):
         """
         List of users.

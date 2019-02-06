@@ -8,7 +8,7 @@ Input arguments (Parameters) for User resources RESTful API
 from flask_login import current_user
 from flask_marshmallow import base_fields
 from flask_restplus_patched import PostFormParameters, PatchJSONParameters
-from flask_restplus_patched._http import HTTPStatus
+from flask_restplus._http import HTTPStatus
 from marshmallow import validates_schema, ValidationError
 
 from app.extensions.api import abort

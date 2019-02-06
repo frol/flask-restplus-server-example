@@ -5,7 +5,7 @@ HTTP exceptions collection
 """
 
 from flask_restplus.errors import abort as restplus_abort
-from flask_restplus_patched._http import HTTPStatus
+from flask_restplus._http import HTTPStatus
 
 
 API_DEFAULT_HTTP_CODE_MESSAGES = {

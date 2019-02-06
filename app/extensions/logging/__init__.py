@@ -23,7 +23,7 @@ class Logging(object):
         """
         # We don't need the default Flask's loggers when using our invoke tasks
         # since we set up beautiful colorful loggers globally.
-        for handler in app.logger.handlers:
+        for handler in list(app.logger.handlers):
             app.logger.removeHandler(handler)
         app.logger.propagate = True
 
@@ -37,6 +37,6 @@ class Logging(object):
         # when all SQL commands get printed (without these lines, they will get
         # printed twice).
         sqla_logger = logging.getLogger('sqlalchemy.engine.base.Engine')
-        for hdlr in sqla_logger.handlers:
+        for hdlr in list(sqla_logger.handlers):
             sqla_logger.removeHandler(hdlr)
         sqla_logger.addHandler(logging.NullHandler())
