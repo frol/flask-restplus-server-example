@@ -510,6 +510,70 @@ NOTE: As mentioned above, a slightly modified Swagger Codegen version is used
 to enable OAuth2 support in Python client.
 
 
+Integrations with Flask-* Projects
+----------------------------------
+
+Since this project is only an extension to Flask, most (if not all) Flask
+plugins should work.
+
+Verified compatible projects:
+* flask-sqlalchemy
+* flask-login
+* flask-marshmallow
+* flask-oauthlib
+* flask-cors
+* flask-limiter
+
+### Example integration steps
+  
+#### flask-limiter
+
+1. Add `flask-limiter` to end of the `app/requirements.txt` file, so it gets
+installed when the application is deployed.
+2. Apply the relevant changes to `app/extensions/__init__.py`:
+
+    ```python
+    # ... other imports.
+
+    from flask_limiter import Limiter
+    from flask_limiter.util import get_remote_address
+
+    # change limiter configs per your project needs.
+    limiter = Limiter(key_func=get_remote_address, default_limits=["1 per minute"])
+
+    from . import api
+
+    def init_app(app):
+        """
+        Application extensions initialization.
+        """
+        for extension in (
+                # ... other extensions.
+                limiter,  # Add this
+            ):
+            extension.init_app(app)
+    ```
+3. (Optional) Set endpoint-specific limits:
+
+    ```python
+    from app.extensions import limiter
+
+    @api.route('/account/verify')
+    class IdentityVerify(Resource):
+        """
+        Handle identity verification.
+        """
+        # Notice this is different from the simple example at the top of flask-limiter doc page.
+        # The reason is explained here: https://flask-limiter.readthedocs.io/en/stable/#using-flask-pluggable-views
+        decorators = [limiter.limit("10/second")] # config as you need. 
+
+        @api.parameters(parameters.SomeParameters())
+        @api.response(schemas.SomeSchema())
+        def post(self, args):
+            return {"verified": True}
+    ```
+
+
 Tips
 ----
 
