@@ -3,7 +3,7 @@
 
 
 def test_signup_form(flask_app_client):
-    response = flask_app_client.get('/api/v1/users/signup_form')
+    response = flask_app_client.get('/api/v1/users/signup-form')
     assert response.status_code == 200
     assert response.content_type == 'application/json'
     assert set(response.json.keys()) == {"recaptcha_server_key"}
