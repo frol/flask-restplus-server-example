@@ -27,7 +27,7 @@ class AddUserParameters(PostFormParameters, schemas.BaseUserSchema):
     password = base_fields.String(description="No rules yet", required=True)
     recaptcha_key = base_fields.String(
         description=(
-            "See `/users/signup_form` for details. It is required for everybody, except admins"
+            "See `/users/signup-form` for details. It is required for everybody, except admins"
         ),
         required=False
     )
@@ -87,7 +87,7 @@ class PatchUserDetailsParameters(PatchJSONParameters):
         Additional check for 'current_password' as User hasn't field 'current_password'
         """
         if field == 'current_password':
-            if current_user.password != value and obj.password != value:
+            if current_user.password != value and obj.password != value:  # pylint: disable=consider-using-in
                 abort(code=HTTPStatus.FORBIDDEN, message="Wrong password")
             else:
                 state['current_password'] = value

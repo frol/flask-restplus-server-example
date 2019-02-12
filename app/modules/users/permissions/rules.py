@@ -37,7 +37,7 @@ class Rule(BaseRule):
     rules.
     """
 
-    def base(self):
+    def base(self):  # pylint: disable=inconsistent-return-statements
         # XXX: it handles only the first appropriate Rule base class
         # TODO: PR this case to permission project
         for base_class in self.__class__.__bases__:
@@ -45,6 +45,7 @@ class Rule(BaseRule):
                 if base_class in {Rule, BaseRule}:
                     continue
                 return base_class()
+        assert False, "This should never happen"
 
 
 class AllowAllRule(Rule):

@@ -13,7 +13,6 @@ from flask_restplus._http import HTTPStatus
 
 from app.extensions import db
 from app.extensions.api import Namespace, abort
-from app.extensions.api.parameters import PaginationParameters
 from app.modules.users import permissions
 from app.modules.users.models import User
 

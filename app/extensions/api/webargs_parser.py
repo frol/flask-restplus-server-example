@@ -18,6 +18,7 @@ class CustomWebargsParser(FlaskParser):
     """
 
     def handle_error(self, error, *args, **kwargs):
+        # pylint: disable=arguments-differ
         """
         Handles errors during parsing. Aborts the current HTTP request and
         responds with a 422 error.

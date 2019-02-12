@@ -48,7 +48,7 @@ class OAuth2Client(db.Model):
     @classmethod
     def find(cls, client_id):
         if not client_id:
-            return
+            return None
         return cls.query.get(client_id)
 
     def validate_scopes(self, scopes):
@@ -128,8 +128,9 @@ class OAuth2Token(db.Model):
     def find(cls, access_token=None, refresh_token=None):
         if access_token:
             return cls.query.filter_by(access_token=access_token).first()
-        elif refresh_token:
+        if refresh_token:
             return cls.query.filter_by(refresh_token=refresh_token).first()
+        return None
 
     def delete(self):
         with db.session.begin():

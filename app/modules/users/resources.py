@@ -1,5 +1,5 @@
 # encoding: utf-8
-# pylint: disable=too-few-public-methods,invalid-name,bad-continuation
+# pylint: disable=too-few-public-methods
 """
 RESTful API User resources
 --------------------------
@@ -12,7 +12,6 @@ from flask_restplus_patched import Resource
 from flask_restplus._http import HTTPStatus
 
 from app.extensions.api import Namespace
-from app.extensions.api.parameters import PaginationParameters
 
 from . import permissions, schemas, parameters
 from .models import db, User
@@ -59,8 +58,11 @@ class Users(Resource):
         return new_user
 
 
-@api.route('/signup_form')
+@api.route('/signup-form')
 class UserSignupForm(Resource):
+    """
+    Use signup form helpers.
+    """
 
     @api.response(schemas.UserSignupFormSchema())
     def get(self):

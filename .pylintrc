@@ -65,7 +65,7 @@ confidence=
 # --enable=similarities". If you want to run only the classes checker, but have
 # no Warning level messages displayed, use"--disable=all --enable=classes
 # --disable=W"
-disable=locally-disabled,too-few-public-methods,no-self-use,too-many-ancestors,bad-continuation
+disable=locally-disabled,too-few-public-methods,no-self-use,too-many-ancestors,bad-continuation,useless-object-inheritance,useless-return,unnecessary-pass
 
 
 [REPORTS]
@@ -182,7 +182,7 @@ additional-builtins=
 
 # List of strings which can identify a callback function by name. A callback
 # name must start or end with one of those strings.
-callbacks=cb_,_cb
+callbacks=cb_,_cb,handle_,get,post,put,patch,delete,options
 
 # List of qualified module names which can have objects that can redefine
 # builtins.
@@ -308,7 +308,7 @@ no-docstring-rgx=^_
 
 # Minimum line length for functions/classes that require docstrings, shorter
 # ones are exempt.
-docstring-min-length=5
+docstring-min-length=9
 
 
 [ELIF]

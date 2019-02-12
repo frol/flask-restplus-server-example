@@ -10,7 +10,7 @@ import logging
 import flask_marshmallow
 import sqlalchemy
 
-from flask_restplus_patched import Namespace as BaseNamespace
+from flask_restplus_patched.namespace import Namespace as BaseNamespace
 from flask_restplus._http import HTTPStatus
 
 from . import http_exceptions
@@ -129,8 +129,7 @@ class Namespace(BaseNamespace):
                 # pylint: disable=protected-access
                 func_or_class._apply_decorator_to_methods(decorator)
                 return func_or_class
-            else:
-                func = func_or_class
+            func = func_or_class
 
             # Avoid circilar dependency
             from app.extensions import oauth2
@@ -292,7 +291,8 @@ class Namespace(BaseNamespace):
         If ``parameters`` is not provided default PaginationParameters will be
         used.
 
-        Also, any custom Parameters can be used, but it needs to have ``limit`` and ``offset`` fields
+        Also, any custom Parameters can be used, but it needs to have ``limit`` and ``offset``
+        fields.
         """
         if not parameters:
             # Use default parameters if None specified

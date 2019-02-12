@@ -2,7 +2,6 @@
 """
 Example RESTful API Server.
 """
-import logging
 import os
 import sys
 
@@ -47,7 +46,7 @@ def create_app(flask_config_name=None, **kwargs):
         app.config.from_object(CONFIG_NAME_MAPPER[flask_config_name])
     except ImportError:
         if flask_config_name == 'local':
-            app.logger.error(
+            app.logger.error(  # pylint: disable=no-member
                 "You have to have `local_config.py` or `local_config/__init__.py` in order to use "
                 "the default 'local' Flask Config. Alternatively, you may set `FLASK_CONFIG` "
                 "environment variable to one of the following options: development, production, "
