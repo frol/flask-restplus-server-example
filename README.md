@@ -11,6 +11,18 @@ RESTful API Server Example
 This project showcases my vision on how the RESTful API server should be
 implemented.
 
+> **Author's vision update!**
+>
+> I used to use RESTful style APIs for quite a number of projects and this
+> example was the finest foundation I ended up with, but I always felt
+> limited by HTTP request-response nature and RESTful resources. Thus, I was
+> looking for a new solution to the API problem space. I am currently happy
+> with [WAMP-proto](https://wamp-proto.org/) specification
+> ([here is my barebones demo](https://github.com/frol/wamp-demo)), so I can
+> recommend it. I have also switched to Rust programming language. I am
+> currently working on async/await-powered implementation of WAMP-proto in
+> Rust. Stay tuned!
+
 The goals that were achived in this example:
 
 * RESTful API server should be self-documented using OpenAPI (fka Swagger)
