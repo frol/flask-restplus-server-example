@@ -3,10 +3,12 @@
 Application Users management related tasks for Invoke.
 """
 
+from getpass import getpass
+
 from ._utils import app_context_task
 
 
-@app_context_task(help={'username': "qwe"})
+@app_context_task
 def create_user(
         context,
         username,
@@ -21,7 +23,7 @@ def create_user(
     """
     from app.modules.users.models import User
 
-    password = input("Enter password: ")
+    password = getpass("Enter password: ")
 
     new_user = User(
         username=username,

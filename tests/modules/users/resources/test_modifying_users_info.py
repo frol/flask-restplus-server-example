@@ -104,7 +104,6 @@ def test_modifying_user_info_by_admin(flask_app_client, admin_user, regular_user
 
 def test_modifying_user_info_admin_fields_by_not_admin(flask_app_client, regular_user, db):
     # pylint: disable=invalid-name
-    saved_middle_name = regular_user.middle_name
     with flask_app_client.login(regular_user, auth_scopes=('users:write',)):
         response = flask_app_client.patch(
             '/api/v1/users/%d' % regular_user.id,

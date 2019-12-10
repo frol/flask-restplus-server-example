@@ -7,8 +7,6 @@ The starting point of Invoke tasks for Example RESTful API Server project.
 import logging
 import os
 import platform
-import sys
-import sysconfig
 
 logging.basicConfig()
 logger = logging.getLogger()

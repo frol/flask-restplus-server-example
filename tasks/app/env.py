@@ -27,7 +27,6 @@ def enter(context, install_dependencies=True, upgrade_db=True):
 
 
     import pprint
-    import logging
 
     from werkzeug import script
     import flask

@@ -6,7 +6,6 @@ Application database related tasks for Invoke.
 Forked from flask-migrate
 """
 import argparse
-import functools
 import logging
 import os
 
