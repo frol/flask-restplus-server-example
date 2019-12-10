@@ -3,7 +3,7 @@
 [![Codacy Coverage Status](https://api.codacy.com/project/badge/coverage/b0fc91ce77d3437ea5f107c4b7ccfa26)](https://www.codacy.com/app/frolvlad/flask-restplus-server-example)
 [![Codacy Quality Status](https://api.codacy.com/project/badge/grade/b0fc91ce77d3437ea5f107c4b7ccfa26)](https://www.codacy.com/app/frolvlad/flask-restplus-server-example)
 [![Heroku](http://heroku-badge.herokuapp.com/?app=flask-restplus-example-server&root=api/v1/&style=flat&svg=1)](http://flask-restplus-example-server.herokuapp.com/api/v1/)
-
+[![Run on Repl.it](https://repl.it/badge/github/frol/flask-restplus-server-example)](https://repl.it/github/frol/flask-restplus-server-example)
 
 RESTful API Server Example
 ==========================
