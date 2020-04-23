@@ -1,2 +1,3 @@
 -r tasks/requirements.txt
 -r app/requirements.txt
+-r tests/requirements.txt

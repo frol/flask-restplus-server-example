@@ -13,16 +13,31 @@ werkzeug>=0.15,<0.16
 marshmallow>=2.13.5,<3
 flask-marshmallow>=0.7,<0.8
 marshmallow-sqlalchemy>=0.12,<0.13
-webargs>=1.4.0,<2
+webargs==5.5.2
 apispec>=0.20.0,<0.39
 
 bcrypt>=3.1.3,<4
 passlib>=1.7.1,<2
 Flask-OAuthlib>=0.9.4,<0.10
 Flask-Login>=0.4.0,<0.5
+Flask-Paranoid
 permission>=0.4.1,<0.5
+xkcdpass
+
+Flask-Minify
+Flask-Caching>=1.8.0
+
+Flask-Mail
+premailer
 
 arrow>=0.8.0,<0.9
 
+stripe
+Pillow
+
 six
-enum34; python_version < '3.4'
+
+pygeocoder
+phonenumbers
+tqdm
+utool

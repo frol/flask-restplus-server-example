@@ -1,8 +1,8 @@
 # encoding: utf-8
 # pylint: disable=wrong-import-order
 """
-Input arguments (Parameters) for Auth resources RESTful API
------------------------------------------------------------
+Input arguments (Parameters) for Auth resources
+-----------------------------------------------
 """
 from flask_login import current_user
 from flask_marshmallow import base_fields

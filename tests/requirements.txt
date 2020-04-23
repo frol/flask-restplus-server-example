@@ -1,6 +1,7 @@
 pytest
 mock
 swagger_spec_validator
+IPython
 
 ## Optional packages
 # pytest-xdist

@@ -6,19 +6,30 @@ RESTful API User resources
 """
 
 import logging
+import datetime  # NOQA
+import pytz
+
+from sqlalchemy import or_, and_
 
 from flask_login import current_user
 from flask_restplus_patched import Resource
 from flask_restplus._http import HTTPStatus
+from app.extensions.api import abort
 
 from app.extensions.api import Namespace
 
 from . import permissions, schemas, parameters
 from .models import db, User
 
+from app.modules.auth.models import Code, CodeTypes
+from app.modules.assets.resources import process_file_upload
+
 
 log = logging.getLogger(__name__)
 api = Namespace('users', description="Users")
+
+
+PST = pytz.timezone('US/Pacific')
 
 
 @api.route('/')
@@ -28,9 +39,8 @@ class Users(Resource):
     """
 
     @api.login_required(oauth_scopes=['users:read'])
-    @api.permission_required(permissions.AdminRolePermission())
     @api.response(schemas.BaseUserSchema(many=True))
-    @api.paginate()
+    @api.paginate(parameters.ListUserParameters())
     def get(self, args):
         """
         List of users.
@@ -38,9 +48,40 @@ class Users(Resource):
         Returns a list of users starting from ``offset`` limited by ``limit``
         parameter.
         """
-        return User.query.offset(args['offset']).limit(args['limit'])
+        search = args.get('search', None)
+        if search is not None and len(search) == 0:
+            search = None
 
-    @api.parameters(parameters.AddUserParameters())
+        if search is not None:
+            search = search.strip().split(' ')
+            search = [term.strip() for term in search]
+            search = [term for term in search if len(term) > 0]
+
+            or_terms = []
+            for term in search:
+                codes = Code.query.filter_by(code_type=CodeTypes.checkin).filter(
+                    Code.accept_code.contains(term),
+                ).all()
+                code_users = set([])
+                for code in codes:
+                    if not code.is_expired:
+                        code_users.add(code.user.id)
+
+                or_term = or_(
+                    User.id.in_(code_users),
+                    User.email.contains(term),
+                    User.phone.contains(term),
+                    User.first_name.contains(term),
+                    User.last_name.contains(term),
+                )
+                or_terms.append(or_term)
+            users = User.query.filter(and_(*or_terms))
+        else:
+            users = User.query
+
+        return users.order_by(User.last_name)
+
+    @api.parameters(parameters.CreateUserParameters())
     @api.response(schemas.DetailedUserSchema())
     @api.response(code=HTTPStatus.FORBIDDEN)
     @api.response(code=HTTPStatus.CONFLICT)
@@ -49,31 +90,49 @@ class Users(Resource):
         """
         Create a new user.
         """
-        with api.commit_or_abort(
-                db.session,
-                default_error_message="Failed to create a new user."
-            ):
+        email = args.get('email', None)
+        user = User.query.filter_by(email=email).first()
+
+        if user is not None:
+            abort(code=HTTPStatus.CONFLICT, message="The email address is already in use.")
+
+        args['username'] = args['email']
+        if 'password' not in args:
+            args['password'] = args['email'] + '123'
+
+        args['is_internal'] = False
+        args['is_admin']    = False
+        args['is_staff']    = False
+        args['is_active']   = True
+
+        context = api.commit_or_abort(
+            db.session,
+            default_error_message="Failed to create a new user."
+        )
+        with context:
             new_user = User(**args)
             db.session.add(new_user)
+        db.session.refresh(new_user)
+
         return new_user
 
-
-@api.route('/signup-form')
-class UserSignupForm(Resource):
-    """
-    Use signup form helpers.
-    """
-
-    @api.response(schemas.UserSignupFormSchema())
-    def get(self):
+    @api.login_required(oauth_scopes=['users:write'])
+    @api.permission_required(permissions.AdminRolePermission())
+    @api.parameters(parameters.DeleteUserParameters())
+    def delete(self, args):
         """
-        Get signup form keys.
-
-        This endpoint must be used in order to get a server reCAPTCHA public key which
-        must be used to receive a reCAPTCHA secret key for POST /users/ form.
+        Remove a member.
         """
-        # TODO:
-        return {"recaptcha_server_key": "TODO"}
+        context = api.commit_or_abort(
+            db.session,
+            default_error_message="Failed to delete user."
+        )
+        with context:
+            user_id = args['user_id']
+            user = User.query.filter_by(id=user_id).first_or_404()
+            db.session.delete(user)
+
+        return None
 
 
 @api.route('/<int:user_id>')
@@ -101,7 +160,7 @@ class UserByID(Resource):
 
     @api.login_required(oauth_scopes=['users:write'])
     @api.permission_required(
-        permissions.OwnerRolePermission,
+        permissions.OwnerModifyRolePermission,
         kwargs_on_request=lambda kwargs: {'obj': kwargs['user']}
     )
     @api.permission_required(permissions.WriteAccessPermission())
@@ -112,13 +171,70 @@ class UserByID(Resource):
         """
         Patch user details by ID.
         """
-        with api.commit_or_abort(
-                db.session,
-                default_error_message="Failed to update user details."
-            ):
+        context = api.commit_or_abort(
+            db.session,
+            default_error_message="Failed to update user details."
+        )
+        with context:
             parameters.PatchUserDetailsParameters.perform_patch(args, user)
             db.session.merge(user)
+        db.session.refresh(user)
+
         return user
+
+
+@api.route('/picture/<int:user_id>')
+@api.login_required(oauth_scopes=['assets:read', 'users:read'])
+@api.response(
+    code=HTTPStatus.NOT_FOUND,
+    description="User not found.",
+)
+@api.resolve_object_by_model(User, 'user')
+class UserArtworkByID(Resource):
+    """
+    Manipulations with a specific User.
+    """
+
+    @api.login_required(oauth_scopes=['assets:write', 'users:write'])
+    @api.permission_required(
+        permissions.OwnerModifyRolePermission,
+        kwargs_on_request=lambda kwargs: {'obj': kwargs['user']}
+    )
+    @api.permission_required(permissions.WriteAccessPermission())
+    @api.response(schemas.DetailedUserSchema())
+    @api.response(code=HTTPStatus.CONFLICT)
+    def post(self, user):
+        """
+        Create a new instance of Asset.
+        """
+        asset = process_file_upload(square=True)
+        context = api.commit_or_abort(
+            db.session,
+            default_error_message="Failed to update User details."
+        )
+        with context:
+            user.profile_asset_id = asset.id
+            db.session.merge(user)
+
+        return user
+
+
+@api.route('/signup-form')
+class UserSignupForm(Resource):
+    """
+    Use signup form helpers.
+    """
+
+    @api.response(schemas.UserSignupFormSchema())
+    def get(self):
+        """
+        Get signup form keys.
+
+        This endpoint must be used in order to get a server reCAPTCHA public key which
+        must be used to receive a reCAPTCHA secret key for POST /users/ form.
+        """
+        # TODO:
+        return {"recaptcha_server_key": "TODO"}
 
 
 @api.route('/me')

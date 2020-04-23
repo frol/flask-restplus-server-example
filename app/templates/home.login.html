@@ -1,0 +1,17 @@
+<h2 style="margin: 0px; font-weight: bold;">Sign in</h2>
+
+<form class="needs-validation" action="{{ url_for('houston.user_login') }}" method="post" novalidate>
+  <label for="email-address">Email Address</label>
+  <input name="email" id="email-address" placeholder="Email address of user" type="email" autofocus="autofocus" autocomplete="username" onfocus="this.select()" required>
+  <br/>
+
+  <label for="password">Password</label>
+  <input name="password" id="password" placeholder="Password of user" type="password" autocomplete="current-password" required>
+  <br/>
+
+  <input name="remember" id="remember-me" type="checkbox">
+  <label for="remember-me">Remember Me</label>
+  <br/>
+
+  <button id="login" type="submit">Sign in</button>
+</form>

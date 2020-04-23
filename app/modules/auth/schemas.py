@@ -8,7 +8,7 @@ Auth schemas
 from flask_marshmallow import base_fields
 from flask_restplus_patched import ModelSchema
 
-from .models import OAuth2Client
+from .models import OAuth2Client, Code
 
 
 class BaseOAuth2ClientSchema(ModelSchema):
@@ -42,4 +42,35 @@ class DetailedOAuth2ClientSchema(BaseOAuth2ClientSchema):
     class Meta(BaseOAuth2ClientSchema.Meta):
         fields = BaseOAuth2ClientSchema.Meta.fields + (
             OAuth2Client.client_secret.key,
+        )
+
+
+class BaseCodeSchema(ModelSchema):
+    """
+    Base OAuth2 client schema exposes only the most general fields.
+    """
+    class Meta:
+        # pylint: disable=missing-docstring
+        model = Code
+        fields = (
+            Code.id.key,
+            Code.user_id.key,
+            Code.code_type.key,
+            Code.accept_code.key,
+            Code.reject_code.key,
+            Code.expires.key,
+        )
+        dump_only = ()
+
+
+class DetailedCodeSchema(BaseCodeSchema):
+    """
+    Detailed OAuth2 client schema exposes all useful fields.
+    """
+
+    class Meta(BaseCodeSchema.Meta):
+        fields = BaseCodeSchema.Meta.fields + (
+            Code.response.key,
+            Code.created.key,
+            Code.updated.key,
         )

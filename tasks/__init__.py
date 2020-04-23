@@ -1,12 +1,14 @@
 # encoding: utf-8
 # pylint: disable=invalid-name,wrong-import-position
 """
-The starting point of Invoke tasks for Example RESTful API Server project.
+The starting point of Invoke tasks for Houston.
 """
 
 import logging
 import os
 import platform
+import sys
+import sysconfig
 
 logging.basicConfig()
 logger = logging.getLogger()

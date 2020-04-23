@@ -1,33 +1,51 @@
 # pylint: disable=too-few-public-methods,invalid-name,missing-docstring
+import importlib
 import os
+import logging
+import datetime
+
+
+log = logging.getLogger(__name__)
+
+
+PROJECT_ROOT = os.path.abspath(os.path.dirname(__file__))
+PROJECT_DATABASE_PATH = os.path.join(PROJECT_ROOT, '_db')
+
+# Load config from database folder
+SecretDevelopmentConfig = object
+SecretProductionConfig = object
+
+_config_filepath = os.path.join(PROJECT_DATABASE_PATH, 'secrets.py')
+if os.path.exists(_config_filepath):
+    _config_relative_filepath = os.path.relpath(_config_filepath)
+    _config_relative_filepath = _config_relative_filepath.strip('.py')
+    _config_relative_filepath = _config_relative_filepath.replace('/', '.')
+    _config_module = importlib.import_module(_config_relative_filepath)
+
+    secret_config = getattr(_config_module, 'SecretProductionConfig', None)
+    if secret_config is not None:
+        # log.info('Inheriting production secrets config %r' % (secret_config, ))
+        SecretProductionConfig = secret_config
+
+    secret_config = getattr(_config_module, 'SecretDevelopmentConfig', None)
+    if secret_config is not None:
+        # log.info('Inheriting development secrets config %r' % (secret_config, ))
+        SecretDevelopmentConfig = secret_config
 
 
 class BaseConfig(object):
-    SECRET_KEY = 'this-really-needs-to-be-changed'
-
-    PROJECT_ROOT = os.path.abspath(os.path.dirname(__file__))
-
-    # POSTGRESQL
-    # DB_USER = 'user'
-    # DB_PASSWORD = 'password'
-    # DB_NAME = 'restplusdb'
-    # DB_HOST = 'localhost'
-    # DB_PORT = 5432
-    # SQLALCHEMY_DATABASE_URI = 'postgresql://{user}:{password}@{host}:{port}/{name}'.format(
-    #     user=DB_USER,
-    #     password=DB_PASSWORD,
-    #     host=DB_HOST,
-    #     port=DB_PORT,
-    #     name=DB_NAME,
-    # )
-
     # SQLITE
-    SQLALCHEMY_DATABASE_URI = 'sqlite:///%s' % (os.path.join(PROJECT_ROOT, "example.db"))
+    ASSET_DATABASE_PATH = os.path.join(PROJECT_DATABASE_PATH, 'assets')
+    ASSET_ALLOWED_EXTS  = ['.jpg', '.jpe', '.jpeg', '.png', '.gif', '.svg', '.bmp', '.tif', '.tiff']
+
+    SQLALCHEMY_DATABASE_PATH = os.path.join(PROJECT_DATABASE_PATH, 'database.sqlite3')
+    SQLALCHEMY_DATABASE_URI = 'sqlite:///%s' % (SQLALCHEMY_DATABASE_PATH)
 
     DEBUG = False
     ERROR_404_HELP = False
 
-    REVERSE_PROXY_SETUP = os.getenv('EXAMPLE_API_REVERSE_PROXY_SETUP', False)
+    PREFERRED_URL_SCHEME = 'https'
+    REVERSE_PROXY_SETUP = os.getenv('HOSTON_REVERSE_PROXY_SETUP', False)
 
     AUTHORIZATIONS = {
         'oauth2_password': {
@@ -36,47 +54,75 @@ class BaseConfig(object):
             'scopes': {},
             'tokenUrl': '/auth/oauth2/token',
         },
-        # TODO: implement other grant types for third-party apps
-        #'oauth2_implicit': {
-        #    'type': 'oauth2',
-        #    'flow': 'implicit',
-        #    'scopes': {},
-        #    'authorizationUrl': '/auth/oauth2/authorize',
-        #},
     }
 
     ENABLED_MODULES = (
+        # THIS ORDERING IS VERY SPECIFIC AND INFLUENCES WHICH MODULES CAN DEPEND ON EACH OTHER
+        'assets',
         'auth',
 
+        'frontend',
+
         'users',
-        'teams',
 
         'api',
     )
 
-    STATIC_ROOT = os.path.join(PROJECT_ROOT, 'static')
+    STATIC_ROOT = os.path.join(PROJECT_ROOT, 'app', 'static')
 
     SWAGGER_UI_JSONEDITOR = True
     SWAGGER_UI_OAUTH_CLIENT_ID = 'documentation'
-    SWAGGER_UI_OAUTH_REALM = "Authentication for Flask-RESTplus Example server documentation"
-    SWAGGER_UI_OAUTH_APP_NAME = "Flask-RESTplus Example server documentation"
+    SWAGGER_UI_OAUTH_REALM = 'Authentication for Houston server documentation'
+    SWAGGER_UI_OAUTH_APP_NAME = 'Houston server documentation'
 
-    # TODO: consider if these are relevant for this project
     SQLALCHEMY_TRACK_MODIFICATIONS = True
     CSRF_ENABLED = True
+    PREMAILER_CACHE_MAXSIZE = 1024
+
+    MAX_CONTENT_LENGTH = 16 * 1024 * 1024  # Maximum size of 16MB
+
+    PERMANENT_SESSION_LIFETIME = datetime.timedelta(days=7)
+    SESSION_COOKIE_SECURE = True
+    SESSION_COOKIE_HTTPONLY = True
+    SESSION_REFRESH_EACH_REQUEST = True
+
+    REMEMBER_COOKIE_DURATION = datetime.timedelta(days=14)
+    REMEMBER_COOKIE_SECURE = True
+    REMEMBER_COOKIE_HTTPONLY = True
+    REMEMBER_COOKIE_REFRESH_EACH_REQUEST = True
 
 
-class ProductionConfig(BaseConfig):
-    SECRET_KEY = os.getenv('EXAMPLE_API_SERVER_SECRET_KEY')
-    SQLALCHEMY_DATABASE_URI = os.getenv('EXAMPLE_API_SERVER_SQLALCHEMY_DATABASE_URI')
+class ProductionConfig(BaseConfig, SecretProductionConfig):
+    TESTING = False
+
+    BASE_URL = 'https://hoston.dyn.wildme.io/'
+
+    MAIL_BASE_URL = BASE_URL
+    MAIL_OVERRIDE_RECIPIENTS = None
+    MAIL_ERROR_RECIPIENTS = [
+        'parham@wildme.org',
+    ]
 
 
-class DevelopmentConfig(BaseConfig):
+class DevelopmentConfig(BaseConfig, SecretDevelopmentConfig):
     DEBUG = True
 
+    BASE_URL = 'https://wildme.ngrok.io/'
 
-class TestingConfig(BaseConfig):
+    MAIL_BASE_URL = BASE_URL
+    MAIL_OVERRIDE_RECIPIENTS = [
+        'parham@wildme.org',
+    ]
+    MAIL_ERROR_RECIPIENTS = [
+        'parham@wildme.org',
+    ]
+
+    SECRET_KEY = 'DEVELOPMENT_SECRET_KEY'
+
+
+class TestingConfig(DevelopmentConfig):
     TESTING = True
 
     # Use in-memory SQLite database for testing
     SQLALCHEMY_DATABASE_URI = 'sqlite://'
+    MAIL_SUPPRESS_SEND  = True

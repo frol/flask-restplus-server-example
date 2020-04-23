@@ -47,9 +47,23 @@ docs/_build/
 # Project specific ignores
 *.swp
 *.bak
-local_config.py
-static/
 example.db
 .idea/
 clients/*/swagger.json
 clients/*/dist
+virtualenv/
+
+*.tar 
+app/version.py
+
+# macOS specific ignores
+.DS_Store
+
+certs/
+_contract/*.txt
+_db/
+
+email.latest.html
+
+app/static/
+dist.*.tar.gz

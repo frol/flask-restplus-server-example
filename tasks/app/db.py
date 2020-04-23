@@ -6,13 +6,17 @@ Application database related tasks for Invoke.
 Forked from flask-migrate
 """
 import argparse
+# import functools
 import logging
+import shutil
 import os
+
+from flask import current_app
 
 from ._utils import app_context_task
 
 
-log = logging.getLogger(__name__) # pylint: disable=invalid-name
+log = logging.getLogger(__name__)  # pylint: disable=invalid-name
 
 try:
     from alembic import __version__ as __alembic_version__
@@ -24,11 +28,11 @@ else:
 
     alembic_version = tuple([int(v) for v in __alembic_version__.split('.')[0:3]])
 
-
     class Config(AlembicConfig):
         """
         Custom config that overwrites template directory.
         """
+
         def get_template_directory(self):
             package_dir = os.path.abspath(os.path.dirname(__file__))
             return os.path.join(package_dir, 'db_templates')
@@ -50,6 +54,7 @@ def _get_config(directory, x_arg=None, opts=None):
         else:
             config.cmd_opts.x.append(x_arg)
     return config
+
 
 @app_context_task(
     help={
@@ -76,8 +81,7 @@ def init(context, directory='migrations', multidb=False):
         'splice': "Allow a non-head revision as the 'head' to splice onto",
         'head': "Specify head revision or <branchname>@head to base new revision on",
         'sql': "Don't emit SQL to database - dump to standard output instead",
-        'autogenerate': "Populate revision script with andidate migration operatons, based " \
-                        "on comparison of database to model",
+        'autogenerate': "Populate revision script with andidate migration operatons, based on comparison of database to model",
         'directory': "migration script directory",
     }
 )
@@ -91,6 +95,7 @@ def revision(context, directory='migrations', message=None, autogenerate=False, 
                          version_path=version_path, rev_id=rev_id)
     else:
         command.revision(config, message, autogenerate=autogenerate, sql=sql)
+
 
 @app_context_task(
     help={
@@ -114,6 +119,7 @@ def migrate(context, directory='migrations', message=None, sql=False, head='head
     else:
         command.revision(config, message, autogenerate=True, sql=sql)
 
+
 @app_context_task(
     help={
         'revision': "revision identifier",
@@ -127,6 +133,7 @@ def edit(context, revision='current', directory='migrations'):
         command.edit(config, revision)
     else:
         raise RuntimeError('Alembic 0.8.0 or greater is required')
+
 
 @app_context_task(
     help={
@@ -146,6 +153,7 @@ def merge(context, directory='migrations', revisions='', message=None, branch_la
     else:
         raise RuntimeError('Alembic 0.7.0 or greater is required')
 
+
 @app_context_task(
     help={
         'tag': "Arbitrary 'tag' name - can be used by custom env.py scripts",
@@ -156,8 +164,17 @@ def merge(context, directory='migrations', revisions='', message=None, branch_la
     }
 )
 def upgrade(context, directory='migrations', revision='head', sql=False, tag=None, x_arg=None,
-            app=None):
+            app=None, backup=True):
     """Upgrade to a later version"""
+    if backup:
+        _db_filepath = current_app.config.get('SQLALCHEMY_DATABASE_PATH', None)
+        if os.path.exists(_db_filepath):
+            _db_filepath_backup = '%s.backup' % (_db_filepath, )
+            log.info('Pre-upgrade Sqlite3 Database Backup')
+            log.info('\tDatabase : %r' % (_db_filepath, ))
+            log.info('\tBackup   : %r' % (_db_filepath_backup, ))
+            shutil.copy2(_db_filepath, _db_filepath_backup)
+
     config = _get_config(directory, x_arg=x_arg)
     command.upgrade(config, revision, sql=sql, tag=tag)
 
@@ -178,6 +195,7 @@ def downgrade(context, directory='migrations', revision='-1', sql=False, tag=Non
         revision = 'head:-1'
     command.downgrade(config, revision, sql=sql, tag=tag)
 
+
 @app_context_task(
     help={
         'revision': "revision identifier",
@@ -191,6 +209,7 @@ def show(context, directory='migrations', revision='head'):
         command.show(config, revision)
     else:
         raise RuntimeError('Alembic 0.7.0 or greater is required')
+
 
 @app_context_task(
     help={
@@ -206,6 +225,7 @@ def history(context, directory='migrations', rev_range=None, verbose=False):
         command.history(config, rev_range, verbose=verbose)
     else:
         command.history(config, rev_range)
+
 
 @app_context_task(
     help={
@@ -223,6 +243,7 @@ def heads(context, directory='migrations', verbose=False, resolve_dependencies=F
     else:
         raise RuntimeError('Alembic 0.7.0 or greater is required')
 
+
 @app_context_task(
     help={
         'verbose': "Use more verbose output",
@@ -236,6 +257,7 @@ def branches(context, directory='migrations', verbose=False):
         command.branches(config, verbose=verbose)
     else:
         command.branches(config)
+
 
 @app_context_task(
     help={
@@ -252,6 +274,7 @@ def current(context, directory='migrations', verbose=False, head_only=False):
     else:
         command.current(config)
 
+
 @app_context_task(
     help={
         'tag': "Arbitrary 'tag' name - can be used by custom env.py scripts",
@@ -261,8 +284,7 @@ def current(context, directory='migrations', verbose=False, head_only=False):
     }
 )
 def stamp(context, directory='migrations', revision='head', sql=False, tag=None):
-    """'stamp' the revision table with the given revision; don't run any
-    migrations"""
+    """'stamp' the revision table with the given revision; don't run any migrations"""
     config = _get_config(directory)
     command.stamp(config, revision, sql=sql, tag=tag)
 
@@ -277,7 +299,7 @@ def init_development_data(context, upgrade_db=True, skip_on_failure=False):
 
     log.info("Initializing development data...")
 
-    from migrations import initial_development_data
+    from tasks.app import initial_development_data
     try:
         initial_development_data.init()
     except AssertionError as exception:

@@ -1,35 +1,37 @@
-FROM frolvlad/alpine-python3
+FROM python:3.7
 
-ENV API_SERVER_HOME=/opt/www
-WORKDIR "$API_SERVER_HOME"
-COPY "./requirements.txt" "./"
-COPY "./app/requirements.txt" "./app/"
-COPY "./config.py" "./"
-COPY "./tasks" "./tasks"
+ENV INSTALL_PATH=/opt/houston
 
-ARG INCLUDE_POSTGRESQL=false
-ARG INCLUDE_UWSGI=false
-RUN apk add --no-cache --virtual=.build_dependencies musl-dev gcc python3-dev libffi-dev linux-headers && \
-    cd /opt/www && \
-    pip install -r tasks/requirements.txt && \
-    invoke app.dependencies.install && \
-    ( \
-        if [ "$INCLUDE_POSTGRESQL" = 'true' ]; then \
-            apk add --no-cache libpq && \
-            apk add --no-cache --virtual=.build_dependencies postgresql-dev && \
-            pip install psycopg2 ; \
-        fi \
-    ) && \
-    ( if [ "$INCLUDE_UWSGI" = 'true' ]; then pip install uwsgi ; fi ) && \
-    rm -rf ~/.cache/pip && \
-    apk del .build_dependencies
+WORKDIR "${INSTALL_PATH}"
 
-COPY "./" "./"
+RUN apt-get update \
+ # && curl -sL https://deb.nodesource.com/setup_14.x | bash - \
+ # && apt-get update \
+ && apt-get upgrade -y \
+ && apt-get install -y \
+        build-essential \
+        musl-dev \
+        gcc \
+        python3-dev \
+        libffi-dev \
+        htop \
+        tmux \
+        vim \
+        git \
+        # nodejs \
+ && rm -rf /var/lib/apt/lists/*
 
-RUN chown -R nobody "." && \
-    if [ ! -e "./local_config.py" ]; then \
-        cp "./local_config.py.template" "./local_config.py" ; \
-    fi
+COPY . .
+
+RUN cd ${INSTALL_PATH} \
+ && ./venv.sh \
+ && virtualenv/houston3.7/bin/pip install -U pip \
+ && virtualenv/houston3.7/bin/pip install -r app/requirements.txt \
+ && virtualenv/houston3.7/bin/pip install -r tasks/requirements.txt \
+ && virtualenv/houston3.7/bin/pip install utool ipython \
+ && rm -rf ~/.cache/pip \
+ && chown -R nobody .
 
 USER nobody
-CMD [ "invoke", "app.run", "--no-install-dependencies", "--host", "0.0.0.0" ]
+
+CMD ["virtualenv/houston3.7/bin/invoke", "app.run", "--host", "0.0.0.0" ]

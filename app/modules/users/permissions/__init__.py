@@ -184,9 +184,41 @@ class OwnerRolePermission(PasswordRequiredPermissionMixin, RolePermission):
             | (
                 (
                     rules.AdminRoleRule()
+                    | rules.PrivilegedFamilyListRoleRule()
                     | rules.OwnerRoleRule(obj=self._obj)
                     | rules.SupervisorRoleRule(obj=self._obj)
                 )
                 & super(OwnerRolePermission, self).rule()
+            )
+        )
+
+
+class OwnerModifyRolePermission(PasswordRequiredPermissionMixin, RolePermission):
+    """
+    Owner/Supervisor/Admin may execute this action.
+    """
+
+    def __init__(self, obj=None, **kwargs):
+        """
+        Args:
+            obj (object) - any object can be passed here, which will be asked
+                via ``check_owner(current_user)`` method whether a current user
+                has enough permissions to perform an action on the given
+                object.
+        """
+        self._obj = obj
+        super(OwnerModifyRolePermission, self).__init__(**kwargs)
+
+    def rule(self):
+        return (
+            rules.InternalRoleRule()
+            | (
+                (
+                    rules.AdminRoleRule()
+                    | rules.PrivilegedFamilyModifyRoleRule()
+                    | rules.OwnerRoleRule(obj=self._obj)
+                    | rules.SupervisorRoleRule(obj=self._obj)
+                )
+                & super(OwnerModifyRolePermission, self).rule()
             )
         )

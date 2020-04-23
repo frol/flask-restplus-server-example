@@ -3,18 +3,18 @@
 import json
 
 
-def test_modifying_user_info_by_owner(flask_app_client, regular_user, db):
+def test_modifying_user_info_by_owner(flask_app_client, user, db):
     # pylint: disable=invalid-name
-    saved_middle_name = regular_user.middle_name
-    with flask_app_client.login(regular_user, auth_scopes=('users:write',)):
+    saved_middle_name = user.middle_name
+    with flask_app_client.login(user, auth_scopes=('users:write',)):
         response = flask_app_client.patch(
-            '/api/v1/users/%d' % regular_user.id,
+            '/api/v1/users/%d' % user.id,
             content_type='application/json',
             data=json.dumps([
                 {
                     'op': 'test',
                     'path': '/current_password',
-                    'value': regular_user.password_secret,
+                    'value': user.password_secret,
                 },
                 {
                     'op': 'replace',
@@ -28,26 +28,26 @@ def test_modifying_user_info_by_owner(flask_app_client, regular_user, db):
     assert response.content_type == 'application/json'
     assert isinstance(response.json, dict)
     assert set(response.json.keys()) >= {'id', 'username'}
-    assert response.json['id'] == regular_user.id
+    assert response.json['id'] == user.id
     assert 'password' not in response.json.keys()
 
     # Restore original state
     from app.modules.users.models import User
 
     user1_instance = User.query.get(response.json['id'])
-    assert user1_instance.username == regular_user.username
+    assert user1_instance.username == user.username
     assert user1_instance.middle_name == "Modified Middle Name"
 
     user1_instance.middle_name = saved_middle_name
     with db.session.begin():
         db.session.merge(user1_instance)
 
-def test_modifying_user_info_by_admin(flask_app_client, admin_user, regular_user, db):
+def test_modifying_user_info_by_admin(flask_app_client, admin_user, user, db):
     # pylint: disable=invalid-name
-    saved_middle_name = regular_user.middle_name
+    saved_middle_name = user.middle_name
     with flask_app_client.login(admin_user, auth_scopes=('users:write',)):
         response = flask_app_client.patch(
-            '/api/v1/users/%d' % regular_user.id,
+            '/api/v1/users/%d' % user.id,
             content_type='application/json',
             data=json.dumps([
                 {
@@ -67,7 +67,7 @@ def test_modifying_user_info_by_admin(flask_app_client, admin_user, regular_user
                 },
                 {
                     'op': 'replace',
-                    'path': '/is_regular_user',
+                    'path': '/is_staff',
                     'value': False,
                 },
                 {
@@ -82,37 +82,38 @@ def test_modifying_user_info_by_admin(flask_app_client, admin_user, regular_user
     assert response.content_type == 'application/json'
     assert isinstance(response.json, dict)
     assert set(response.json.keys()) >= {'id', 'username'}
-    assert response.json['id'] == regular_user.id
+    assert response.json['id'] == user.id
     assert 'password' not in response.json.keys()
 
     # Restore original state
     from app.modules.users.models import User
 
     user1_instance = User.query.get(response.json['id'])
-    assert user1_instance.username == regular_user.username
+    assert user1_instance.username == user.username
     assert user1_instance.middle_name == "Modified Middle Name"
     assert not user1_instance.is_active
-    assert not user1_instance.is_regular_user
+    assert not user1_instance.is_staff
     assert user1_instance.is_admin
 
     user1_instance.middle_name = saved_middle_name
     user1_instance.is_active = True
-    user1_instance.is_regular_user = True
+    user1_instance.is_staff = True
     user1_instance.is_admin = False
     with db.session.begin():
         db.session.merge(user1_instance)
 
-def test_modifying_user_info_admin_fields_by_not_admin(flask_app_client, regular_user, db):
+def test_modifying_user_info_admin_fields_by_not_admin(flask_app_client, user, db):
     # pylint: disable=invalid-name
-    with flask_app_client.login(regular_user, auth_scopes=('users:write',)):
+    saved_middle_name = user.middle_name
+    with flask_app_client.login(user, auth_scopes=('users:write',)):
         response = flask_app_client.patch(
-            '/api/v1/users/%d' % regular_user.id,
+            '/api/v1/users/%d' % user.id,
             content_type='application/json',
             data=json.dumps([
                 {
                     'op': 'test',
                     'path': '/current_password',
-                    'value': regular_user.password_secret,
+                    'value': user.password_secret,
                 },
                 {
                     'op': 'replace',
@@ -126,7 +127,7 @@ def test_modifying_user_info_admin_fields_by_not_admin(flask_app_client, regular
                 },
                 {
                     'op': 'replace',
-                    'path': '/is_regular_user',
+                    'path': '/is_staff',
                     'value': False,
                 },
                 {
@@ -143,11 +144,11 @@ def test_modifying_user_info_admin_fields_by_not_admin(flask_app_client, regular
     assert set(response.json.keys()) >= {'status', 'message'}
 
 
-def test_modifying_user_info_with_invalid_format_must_fail(flask_app_client, regular_user):
+def test_modifying_user_info_with_invalid_format_must_fail(flask_app_client, user):
     # pylint: disable=invalid-name
-    with flask_app_client.login(regular_user, auth_scopes=('users:write',)):
+    with flask_app_client.login(user, auth_scopes=('users:write',)):
         response = flask_app_client.patch(
-            '/api/v1/users/%d' % regular_user.id,
+            '/api/v1/users/%d' % user.id,
             content_type='application/json',
             data=json.dumps([
                 {
@@ -167,11 +168,11 @@ def test_modifying_user_info_with_invalid_format_must_fail(flask_app_client, reg
     assert isinstance(response.json, dict)
     assert set(response.json.keys()) >= {'status', 'message'}
 
-def test_modifying_user_info_with_invalid_password_must_fail(flask_app_client, regular_user):
+def test_modifying_user_info_with_invalid_password_must_fail(flask_app_client, user):
     # pylint: disable=invalid-name
-    with flask_app_client.login(regular_user, auth_scopes=('users:write',)):
+    with flask_app_client.login(user, auth_scopes=('users:write',)):
         response = flask_app_client.patch(
-            '/api/v1/users/%d' % regular_user.id,
+            '/api/v1/users/%d' % user.id,
             content_type='application/json',
             data=json.dumps([
                 {
@@ -195,18 +196,18 @@ def test_modifying_user_info_with_invalid_password_must_fail(flask_app_client, r
 def test_modifying_user_info_with_conflict_data_must_fail(
         flask_app_client,
         admin_user,
-        regular_user
+        user
 ):
     # pylint: disable=invalid-name
-    with flask_app_client.login(regular_user, auth_scopes=('users:write',)):
+    with flask_app_client.login(user, auth_scopes=('users:write',)):
         response = flask_app_client.patch(
-            '/api/v1/users/%d' % regular_user.id,
+            '/api/v1/users/%d' % user.id,
             content_type='application/json',
             data=json.dumps([
                 {
                     'op': 'test',
                     'path': '/current_password',
-                    'value': regular_user.password_secret,
+                    'value': user.password_secret,
                 },
                 {
                     'op': 'replace',

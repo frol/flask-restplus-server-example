@@ -7,6 +7,8 @@ from six import itervalues
 from flask_marshmallow import Schema, base_fields
 from marshmallow import validate, validates_schema, ValidationError
 
+import sqlalchemy as sa
+
 
 log = logging.getLogger(__name__)  # pylint: disable=invalid-name
 
@@ -184,8 +186,22 @@ class PatchJSONParameters(Parameters):
         Returns:
             processing_status (bool): True
         """
+        # Check for existence
         if not hasattr(obj, field):
             raise ValidationError("Field '%s' does not exist, so it cannot be patched" % field)
+        # Check for Enum objects
+        try:
+            obj_cls = obj.__class__
+            obj_column = getattr(obj_cls, field)
+            obj_column_type = obj_column.expression.type
+            if isinstance(obj_column_type, sa.sql.sqltypes.Enum):
+                enum_values = obj_column_type.enums
+                if value not in enum_values:
+                    args = (field, value, enum_values)
+                    raise ValidationError("Field '%s' is an Enum and does not recognize the value '%s'.  Please select one of %r" % args)
+        except (AttributeError):
+            pass
+        # Set the value
         setattr(obj, field, value)
         return True
 

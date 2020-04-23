@@ -16,9 +16,9 @@ def test_User_auth(user_instance):
 
 
 @pytest.mark.parametrize(
-    'init_static_roles,is_internal,is_admin,is_regular_user,is_active',
+    'init_static_roles,is_internal,is_admin,is_staff,is_active',
     [
-        (_init_static_roles, _is_internal, _is_admin, _is_regular_user, _is_active) \
+        (_init_static_roles, _is_internal, _is_admin, _is_staff, _is_active) \
                 for _init_static_roles in (
                     0,
                     (models.User.StaticRoles.INTERNAL.mask
@@ -29,7 +29,7 @@ def test_User_auth(user_instance):
                 ) \
                     for _is_internal in (False, True) \
                         for _is_admin in (False, True) \
-                            for _is_regular_user in (False, True) \
+                            for _is_staff in (False, True) \
                                 for _is_active in (False, True)
     ]
 )
@@ -37,7 +37,7 @@ def test_User_static_roles_setting(
         init_static_roles,
         is_internal,
         is_admin,
-        is_regular_user,
+        is_staff,
         is_active,
         user_instance
     ):
@@ -59,7 +59,7 @@ def test_User_static_roles_setting(
     else:
         user_instance.unset_static_role(user_instance.StaticRoles.ADMIN)
 
-    if is_regular_user:
+    if is_staff:
         user_instance.set_static_role(user_instance.StaticRoles.REGULAR_USER)
     else:
         user_instance.unset_static_role(user_instance.StaticRoles.REGULAR_USER)
@@ -71,14 +71,14 @@ def test_User_static_roles_setting(
 
     assert user_instance.has_static_role(user_instance.StaticRoles.INTERNAL) is is_internal
     assert user_instance.has_static_role(user_instance.StaticRoles.ADMIN) is is_admin
-    assert user_instance.has_static_role(user_instance.StaticRoles.REGULAR_USER) is is_regular_user
+    assert user_instance.has_static_role(user_instance.StaticRoles.REGULAR_USER) is is_staff
     assert user_instance.has_static_role(user_instance.StaticRoles.ACTIVE) is is_active
     assert user_instance.is_internal is is_internal
     assert user_instance.is_admin is is_admin
-    assert user_instance.is_regular_user is is_regular_user
+    assert user_instance.is_staff is is_staff
     assert user_instance.is_active is is_active
 
-    if not is_active and not is_regular_user and not is_admin and not is_internal:
+    if not is_active and not is_staff and not is_admin and not is_internal:
         assert user_instance.static_roles == 0
 
 

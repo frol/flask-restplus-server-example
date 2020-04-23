@@ -1,20 +1,38 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title></title>
-</head>
-<body>
-  {% if user %}
-    <p>You are {{ user.username }}</p>
-  {% else %}
-    <p>You are not authenticated</p>
-  {% endif %}
+{% extends "layout.html" %}
 
-  <p>Type any username:</p>
-  <form method="post" action="/auth/">
-    <input type="text" name="username">
-    <input type="submit">
-  </form>
-</body>
-</html>
+{% block title %}Home{% endblock %}
+
+{% block head %}
+  {{ super() }}
+{% endblock %}
+
+{% block style %}
+  {{ super() }}
+{% endblock %}
+
+{% block content %}
+  <div>
+    <a class="navbar-brand" href="{{ url_for('houston.home') }}">
+      <img src="{{ url_for('houston.static', filename='images/icon.png', version=cachebuster) }}" width="50" height="50" alt="">
+      <h1>Houston</h1>
+      <h2>by Wild Me</h2>   
+    </a>
+  </div>
+
+  <div class="system-version">
+    Version {{ version }}
+  </div>
+
+  {% include "home.login.html" %}
+
+  {% include "home.logout.html" %}
+
+{% endblock %}
+
+{% block foot %}
+  {{ super() }}
+{% endblock %}
+
+{% block script %}
+  {{ super() }}
+{% endblock %}

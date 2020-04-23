@@ -22,7 +22,7 @@ from .models import OAuth2Client
 auth_blueprint = Blueprint('auth', __name__, url_prefix='/auth')  # pylint: disable=invalid-name
 
 
-@auth_blueprint.route('/oauth2/token', methods=['GET', 'POST'])
+@auth_blueprint.route('/oauth2/token', methods=['POST'])
 @oauth2.token_handler
 def access_token(*args, **kwargs):
     # pylint: disable=unused-argument
@@ -35,6 +35,7 @@ def access_token(*args, **kwargs):
     """
     return None
 
+
 @auth_blueprint.route('/oauth2/revoke', methods=['POST'])
 @oauth2.revoke_handler
 def revoke_token():
@@ -43,30 +44,33 @@ def revoke_token():
     """
     pass
 
-@auth_blueprint.route('/oauth2/authorize', methods=['GET', 'POST'])
-@oauth2.authorize_handler
-def authorize(*args, **kwargs):
-    # pylint: disable=unused-argument
-    """
-    This endpoint asks user if he grants access to his data to the requesting
-    application.
-    """
-    # TODO: improve implementation. This implementation is broken because we
-    # don't use cookies, so there is no session which client could carry on.
-    # OAuth2 server should probably be deployed on a separate domain, so we
-    # can implement a login page and store cookies with a session id.
-    # ALTERNATIVELY, authorize page can be implemented as SPA (single page
-    # application)
-    if not current_user.is_authenticated:
-        return api.abort(code=HTTPStatus.UNAUTHORIZED)
 
-    if request.method == 'GET':
-        client_id = kwargs.get('client_id')
-        oauth2_client = OAuth2Client.query.get_or_404(client_id=client_id)
-        kwargs['client'] = oauth2_client
-        kwargs['user'] = current_user
-        # TODO: improve template design
-        return render_template('authorize.html', **kwargs)
+# @auth_blueprint.route('/oauth2/authorize', methods=['GET', 'POST'])
+# @oauth2.authorize_handler
+# def authorize(*args, **kwargs):
+#     # pylint: disable=unused-argument
+#     """
+#     This endpoint asks user if he grants access to his data to the requesting
+#     application.
 
-    confirm = request.form.get('confirm', 'no')
-    return confirm == 'yes'
+#     REF: https://flask-oauthlib.readthedocs.io/en/latest/oauth2.html
+#     """
+#     # TODO: improve implementation. This implementation is broken because we
+#     # don't use cookies, so there is no session which client could carry on.
+#     # OAuth2 server should probably be deployed on a separate domain, so we
+#     # can implement a login page and store cookies with a session id.
+#     # ALTERNATIVELY, authorize page can be implemented as SPA (single page
+#     # application)
+#     if not current_user.is_authenticated:
+#         return api.abort(code=HTTPStatus.UNAUTHORIZED)
+
+#     if request.method == 'GET':
+#         client_id = kwargs.get('client_id')
+#         oauth2_client = OAuth2Client.query.get_or_404(client_id=client_id)
+#         kwargs['client'] = oauth2_client
+#         kwargs['user'] = current_user
+#         # TODO: improve template design
+#         return render_template('authorize.html', **kwargs)
+
+#     confirm = request.form.get('confirm', 'no')
+#     return confirm == 'yes'

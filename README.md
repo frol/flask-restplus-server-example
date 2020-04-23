@@ -1,27 +1,16 @@
+<!-- 
 [![Build Status](https://travis-ci.org/frol/flask-restplus-server-example.svg)](https://travis-ci.org/frol/flask-restplus-server-example)
 [![Coverage Status](https://coveralls.io/repos/frol/flask-restplus-server-example/badge.svg?branch=master&service=github)](https://coveralls.io/github/frol/flask-restplus-server-example?branch=master)
 [![Codacy Coverage Status](https://api.codacy.com/project/badge/coverage/b0fc91ce77d3437ea5f107c4b7ccfa26)](https://www.codacy.com/app/frolvlad/flask-restplus-server-example)
 [![Codacy Quality Status](https://api.codacy.com/project/badge/grade/b0fc91ce77d3437ea5f107c4b7ccfa26)](https://www.codacy.com/app/frolvlad/flask-restplus-server-example)
 [![Heroku](http://heroku-badge.herokuapp.com/?app=flask-restplus-example-server&root=api/v1/&style=flat&svg=1)](http://flask-restplus-example-server.herokuapp.com/api/v1/)
+ -->
 
-
-RESTful API Server Example
-==========================
+Wildbook - Houston Backend Server
+======================================================
 
 This project showcases my vision on how the RESTful API server should be
 implemented.
-
-> **Author's vision update!**
->
-> I used to use RESTful style APIs for quite a number of projects and this
-> example was the finest foundation I ended up with, but I always felt
-> limited by HTTP request-response nature and RESTful resources. Thus, I was
-> looking for a new solution to the API problem space. I am currently happy
-> with [WAMP-proto](https://wamp-proto.org/) specification
-> ([here is my barebones demo](https://github.com/frol/wamp-demo)), so I can
-> recommend it. I have also switched to Rust programming language. I am
-> currently working on async/await-powered implementation of WAMP-proto in
-> Rust. Stay tuned!
 
 The goals that were achived in this example:
 
@@ -40,8 +29,9 @@ handle Marshmallow schemas and Webargs arguments.
 
 Here is how it looks at this point of time ([live demo](http://flask-restplus-example-server.herokuapp.com/api/v1/)):
 
+<!-- 
 ![Flask RESTplus Example API](https://raw.githubusercontent.com/frol/flask-restplus-server-example/master/docs/static/Flask_RESTplus_Example_API.png)
-
+ -->
 
 Single File Example
 -------------------
@@ -327,15 +317,16 @@ It is very easy to start exploring the example using Docker:
 $ docker run -it --rm --publish 5000:5000 frolvlad/flask-restplus-server-example
 ```
 
+<!-- 
 [![](https://images.microbadger.com/badges/image/frolvlad/flask-restplus-server-example.svg)](http://microbadger.com/images/frolvlad/flask-restplus-server-example "Get your own image badge on microbadger.com")
-
+ -->
 
 ### From sources
 
 #### Clone the Project
 
 ```bash
-$ git clone https://github.com/frol/flask-restplus-server-example.git
+$ git clone https://github.com/WildbookOrg/houston.git
 ```
 
 #### Setup Environment
@@ -346,7 +337,9 @@ dependencies. Please, learn details yourself.
 You will need `invoke` package to work with everything related to this project.
 
 ```bash
-$ pip install -r tasks/requirements.txt
+$ pip install -e .
+$ mkdir -p _db/
+$ mkdir -p _db/assets/
 ```
 
 

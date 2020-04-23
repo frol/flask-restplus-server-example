@@ -93,7 +93,7 @@ def crud_module(context, module_name='', module_name_singular=''):
         "ENABLED_MODULES = (\n"
         "\t'auth',\n"
         "\t'users',\n"
-        "\t'teams',\n"
+        "\t'families',\n"
         "\t'%(module_name)s',\n\n"
         "\t'api',\n"
         ")\n\n"

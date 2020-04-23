@@ -27,9 +27,9 @@ def enter(context, install_dependencies=True, upgrade_db=True):
 
 
     import pprint
-
-    from werkzeug import script
+    import logging
     import flask
+    import IPython
 
     import app
     flask_app = app.create_app()
@@ -41,4 +41,4 @@ def enter(context, install_dependencies=True, upgrade_db=True):
         return context
 
     with flask_app.app_context():
-        script.make_shell(shell_context, use_ipython=True)()
+        IPython.embed()

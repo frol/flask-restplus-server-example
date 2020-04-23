@@ -103,7 +103,7 @@ def generate_user_instance(
         created=None,
         updated=None,
         is_active=True,
-        is_regular_user=True,
+        is_staff=False,
         is_admin=False,
         is_internal=False
 ):
@@ -126,7 +126,7 @@ def generate_user_instance(
         created=created or datetime.now(),
         updated=updated or datetime.now(),
         is_active=is_active,
-        is_regular_user=is_regular_user,
+        is_staff=is_staff,
         is_admin=is_admin,
         is_internal=is_internal
     )

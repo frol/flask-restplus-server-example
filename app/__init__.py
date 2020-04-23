@@ -1,29 +1,34 @@
 # encoding: utf-8
 """
-Example RESTful API Server.
+Houston API Server.
 """
 import os
 import sys
 
 from flask import Flask
 from werkzeug.contrib.fixers import ProxyFix
+import logging
+
+
+log = logging.getLogger(__name__)
 
 
 CONFIG_NAME_MAPPER = {
-    'development': 'config.DevelopmentConfig',
-    'testing': 'config.TestingConfig',
-    'production': 'config.ProductionConfig',
-    'local': 'local_config.LocalConfig',
+    'development' : 'config.DevelopmentConfig',
+    'testing'     : 'config.TestingConfig',
+    'production'  : 'config.ProductionConfig',
+    'local'       : 'local_config.LocalConfig',
 }
+
 
 def create_app(flask_config_name=None, **kwargs):
     """
-    Entry point to the Flask RESTful Server application.
+    Entry point to the Houston Server application.
     """
     # This is a workaround for Alpine Linux (musl libc) quirk:
     # https://github.com/docker-library/python/issues/211
     import threading
-    threading.stack_size(2*1024*1024)
+    threading.stack_size(2 * 1024 * 1024)
 
     app = Flask(__name__, **kwargs)
 
@@ -43,7 +48,9 @@ def create_app(flask_config_name=None, **kwargs):
             )
 
     try:
-        app.config.from_object(CONFIG_NAME_MAPPER[flask_config_name])
+        config_name = CONFIG_NAME_MAPPER[flask_config_name]
+        log.info('Using app.config %r' % (config_name, ))
+        app.config.from_object(config_name)
     except ImportError:
         if flask_config_name == 'local':
             app.logger.error(  # pylint: disable=no-member

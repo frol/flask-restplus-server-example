@@ -19,20 +19,23 @@ except ImportError:  # Invoke 0.13 renamed ctask to task
 
 
 @task(default=True)
-def run(
-        context,
+def run(context,
         host='127.0.0.1',
         port=5000,
         flask_config=None,
-        install_dependencies=True,
+        install_dependencies=False,
+        build_frontend=True,
         upgrade_db=True,
         uwsgi=False,
         uwsgi_mode='http',
-        uwsgi_extra_options='',
-    ):
+        uwsgi_extra_options=''):
     """
-    Run Example RESTful API Server.
+    Run Houston API Server.
     """
+    # Automatically use the production config when running a public web server
+    if host in ['0.0.0.0'] and flask_config is None:
+        flask_config = 'production'
+
     if flask_config is not None:
         os.environ['FLASK_CONFIG'] = flask_config
 
@@ -48,7 +51,7 @@ def run(
         from . import db as db_tasks
         reload(db_tasks)
 
-        context.invoke_execute(context, 'app.db.upgrade', app=app)
+        context.invoke_execute(context, 'app.db.upgrade', app=app, backup=False)
         if app.debug:
             context.invoke_execute(
                 context,
@@ -58,7 +61,8 @@ def run(
                 skip_on_failure=True
             )
 
-    use_reloader = app.debug
+    # use_reloader = app.debug
+    use_reloader = False
     if uwsgi:
         uwsgi_args = [
             "uwsgi",
@@ -75,9 +79,9 @@ def run(
     else:
         if platform.system() == 'Windows':
             warnings.warn(
-                    "Auto-reloader feature doesn't work on Windows. "
-                    "Follow the issue for more details: "
-                    "https://github.com/frol/flask-restplus-server-example/issues/16"
-                )
+                "Auto-reloader feature doesn't work on Windows. "
+                "Follow the issue for more details: "
+                "https://github.com/frol/flask-restplus-server-example/issues/16"
+            )
             use_reloader = False
         return app.run(host=host, port=port, use_reloader=use_reloader)

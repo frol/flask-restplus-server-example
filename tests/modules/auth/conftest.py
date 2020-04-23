@@ -1,7 +1,7 @@
 # encoding: utf-8
 import datetime
 import pytest
-
+import pytz
 
 @pytest.yield_fixture()
 def regular_user_oauth2_client(regular_user, temp_db_instance_helper):
@@ -30,7 +30,7 @@ def regular_user_oauth2_token(regular_user_oauth2_client, temp_db_instance_helpe
                 user=regular_user_oauth2_client.user,
                 access_token='test_token',
                 refresh_token='test_refresh_token',
-                expires=datetime.datetime.now() + datetime.timedelta(seconds=3600),
+                expires=datetime.datetime.now(tz=pytz.utc) + datetime.timedelta(seconds=3600),
                 token_type=OAuth2Token.TokenTypes.Bearer,
                 scopes=regular_user_oauth2_client.default_scopes
             )

@@ -1,25 +1,26 @@
+.git*
 .dockerignore
+.DS_Store
+
+build*.sh
+develop*.sh
+host*.sh
+publish*.sh
+run*.sh
+
 Dockerfile
 Procfile
 
 example.db
+dist.*.tar.gz
 
-.git*
+_db/
+_frontend/
+clients/
+deploy/
+docs/
+tests/
+virtualenv/
 
-deploy
-tests
-clients
-
-__pycache__
-*/__pycache__
-*/*/__pycache__
-*/*/*/__pycache__
-*/*/*/*/__pycache__
-*/*/*/*/*/__pycache__
-
+__pycache__/
 *.pyc
-*/*.pyc
-*/*/*.pyc
-*/*/*/*.pyc
-*/*/*/*/*.pyc
-*/*/*/*/*/*.pyc

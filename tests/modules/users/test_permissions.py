@@ -13,9 +13,9 @@ def test_DenyAbortMixin():
         permissions.rules.DenyAbortMixin().deny()
 
 def test_WriteAccessRule_authenticated_user(authenticated_user_instance):
-    authenticated_user_instance.is_regular_user = True
+    authenticated_user_instance.is_staff = True
     assert permissions.rules.WriteAccessRule().check() is True
-    authenticated_user_instance.is_regular_user = False
+    authenticated_user_instance.is_staff = False
     assert permissions.rules.WriteAccessRule().check() is False
 
 def test_ActiveUserRoleRule_anonymous(anonymous_user_instance):
@@ -69,10 +69,10 @@ def test_PasswordRequiredPermissionMixin():
         mixin.rule()
 
 def test_WriteAccessPermission_authenticated_user(authenticated_user_instance):
-    authenticated_user_instance.is_regular_user = True
+    authenticated_user_instance.is_staff = True
     with permissions.WriteAccessPermission():
         pass
-    authenticated_user_instance.is_regular_user = False
+    authenticated_user_instance.is_staff = False
     with pytest.raises(HTTPException):
         with permissions.WriteAccessPermission():
             pass

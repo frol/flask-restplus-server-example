@@ -63,7 +63,7 @@ class WriteAccessRule(DenyAbortMixin, Rule):
     """
 
     def check(self):
-        return current_user.is_regular_user
+        return current_user.is_active
 
 
 class ActiveUserRoleRule(DenyAbortMixin, Rule):

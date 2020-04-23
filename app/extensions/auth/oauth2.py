@@ -15,6 +15,8 @@ from datetime import datetime, timedelta
 import functools
 import logging
 
+
+from flask import request, session
 from flask_login import current_user
 from flask_oauthlib import provider
 from flask_restplus._http import HTTPStatus
@@ -51,12 +53,14 @@ class OAuth2RequestValidator(provider.OAuth2RequestValidator):
         # pylint: disable=method-hidden,unused-argument
         # Avoid circular dependencies
         from app.modules.users.models import User
-        return User.find_with_password(username, password)
+        return User.find(username=username, password=password)
 
     def _tokensetter(self, token, request, *args, **kwargs):
         # pylint: disable=method-hidden,unused-argument
         # TODO: review expiration time
         expires_in = token['expires_in']
+
+        # IMPORTANT: WE NEED THIS TO BE IN UTC FOR OAUTH2
         expires = datetime.utcnow() + timedelta(seconds=expires_in)
 
         try:
@@ -80,7 +84,9 @@ class OAuth2RequestValidator(provider.OAuth2RequestValidator):
         # pylint: disable=method-hidden,unused-argument
         # TODO: review expiration time
         # decide the expires time yourself
+        # IMPORTANT: WE NEED THIS TO BE IN UTC FOR OAUTH2
         expires = datetime.utcnow() + timedelta(seconds=100)
+
         try:
             with db.session.begin():
                 grant_instance = self._grant_class(
@@ -139,20 +145,39 @@ class OAuth2Provider(provider.OAuth2Provider):
 
         def decorator(func):
             # pylint: disable=missing-docstring
-            from flask import request
-
             origin_decorated_func = origin_decorator(func)
 
             @functools.wraps(origin_decorated_func)
             def wrapper(*args, **kwargs):
                 # pylint: disable=missing-docstring
+                access_token = None
+
                 if 'headers' not in locations:
                     # Invalidate authorization if developer specifically
                     # disables the lookup in the headers.
                     request.authorization = '!'
-                if 'form' in locations:
+
+                if access_token is None and 'headers' in locations:
+                    if 'Authorization' in request.headers:
+                        log.info('Found HEADER access_token')
+                        access_token = request.headers['Authorization']
+                if access_token is None and 'session' in locations:
+                    if 'access_token' in session:
+                        log.info('Found SESSION access_token')
+                        access_token = session['access_token']
+                if access_token is None and 'form' in locations:
                     if 'access_token' in request.form:
-                        request.authorization = 'Bearer %s' % request.form['access_token']
+                        log.info('Found FORM access_token')
+                        access_token = request.form['access_token']
+
+                # If we have an access token from a different place, try to use it instead
+                if access_token is not None:
+                    # Take last value if space separated (e.g. "Bearer XXX")
+                    access_token = access_token.strip().split(' ')[-1].strip()
+                    access_token = access_token
+                    authorization_value = 'Bearer {access_token}'.format(access_token=access_token)
+                    request.authorization = authorization_value
+
                 return origin_decorated_func(*args, **kwargs)
 
             return wrapper

@@ -48,17 +48,9 @@ def flask_app_client(flask_app):
 
 
 @pytest.yield_fixture(scope='session')
-def regular_user(temp_db_instance_helper):
-    for _ in temp_db_instance_helper(
-            utils.generate_user_instance(username='regular_user')
-        ):
-        yield _
-
-
-@pytest.yield_fixture(scope='session')
 def readonly_user(temp_db_instance_helper):
     for _ in temp_db_instance_helper(
-            utils.generate_user_instance(username='readonly_user', is_regular_user=False)
+            utils.generate_user_instance(username='readonly_user')
         ):
         yield _
 
@@ -76,7 +68,7 @@ def internal_user(temp_db_instance_helper):
     for _ in temp_db_instance_helper(
             utils.generate_user_instance(
                 username='internal_user',
-                is_regular_user=False,
+                is_staff=False,
                 is_admin=False,
                 is_active=True,
                 is_internal=True

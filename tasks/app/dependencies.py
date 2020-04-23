@@ -36,12 +36,12 @@ def install_swagger_ui(context, force=False):
     log.info("Installing Swagger UI assets...")
 
     try:
-        _FileExistsError = FileExistsError
+        FileExistsError
     except NameError:
-        _FileExistsError = OSError
+        FileExistsError = OSError
     try:
         os.makedirs(os.path.join(context.app.static_root, 'bower'))
-    except _FileExistsError:
+    except FileExistsError:
         pass
 
     swagger_ui_zip_filepath = os.path.join(context.app.static_root, 'bower', 'swagger-ui.zip')
@@ -73,7 +73,7 @@ def install_swagger_ui(context, force=False):
             # We only need the 'dist' folder
             try:
                 commonpath = os.path.commonpath
-            except AttributeError:  # Python 2.x fallback
+            except:  # Python 2.x fallback
                 commonpath = os.path.commonprefix
             if not commonpath([zipped_member_path, 'dist']):
                 continue
@@ -83,7 +83,7 @@ def install_swagger_ui(context, force=False):
                 # If the path is folder, just create a folder
                 try:
                     os.makedirs(extract_path)
-                except _FileExistsError:
+                except FileExistsError:
                     pass
             else:
                 # Otherwise, read zipped file contents and write them to a file
