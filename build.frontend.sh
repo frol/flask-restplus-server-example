@@ -44,7 +44,7 @@ npm run build
 
 # Package
 tar -zcvf dist.${GIT_BRANCH}.${TIMESTAMP}.tar.gz dist/
-cp dist.${GIT_BRANCH}.tar.gz dist.latest.tar.gz
+cp dist.${GIT_BRANCH}.${TIMESTAMP}.tar.gz dist.latest.tar.gz
 cd ../
 
 # Copy dist packages out of _frontend repo and deploy
