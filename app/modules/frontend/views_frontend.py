@@ -26,3 +26,10 @@ def home(*args, **kwargs):
     This endpoint offers the home page html
     """
     return frontend_blueprint.send_static_file('index.html')
+
+
+@frontend_blueprint.errorhandler(404)
+def page_not_found(event):
+    log.error('Handled 404')
+    # note that we set the 404 status explicitly
+    return frontend_blueprint.send_static_file('404.html'), 404
