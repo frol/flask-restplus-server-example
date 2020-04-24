@@ -65,5 +65,6 @@ _db/
 
 email.latest.html
 
-app/static/
 dist.*.tar.gz
+app/static/dist-*
+app/static/bower/

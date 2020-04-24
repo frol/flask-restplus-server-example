@@ -3,40 +3,36 @@
 {% block title %}Documentation{% endblock %}
 
 {% block head %}
-    {{ super() }}
+  {{ super() }}
 {% endblock %}
 
 {% block style %}
-    <link media="screen" rel="stylesheet" type="text/css" href="{{ swagger_static('bower/swagger-ui/dist/css/typography.css') }}" />
-    <link media="screen" rel="stylesheet" type="text/css" href="{{ swagger_static('bower/swagger-ui/dist/css/reset.css') }}" />
-    <link media="screen" rel="stylesheet" type="text/css" href="{{ swagger_static('bower/swagger-ui/dist/css/screen.css') }}" />
-    <link media="print"  rel="stylesheet" type="text/css" href="{{ swagger_static('bower/swagger-ui/dist/css/reset.css') }}" />
-    <link media="print"  rel="stylesheet" type="text/css" href="{{ swagger_static('bower/swagger-ui/dist/css/screen.css') }}" />
+  <link media="screen" rel="stylesheet" type="text/css" href="{{ swagger_static('bower/swagger-ui/dist/css/typography.css') }}" />
+  <link media="screen" rel="stylesheet" type="text/css" href="{{ swagger_static('bower/swagger-ui/dist/css/reset.css') }}" />
+  <link media="screen" rel="stylesheet" type="text/css" href="{{ swagger_static('bower/swagger-ui/dist/css/screen.css') }}" />
+  <link media="print"  rel="stylesheet" type="text/css" href="{{ swagger_static('bower/swagger-ui/dist/css/reset.css') }}" />
+  <link media="print"  rel="stylesheet" type="text/css" href="{{ swagger_static('bower/swagger-ui/dist/css/screen.css') }}" />
 
-    <style type="text/css">
-        #content {
-            overflow: scroll !important;
-            padding-bottom: 40px;
-        }
-        .bg-primary {
-          background: #7F00FF;  /* fallback for old browsers */
-          background: -webkit-linear-gradient(to right, #E100FF, #7F00FF);  /* Chrome 10-25, Safari 5.1-6 */
-          background: linear-gradient(to right, #E100FF, #7F00FF); /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
-        }
-    </style>
+  <style type="text/css">
+    #content {
+      overflow: scroll !important;
+      padding-bottom: 40px;
+    }
+  </style>
 {% endblock %}
 
 {% block content %}
 
-<header id="navbar-header" class="navbar navbar-dark navbar-full bg-primary doc-navbar-default" style="height: 70px;">
-    <a class="navbar-brand" href="/" style="margin-right: 0px;">
-      <img src="{{ url_for('static', filename='images/icon3.png') }}" width="50" height="50" alt="">
-    </a>
-</header>
-
 <div class="swagger-section">
-    <div id="message-bar" class="swagger-ui-wrap">&nbsp;</div>
-    <div id="swagger-ui-container" class="swagger-ui-wrap"></div>
+  <div class="swagger-ui-wrap" style="margin-top: 30px;">
+    <a href="{{ url_for('backend.home') }}">
+      <img src="{{ url_for('backend.static', filename='images/icon.png') }}" width="150" height="150" alt="">
+    </a>
+  </div>
+
+  <div id="message-bar" class="swagger-ui-wrap">&nbsp;</div>
+  
+  <div id="swagger-ui-container" class="swagger-ui-wrap"></div>
 </div>
 
 {% endblock %}
@@ -44,79 +40,79 @@
 {% block foot %}{% endblock %}
 
 {% block script %}
-    <script src="{{ swagger_static('bower/swagger-ui/dist/lib/jquery-1.8.0.min.js') }}" type="text/javascript"></script>
-    <script src="{{ swagger_static('bower/swagger-ui/dist/lib/jquery.slideto.min.js') }}" type="text/javascript"></script>
-    <script src="{{ swagger_static('bower/swagger-ui/dist/lib/jquery.wiggle.min.js') }}" type="text/javascript"></script>
-    <script src="{{ swagger_static('bower/swagger-ui/dist/lib/jquery.ba-bbq.min.js') }}" type="text/javascript"></script>
-    <script src="{{ swagger_static('bower/swagger-ui/dist/lib/handlebars-4.0.5.js') }}" type="text/javascript"></script>
-    <script src="{{ swagger_static('bower/swagger-ui/dist/lib/lodash.min.js') }}" type="text/javascript"></script>
-    <script src="{{ swagger_static('bower/swagger-ui/dist/lib/backbone-min.js') }}" type="text/javascript"></script>
-    <script src="{{ swagger_static('bower/swagger-ui/dist/lib/highlight.9.1.0.pack.js') }}" type="text/javascript"></script>
-    <script src="{{ swagger_static('bower/swagger-ui/dist/lib/jsoneditor.min.js') }}" type='text/javascript'></script>
-    <script src="{{ swagger_static('bower/swagger-ui/dist/lib/marked.js') }}" type="text/javascript"></script>
-    <script src="{{ swagger_static('bower/swagger-ui/dist/swagger-ui.min.js') }}" type="text/javascript"></script>
+  <script src="{{ swagger_static('bower/swagger-ui/dist/lib/jquery-1.8.0.min.js') }}" type="text/javascript"></script>
+  <script src="{{ swagger_static('bower/swagger-ui/dist/lib/jquery.slideto.min.js') }}" type="text/javascript"></script>
+  <script src="{{ swagger_static('bower/swagger-ui/dist/lib/jquery.wiggle.min.js') }}" type="text/javascript"></script>
+  <script src="{{ swagger_static('bower/swagger-ui/dist/lib/jquery.ba-bbq.min.js') }}" type="text/javascript"></script>
+  <script src="{{ swagger_static('bower/swagger-ui/dist/lib/handlebars-4.0.5.js') }}" type="text/javascript"></script>
+  <script src="{{ swagger_static('bower/swagger-ui/dist/lib/lodash.min.js') }}" type="text/javascript"></script>
+  <script src="{{ swagger_static('bower/swagger-ui/dist/lib/backbone-min.js') }}" type="text/javascript"></script>
+  <script src="{{ swagger_static('bower/swagger-ui/dist/lib/highlight.9.1.0.pack.js') }}" type="text/javascript"></script>
+  <script src="{{ swagger_static('bower/swagger-ui/dist/lib/jsoneditor.min.js') }}" type='text/javascript'></script>
+  <script src="{{ swagger_static('bower/swagger-ui/dist/lib/marked.js') }}" type="text/javascript"></script>
+  <script src="{{ swagger_static('bower/swagger-ui/dist/swagger-ui.min.js') }}" type="text/javascript"></script>
 
-    <!-- enabling this will enable oauth2 implicit scope support -->
-    <!--script src="{{ swagger_static('bower/swagger-ui/dist/lib/swagger-oauth.js') }}" type="text/javascript"></script-->
+  <!-- enabling this will enable oauth2 implicit scope support -->
+  <!--script src="{{ swagger_static('bower/swagger-ui/dist/lib/swagger-oauth.js') }}" type="text/javascript"></script-->
 
-    <script type="text/javascript">
-        // NOTE: `onOAuthComplete` implementation is extracted from the deprecated swagger-ui/lib/swagger-oauth.js
-        onOAuthComplete = function onOAuthComplete(token, OAuthSchemeKey) {
+  <script type="text/javascript">
+    // NOTE: `onOAuthComplete` implementation is extracted from the deprecated swagger-ui/lib/swagger-oauth.js
+    onOAuthComplete = function onOAuthComplete(token, OAuthSchemeKey) {
 
-          if (token === '') {
-            alert("Authorization failed for unknown reason, please, check your credentials!")
-            return
+      if (token === '') {
+      alert("Authorization failed for unknown reason, please, check your credentials!")
+      return
+      }
+
+      if(token.error) {
+      var checkbox = $('input[type=checkbox],.secured')
+      checkbox.each(function(pos) {
+        checkbox[pos].checked = false
+      })
+      alert(token.error)
+      } else {
+      var access_token = token[window.swaggerUiAuth.tokenName]
+
+      if (!OAuthSchemeKey) {
+        OAuthSchemeKey = token.state;
+      }
+
+      if(access_token) {
+        // if all roles are satisfied
+        window.swaggerUi.api.clientAuthorizations.add(OAuthSchemeKey, new SwaggerClient.ApiKeyAuthorization('Authorization', 'Bearer ' + access_token, 'header'))
+        window.swaggerUi.load()
+      }
+      }
+    }
+
+    $(function () {
+      window.swaggerUi = new SwaggerUi({
+        // url: "{{ specs_url }}",
+        url: "/api/v1/swagger.json",
+        validatorUrl: "{{ config.SWAGGER_VALIDATOR_URL }}" || null,
+        dom_id: "swagger-ui-container",
+        supportedSubmitMethods: ['get', 'post', 'put', 'delete', 'patch', 'options'],
+        onComplete: function(swaggerApi, swaggerUi){
+          if(typeof initOAuth == "function") {
+            {% if config.SWAGGER_UI_OAUTH_CLIENT_ID -%}
+              initOAuth({
+                clientId: "{{ config.SWAGGER_UI_OAUTH_CLIENT_ID }}",
+                realm: "{{ config.SWAGGER_UI_OAUTH_REALM }}",
+                appName: "{{ config.SWAGGER_UI_OAUTH_APP_NAME }}"
+              });
+            {%- endif %}
           }
-
-          if(token.error) {
-            var checkbox = $('input[type=checkbox],.secured')
-            checkbox.each(function(pos) {
-                checkbox[pos].checked = false
-            })
-            alert(token.error)
-          } else {
-            var access_token = token[window.swaggerUiAuth.tokenName]
-
-            if (!OAuthSchemeKey) {
-              OAuthSchemeKey = token.state;
-            }
-
-            if(access_token) {
-              // if all roles are satisfied
-              window.swaggerUi.api.clientAuthorizations.add(OAuthSchemeKey, new SwaggerClient.ApiKeyAuthorization('Authorization', 'Bearer ' + access_token, 'header'))
-              window.swaggerUi.load()
-            }
-          }
-        }
-
-        $(function () {
-            window.swaggerUi = new SwaggerUi({
-                // url: "{{ specs_url }}",
-                url: "/api/v1/swagger.json",
-                validatorUrl: "{{ config.SWAGGER_VALIDATOR_URL }}" || null,
-                dom_id: "swagger-ui-container",
-                supportedSubmitMethods: ['get', 'post', 'put', 'delete', 'patch', 'options'],
-                onComplete: function(swaggerApi, swaggerUi){
-                    if(typeof initOAuth == "function") {
-                        {% if config.SWAGGER_UI_OAUTH_CLIENT_ID -%}
-                            initOAuth({
-                                clientId: "{{ config.SWAGGER_UI_OAUTH_CLIENT_ID }}",
-                                realm: "{{ config.SWAGGER_UI_OAUTH_REALM }}",
-                                appName: "{{ config.SWAGGER_UI_OAUTH_APP_NAME }}"
-                            });
-                        {%- endif %}
-                    }
-                    $('pre code').each(function(i, e) {
-                        hljs.highlightBlock(e)
-                    });
-                },
-                onFailure: function(data) {
-                    log("Unable to Load SwaggerUI");
-                },
-                jsonEditor: {{ config.SWAGGER_UI_JSONEDITOR | default(False) | string | lower }},
-                docExpansion: "{{ config.SWAGGER_UI_DOC_EXPANSION | default('none') }}"
-            });
-            window.swaggerUi.load();
-        });
-    </script>
+          $('pre code').each(function(i, e) {
+            hljs.highlightBlock(e)
+          });
+        },
+        onFailure: function(data) {
+          log("Unable to Load SwaggerUI");
+        },
+        jsonEditor: {{ config.SWAGGER_UI_JSONEDITOR | default(False) | string | lower }},
+        docExpansion: "{{ config.SWAGGER_UI_DOC_EXPANSION | default('none') }}"
+      });
+      window.swaggerUi.load();
+    });
+  </script>
 {% endblock %}

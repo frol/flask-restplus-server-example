@@ -10,19 +10,17 @@ More details are available here:
 * http://lepture.com/en/2013/create-oauth-server
 """
 import flask
-from flask import Blueprint, request, render_template, url_for, flash, session, current_app, send_file
-from flask_login import current_user, login_user, logout_user, login_required
+from flask import request, render_template, url_for, flash, session, current_app
+from flask_login import current_user
 import logging
 from urllib.parse import urlparse, urljoin
 
-from app.extensions import db, login_manager, oauth2
+from app.extensions import login_manager, oauth2
 
 from app.modules.users.models import User
-from app.modules.assets.models import Asset
 
 import datetime
 import pytz
-
 import os
 
 log = logging.getLogger(__name__)
@@ -34,10 +32,6 @@ PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..
 HOUSTON_STATIC_ROOT = os.path.join(PROJECT_ROOT, 'app', 'static')
 
 FRONTEND_STATIC_ROOT = os.path.join(HOUSTON_STATIC_ROOT, 'dist-latest')
-
-frontend_blueprint = Blueprint('frontend', __name__, url_prefix='/', static_url_path='', static_folder=FRONTEND_STATIC_ROOT)          # pylint: disable=invalid-name
-
-houston_blueprint  = Blueprint('houston',  __name__, url_prefix='/houston', static_url_path='/static', static_folder=HOUSTON_STATIC_ROOT)  # pylint: disable=invalid-name
 
 
 def _render_template(template, **kwargs):
@@ -59,7 +53,7 @@ def _url_for(value, *args, **kwargs):
     return url_for(value, *args, **kwargs)
 
 
-def is_safe_url(target):
+def _is_safe_url(target):
     ref_url = urlparse(request.host_url)
     test_url = urlparse(urljoin(request.host_url, target))
     return test_url.scheme in ('http', 'https') and ref_url.netloc == test_url.netloc
@@ -194,102 +188,3 @@ def delete_session_oauth2_token():
         log.info('Deleting bearer token %r for user %r' % (session_oauth2_bearer_token, current_user.username), )
         if session_oauth2_bearer_token is not None:
             session_oauth2_bearer_token.delete()
-
-
-@frontend_blueprint.route('/', methods=['GET'])
-def root(*args, **kwargs):
-    # pylint: disable=unused-argument
-    """
-    This endpoint offers the home page html
-    """
-    return frontend_blueprint.send_static_file('index.html')
-
-
-@houston_blueprint.route('/', methods=['GET'])
-def home(*args, **kwargs):
-    # pylint: disable=unused-argument
-    """
-    This endpoint offers the home page html
-    """
-    from app.version import version
-    return _render_template('home.html', version=version)
-
-
-@houston_blueprint.route('/login', methods=['POST'])
-def user_login(email=None, password=None, remember=None, *args, **kwargs):
-    # pylint: disable=unused-argument
-    """
-    This endpoint is the landing page for the logged-in user
-    """
-    if email is None:
-        email = request.form.get('email', None)
-    if password is None:
-        password = request.form.get('password', None)
-    if remember is None:
-        remember = request.form.get('remember', None)
-        # log.info('request.form.remember = %r' % (remember, ))
-        remember = remember in ['true', 'on']
-
-    user = User.find(email=email, password=password)
-
-    redirect = _url_for('frontend.account')
-    if user is not None:
-        if False:  # True not in [user.in_beta, user.is_staff, user.is_admin]:
-            flash('Your login was correct, but Wildbook is in BETA at the moment and is invite-only.  Please call us at (949) 786-9625 and ask for an invite code.', 'danger')
-            redirect = _url_for('frontend.home')
-        else:
-            status = login_user(user, remember=remember)
-
-            if status:
-                # User logged in organically.  No matter the reason, they should no longer be in account recovery
-                user.in_reset = False
-                with db.session.begin():
-                    db.session.merge(user)
-                db.session.refresh(user)
-                assert not user.in_reset
-
-                log.info('Logged in User (remember = %s): %r' % (remember, user, ))
-                flash('Logged in successfully.', 'success')
-                create_session_oauth2_token()
-
-                redirect_ = flask.request.args.get('next')
-                if redirect_ is not None and is_safe_url(redirect_):
-                        redirect = redirect_
-            else:
-                flash('We could not log you in, most likely due to your account being disabled.  Please speak to a staff member.', 'danger')
-                redirect = _url_for('frontend.home')
-    else:
-        flash('Username or password unrecognized.', 'danger')
-        redirect = _url_for('frontend.home')
-
-    return flask.redirect(redirect)
-
-
-@houston_blueprint.route('/logout', methods=['GET'])
-@login_required
-def user_logout(*args, **kwargs):
-    # pylint: disable=unused-argument
-    """
-    This endpoint is the landing page for the logged-in user
-    """
-    # Delete the Oauth2 token for this session
-    delete_session_oauth2_token()
-    logout_user()
-
-    flash(
-        'You were successfully logged out.',
-        'warning'
-    )
-
-    return flask.redirect(_url_for('frontend.home'))
-
-
-@houston_blueprint.route('/asset/<code>', methods=['GET'])
-# @login_required
-def asset(code, *args, **kwargs):
-    # pylint: disable=unused-argument
-    """
-    This endpoint is the account page for the logged-in user
-    """
-    asset = Asset.query.filter_by(code=code).first_or_404()
-    return send_file(asset.absolute_filepath, mimetype='image/jpeg')
