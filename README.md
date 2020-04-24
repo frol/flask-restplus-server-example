@@ -328,7 +328,8 @@ $ docker run -it --rm --publish 5000:5000 frolvlad/flask-restplus-server-example
 #### Clone the Project
 
 ```bash
-$ git clone https://github.com/WildbookOrg/houston.git
+$ git clone --recurse-submodules https://github.com/WildbookOrg/houston.git
+$ cd houston/
 ```
 
 #### Setup Environment
@@ -339,11 +340,13 @@ dependencies. Please, learn details yourself.
 You will need `invoke` package to work with everything related to this project.
 
 ```bash
+$ tar -zxvf _db.initial.tar.gz
+$ ./venv.sh
+$ source virtualenv/houston3.7/bin/activate
+$ pip install -r requirements.txt
+$ invoke app.dependencies.install
 $ pip install -e .
-$ mkdir -p _db/
-$ mkdir -p _db/assets/
 ```
-
 
 #### Run Server
 
