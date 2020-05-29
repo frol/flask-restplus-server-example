@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
 
-# sudo port install nodejs14 npm6
+# Ubuntu / Debian
+#   curl -sL https://deb.nodesource.com/setup_14.x | sudo -E bash -
+#   sudo apt-get install -y nodejs
+#
+# MacOS
+#   sudo port install nodejs14 npm6
 
 # Get last commit hash prepended with @ (i.e. @8a323d0)
 function parse_git_hash() {

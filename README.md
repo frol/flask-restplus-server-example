@@ -344,7 +344,9 @@ $ tar -zxvf _db.initial.tar.gz
 $ ./venv.sh
 $ source virtualenv/houston3.7/bin/activate
 $ pip install -r requirements.txt
-$ invoke app.dependencies.install
+$ invoke app.dependencies.install-python-dependencies 
+$ invoke app.dependencies.install-swagger-ui
+$ invoke app.dependencies.install                     
 $ pip install -e .
 $ ./build.frontend.sh
 ```

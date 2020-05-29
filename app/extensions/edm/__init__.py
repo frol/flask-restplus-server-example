@@ -25,13 +25,19 @@ class EDMManager(object):
     our User and OAuth2* implementations together.
     """
 
+    ENDPOINT_PREFIX = 'api/v0'
+
+    # We use // as a shorthand for prefix
     ENDPOINTS = {
         'session': {
-            'login': 'api/v0/login?content={"login":"%s","password":"%s"}',
+            'login': '//login?content={"login":"%s","password":"%s"}',
         },
         'user' : {
-            'list': 'api/v0/org.ecocean.User/list',
-        }
+            'list': '//org.ecocean.User/list',
+        },
+        'encounter' : {
+            'list': '//org.ecocean.Encounter/list',
+        },
     }
 
     def __init__(self, app, *args, **kwargs):
@@ -138,7 +144,13 @@ class EDMManager(object):
         endpoint_url = self.uris[target]
         endpoint_tag_fmtstr = self._endpoint_tag_fmtstr(tag)
         assert endpoint_tag_fmtstr is not None, 'The endpoint tag was not recognized'
-        endpoint_fmtstr = '%s/%s' % (endpoint_url, endpoint_tag_fmtstr, )
+
+        if endpoint_tag_fmtstr.startswith('//'):
+            endpoint_tag_fmtstr = endpoint_tag_fmtstr[2:]
+            endpoint_tag_fmtstr = '%s/%s' % (self.ENDPOINT_PREFIX, endpoint_tag_fmtstr, )
+
+        endpoint_url_ = endpoint_url.strip('/')
+        endpoint_fmtstr = '%s/%s' % (endpoint_url_, endpoint_tag_fmtstr, )
         return endpoint_fmtstr
 
     def _endpoint_tag_fmtstr(self, tag):
@@ -161,13 +173,22 @@ class EDMManager(object):
     def _get(self, tag, *args, target='default', json=True):
         endpoint_fmtstr = self._endpoint_fmtstr(tag, target=target)
         endpoint = endpoint_fmtstr % args
+
+        endpoint_encoded = requests.utils.quote(endpoint, safe="/?:=")
+
         with self.sessions[target] as target_session:
-            response = target_session.get(endpoint)
-        if json:
+            response = target_session.get(endpoint_encoded)
+
+        if response.ok and json:
             response = response.json()
+
         return response
 
     def get_users(self, target='default'):
+        response = self._get('user.list', target=target)
+        return response
+
+    def get_encounters(self, target='default'):
         response = self._get('user.list', target=target)
         return response
 
