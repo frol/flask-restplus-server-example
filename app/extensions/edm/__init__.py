@@ -8,10 +8,8 @@ import logging
 
 from flask import current_app, request, session, render_template  # NOQA
 from flask_login import current_user  # NOQA
+import requests
 
-import re
-
-import datetime
 import pytz
 
 
@@ -29,18 +27,26 @@ class EDMManager(object):
 
     def __init__(self, app, *args, **kwargs):
         self._parse_config_edm_uris(app)
+        self._init_sessions(app)
 
         super(EDMManager, self).__init__(*args, **kwargs)
         app.edm = self
 
     def _parse_config_edm_uris(self, app):
         edm_uri_dict = app.config.get('EDM_URIS', None)
+        edm_authentication_dict = app.config.get('EDM_AUTHENTICATIONS', None)
+
+        assert edm_uri_dict is not None, 'Must specify EDM_URIS in config'
+        message = 'Must specify EDM_AUTHENTICATIONS in the secret config'
+        assert edm_authentication_dict is not None, message
 
         try:
             key_list = []
             invalid_key_list = []
 
             edm_uri_key_list = sorted(edm_uri_dict.keys())
+            edm_authentication_key_list = sorted(edm_authentication_dict.keys())
+
             for key in edm_uri_key_list:
                 valid = True
 
@@ -63,6 +69,10 @@ class EDMManager(object):
 
                     if key >= len(edm_uri_key_list):
                         # key order is higher than the total, no skips allowed
+                        valid = False
+
+                    if key not in edm_authentication_key_list:
+                        # Authentication not provided
                         valid = False
 
                 except Exception:
@@ -88,12 +98,36 @@ class EDMManager(object):
         assert key_list[-1] == len(key_list) - 1, 'EDM_URIS is mis-configured'
 
         uris = {}
+        auths = {}
         for key in key_list:
             if key == 0:
                 uris['default'] = edm_uri_dict[key]
+                auths['default'] = edm_authentication_dict[key]
             uris[key] = edm_uri_dict[key]
+            auths[key] = edm_authentication_dict[key]
 
         self.uris = uris
+        self.auths = auths
+
+    def _init_sessions(self, app):
+        print(self.uris)
+        print(self.auths)
+        # import utool as ut
+        # ut.embed()
+        # self.sessions = {}
+        # for target in self.uris:
+        #     # create a session object
+        #     s = requests.Session()
+
+        #     # make a get request
+        #     s.get('https://nextgen.dev-wildbook.org/api/v0/login?content=%7B%22login%22:%22test%22,%22password%22:%22test1234%22%7D')
+        #     #s.get('https://nextgen.dev-wildbook.org/')
+
+        #     # again make a get request
+        #     r = s.get('https://nextgen.dev-wildbook.org/api/org.ecocean.User?uuid==%272eae47e3-94b3-44fd-a89c-af07d4d80e0c%27')
+
+        #     # check if cookie is still set
+        #     print(r.text)
 
     def get_users_list(self, target='default'):
         'https://nextgen.dev-wildbook.org/api/v0/org.ecocean.User/list'
