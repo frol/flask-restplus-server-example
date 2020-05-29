@@ -92,7 +92,13 @@ class BaseConfig(object):
     REMEMBER_COOKIE_REFRESH_EACH_REQUEST = True
 
 
-class ProductionConfig(BaseConfig, SecretProductionConfig):
+class EDMConfig(object):
+    EDM_URIS = {
+        0: 'https://nextgen.dev-wildbook.org/',
+    }
+
+
+class ProductionConfig(BaseConfig, EDMConfig, SecretProductionConfig):
     TESTING = False
 
     BASE_URL = 'https://hoston.dyn.wildme.io/'
@@ -104,7 +110,7 @@ class ProductionConfig(BaseConfig, SecretProductionConfig):
     ]
 
 
-class DevelopmentConfig(BaseConfig, SecretDevelopmentConfig):
+class DevelopmentConfig(BaseConfig, EDMConfig, SecretDevelopmentConfig):
     DEBUG = True
 
     BASE_URL = 'https://wildme.ngrok.io/'

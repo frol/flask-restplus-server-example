@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 mkdir -p virtualenv
-python3.7 -m venv ./virtualenv/houston3.7
+python3 -m venv ./virtualenv/houston3.7
 
 # source virtualenv/houston3.7/bin/activate
 

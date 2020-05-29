@@ -346,6 +346,7 @@ $ source virtualenv/houston3.7/bin/activate
 $ pip install -r requirements.txt
 $ invoke app.dependencies.install
 $ pip install -e .
+$ ./build.frontend.sh
 ```
 
 #### Run Server

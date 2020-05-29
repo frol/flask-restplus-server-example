@@ -24,7 +24,7 @@ from .views import HOUSTON_STATIC_ROOT, _render_template, _url_for, _is_safe_url
 
 log = logging.getLogger(__name__)
 
-backend_blueprint  = Blueprint('backend',  __name__, url_prefix='/houston', static_url_path='/static', static_folder=HOUSTON_STATIC_ROOT)  # pylint: disable=invalid-name
+backend_blueprint = Blueprint('backend', __name__, url_prefix='/houston', static_url_path='/static', static_folder=HOUSTON_STATIC_ROOT)  # pylint: disable=invalid-name
 
 
 @backend_blueprint.route('/', methods=['GET'])

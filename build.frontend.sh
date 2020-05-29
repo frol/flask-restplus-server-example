@@ -55,5 +55,5 @@ cp _frontend/dist.*.tar.gz ./
 rm -rf app/static/dist-latest
 mkdir -p ${DEST_PATH}
 tar -zxvf dist.latest.tar.gz -C ${DEST_PATH} --strip-components=1
-ln -s ${DEST_FOLDER} app/static/dist-latest 
+ln -s _frontent/dist app/static/dist-latest 
 

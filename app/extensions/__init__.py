@@ -43,6 +43,8 @@ from .email import mail  # NOQA
 
 from flask_minify import minify  # NOQA
 
+from . import edm  # NOQA
+
 from . import api  # NOQA
 
 import stripe  # NOQA
@@ -82,6 +84,7 @@ def init_app(app):
         api,
         oauth2,
         mail,
+        edm,
     )
     for extension in extensions:
         extension.init_app(app)
