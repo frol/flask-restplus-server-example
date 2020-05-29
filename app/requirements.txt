@@ -41,5 +41,3 @@ pygeocoder
 phonenumbers
 tqdm
 utool
-
--e git+https://github.com/pwaller/pyfiglet

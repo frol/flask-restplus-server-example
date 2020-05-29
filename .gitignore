@@ -68,3 +68,4 @@ email.latest.html
 dist.*.tar.gz
 app/static/dist-*
 app/static/bower/
+app/static/package-lock.json

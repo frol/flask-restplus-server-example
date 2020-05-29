@@ -25,6 +25,15 @@ class EDMManager(object):
     our User and OAuth2* implementations together.
     """
 
+    ENDPOINTS = {
+        'session': {
+            'login': 'api/v0/login?content={"login":"%s","password":"%s"}',
+        },
+        'user' : {
+            'list': 'api/v0/org.ecocean.User/list',
+        }
+    }
+
     def __init__(self, app, *args, **kwargs):
         self._parse_config_edm_uris(app)
         self._init_sessions(app)
@@ -110,27 +119,57 @@ class EDMManager(object):
         self.auths = auths
 
     def _init_sessions(self, app):
-        print(self.uris)
-        print(self.auths)
-        # import utool as ut
-        # ut.embed()
-        # self.sessions = {}
-        # for target in self.uris:
-        #     # create a session object
-        #     s = requests.Session()
+        self.sessions = {}
+        for target in self.uris:
+            auth = self.auths[target]
 
-        #     # make a get request
-        #     s.get('https://nextgen.dev-wildbook.org/api/v0/login?content=%7B%22login%22:%22test%22,%22password%22:%22test1234%22%7D')
-        #     #s.get('https://nextgen.dev-wildbook.org/')
+            username = auth.get('username', auth.get('user', None))
+            password = auth.get('password', auth.get('pass', None))
 
-        #     # again make a get request
-        #     r = s.get('https://nextgen.dev-wildbook.org/api/org.ecocean.User?uuid==%272eae47e3-94b3-44fd-a89c-af07d4d80e0c%27')
+            message = 'EDM Authentication for %s unspecified (username)' % (target, )
+            assert username is not None, message
+            message = 'EDM Authentication for %s unspecified (password)' % (target, )
+            assert password is not None, message
 
-        #     # check if cookie is still set
-        #     print(r.text)
+            self.sessions[target] = requests.Session()
+            self._get('session.login', username, password, target=target)
 
-    def get_users_list(self, target='default'):
-        'https://nextgen.dev-wildbook.org/api/v0/org.ecocean.User/list'
+    def _endpoint_fmtstr(self, tag, target='default'):
+        endpoint_url = self.uris[target]
+        endpoint_tag_fmtstr = self._endpoint_tag_fmtstr(tag)
+        assert endpoint_tag_fmtstr is not None, 'The endpoint tag was not recognized'
+        endpoint_fmtstr = '%s/%s' % (endpoint_url, endpoint_tag_fmtstr, )
+        return endpoint_fmtstr
+
+    def _endpoint_tag_fmtstr(self, tag):
+        endpoint = self.ENDPOINTS
+
+        component_list = tag.split('.')
+        for comoponent in component_list:
+            try:
+                endpoint_ = endpoint.get(comoponent, None)
+            except Exception:
+                endpoint_ = None
+
+            if endpoint_ is None:
+                break
+
+            endpoint = endpoint_
+
+        return endpoint
+
+    def _get(self, tag, *args, target='default', json=True):
+        endpoint_fmtstr = self._endpoint_fmtstr(tag, target=target)
+        endpoint = endpoint_fmtstr % args
+        with self.sessions[target] as target_session:
+            response = target_session.get(endpoint)
+        if json:
+            response = response.json()
+        return response
+
+    def get_users(self, target='default'):
+        response = self._get('user.list', target=target)
+        return response
 
 
 def init_app(app, **kwargs):

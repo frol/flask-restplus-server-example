@@ -11,6 +11,7 @@ import pytz
 
 from sqlalchemy import or_, and_
 
+from flask import current_app
 from flask_login import current_user
 from flask_restplus_patched import Resource
 from flask_restplus._http import HTTPStatus
@@ -250,3 +251,19 @@ class UserMe(Resource):
         Get current user details.
         """
         return User.query.get_or_404(current_user.id)
+
+
+@api.route('/sync')
+# @api.login_required(oauth_scopes=['users:read'])
+class UserEDMSync(Resource):
+    """
+    Useful reference to the authenticated user itself.
+    """
+
+    # @api.response(schemas.DetailedUserSchema())
+    def get(self):
+        """
+        Get current user details.
+        """
+        users = current_app.edm.get_users()
+        return users
