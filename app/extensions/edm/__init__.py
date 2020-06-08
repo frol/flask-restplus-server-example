@@ -1,4 +1,4 @@
-# encoding: utf-8
+# -*- coding: utf-8 -*-
 # pylint: disable=no-self-use
 """
 Ecological Data Management (EDM) manager.
@@ -29,15 +29,12 @@ class EDMManager(object):
 
     # We use // as a shorthand for prefix
     ENDPOINTS = {
-        'session': {
-            'login': '//login?content={"login":"%s","password":"%s"}',
-        },
-        'user' : {
+        'session': {'login': '//login?content={"login":"%s","password":"%s"}',},
+        'user': {
             'list': '//org.ecocean.User/list',
+            'get': '//org.ecocean.User?uuid=="%s"',
         },
-        'encounter' : {
-            'list': '//org.ecocean.Encounter/list',
-        },
+        'encounter': {'list': '//org.ecocean.Encounter/list',},
     }
 
     def __init__(self, app, *args, **kwargs):
@@ -102,7 +99,7 @@ class EDMManager(object):
                 raise ValueError('Invalid keys provided')
 
         except Exception as exception:
-            print('Invalid keys %r provided in EDM_URIS' % (invalid_key_list, ))
+            print('Invalid keys %r provided in EDM_URIS' % (invalid_key_list,))
             raise exception
 
         key_list = sorted(key_list)
@@ -132,9 +129,9 @@ class EDMManager(object):
             username = auth.get('username', auth.get('user', None))
             password = auth.get('password', auth.get('pass', None))
 
-            message = 'EDM Authentication for %s unspecified (username)' % (target, )
+            message = 'EDM Authentication for %s unspecified (username)' % (target,)
             assert username is not None, message
-            message = 'EDM Authentication for %s unspecified (password)' % (target, )
+            message = 'EDM Authentication for %s unspecified (password)' % (target,)
             assert password is not None, message
 
             self.sessions[target] = requests.Session()
@@ -147,10 +144,10 @@ class EDMManager(object):
 
         if endpoint_tag_fmtstr.startswith('//'):
             endpoint_tag_fmtstr = endpoint_tag_fmtstr[2:]
-            endpoint_tag_fmtstr = '%s/%s' % (self.ENDPOINT_PREFIX, endpoint_tag_fmtstr, )
+            endpoint_tag_fmtstr = '%s/%s' % (self.ENDPOINT_PREFIX, endpoint_tag_fmtstr,)
 
         endpoint_url_ = endpoint_url.strip('/')
-        endpoint_fmtstr = '%s/%s' % (endpoint_url_, endpoint_tag_fmtstr, )
+        endpoint_fmtstr = '%s/%s' % (endpoint_url_, endpoint_tag_fmtstr,)
         return endpoint_fmtstr
 
     def _endpoint_tag_fmtstr(self, tag):
@@ -174,7 +171,7 @@ class EDMManager(object):
         endpoint_fmtstr = self._endpoint_fmtstr(tag, target=target)
         endpoint = endpoint_fmtstr % args
 
-        endpoint_encoded = requests.utils.quote(endpoint, safe="/?:=")
+        endpoint_encoded = requests.utils.quote(endpoint, safe='/?:=')
 
         with self.sessions[target] as target_session:
             response = target_session.get(endpoint_encoded)
@@ -188,8 +185,13 @@ class EDMManager(object):
         response = self._get('user.list', target=target)
         return response
 
+    def get_user(self, uuid, target='default'):
+        import utool as ut
+
+        ut.embed()
+
     def get_encounters(self, target='default'):
-        response = self._get('user.list', target=target)
+        response = self._get('encounters.list', target=target)
         return response
 
 

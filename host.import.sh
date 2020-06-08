@@ -1,3 +1,3 @@
-#!/usr/bin/env bash
+#!/bin/bash
 
 docker load --input houston.wildme.tar

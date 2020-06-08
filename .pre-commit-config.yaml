@@ -1,0 +1,41 @@
+# See https://pre-commit.com for more information
+# See https://pre-commit.com/hooks.html for more hooks
+repos:
+  - repo: https://github.com/psf/black
+    rev: stable
+    hooks:
+      - id: black
+        language_version: python3.6
+  - repo: https://gitlab.com/pycqa/flake8
+    rev: 3.8.1
+    hooks:
+      - id: flake8
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v3.1.0
+    hooks:
+      - id: requirements-txt-fixer
+      - id: check-toml
+      - id: check-json
+      - id: check-ast
+      - id: check-executables-have-shebangs
+      - id: check-docstring-first
+      - id: detect-aws-credentials
+      - id: detect-private-key
+      - id: double-quote-string-fixer
+      - id: trailing-whitespace
+      - id: mixed-line-ending
+      - id: end-of-file-fixer
+      - id: fix-encoding-pragma
+
+exclude: |
+    (?x)(
+        ^\_assets/|
+        ^\_frontend/|
+        ^app/static/|
+        ^app/templates/|
+        ^clients/|
+        ^deploy/|
+        ^mobile/|
+        ^Houston.egg-info|
+        ^virtualenv
+    )

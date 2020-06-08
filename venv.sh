@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 
 mkdir -p virtualenv
 python3 -m venv ./virtualenv/houston3.7

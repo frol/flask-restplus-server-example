@@ -1,3 +1,5 @@
+#!/bin/bash
+
 # docker login wildme.azurecr.io
 docker tag wildme/houston:latest wildme.azurecr.io/houston:latest
 docker push wildme.azurecr.io/houston:latest

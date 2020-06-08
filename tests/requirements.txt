@@ -1,9 +1,11 @@
-pytest
-mock
-swagger_spec_validator
 IPython
+mock
 
 ## Optional packages
 # pytest-xdist
 # pytest-cov
 # coverage
+
+pre-commit
+pytest
+swagger_spec_validator

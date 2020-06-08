@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 
 TZ=America/Los_Angeles
 TIMESTAMP=$(date +%Y-%m-01-%H-%M-%S)

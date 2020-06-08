@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 
 # Ubuntu / Debian
 #   curl -sL https://deb.nodesource.com/setup_14.x | sudo -E bash -
@@ -60,5 +60,4 @@ cp _frontend/dist.*.tar.gz ./
 rm -rf app/static/dist-latest
 mkdir -p ${DEST_PATH}
 tar -zxvf dist.latest.tar.gz -C ${DEST_PATH} --strip-components=1
-ln -s ${DEST_FOLDER} app/static/dist-latest 
-
+ln -s ${DEST_FOLDER} app/static/dist-latest

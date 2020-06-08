@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 
 sudo chown -R nobody /opt/houston/
 sudo chgrp -R wildme /opt/houston/

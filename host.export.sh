@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 
 # docker save --output houston.wildme.tar wildme/houston:latest
 # rsync -azP houston.wildme.tar houston:/opt/houston/
@@ -22,5 +22,5 @@ ssh houston '/opt/houston/host.backup.sh'
 echo "Sending Database"
 ssh houston '/opt/houston/host.permissions.sh'
 # rsync -azP _db/ houston:/opt/houston/_db/ --no-perms --omit-dir-times
-# rsync -azP houston:/opt/houston/_db/ _db/ 
+# rsync -azP houston:/opt/houston/_db/ _db/
 rsync -azP _db/secrets.py houston:/opt/houston/_db/secrets.py --no-perms --omit-dir-times
