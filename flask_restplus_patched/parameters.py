@@ -1,4 +1,4 @@
-# encoding: utf-8
+# -*- coding: utf-8 -*-
 # pylint: disable=missing-docstring
 import logging
 
@@ -14,7 +14,6 @@ log = logging.getLogger(__name__)  # pylint: disable=invalid-name
 
 
 class Parameters(Schema):
-
     class Meta:
         ordered = True
 
@@ -41,7 +40,6 @@ class Parameters(Schema):
 
 
 class PostFormParameters(Parameters):
-
     def __init__(self, *args, **kwargs):
         super(PostFormParameters, self).__init__(*args, **kwargs)
         for field in itervalues(self.fields):
@@ -87,13 +85,15 @@ class PatchJSONParameters(Parameters):
         kwargs['many'] = True
         super(PatchJSONParameters, self).__init__(*args, **kwargs)
         if not self.PATH_CHOICES:
-            raise ValueError("%s.PATH_CHOICES has to be set" % self.__class__.__name__)
+            raise ValueError('%s.PATH_CHOICES has to be set' % self.__class__.__name__)
         # Make a copy of `validators` as otherwise we will modify the behaviour
         # of all `marshmallow.Schema`-based classes
-        self.fields['op'].validators = \
-            self.fields['op'].validators + [validate.OneOf(self.OPERATION_CHOICES)]
-        self.fields['path'].validators = \
-            self.fields['path'].validators + [validate.OneOf(self.PATH_CHOICES)]
+        self.fields['op'].validators = self.fields['op'].validators + [
+            validate.OneOf(self.OPERATION_CHOICES)
+        ]
+        self.fields['path'].validators = self.fields['path'].validators + [
+            validate.OneOf(self.PATH_CHOICES)
+        ]
 
     @validates_schema
     def validate_patch_structure(self, data):
@@ -126,15 +126,13 @@ class PatchJSONParameters(Parameters):
         for operation in operations:
             if not cls._process_patch_operation(operation, obj=obj, state=state):
                 log.info(
-                    "%s patching has been stopped because of unknown operation %s",
+                    '%s patching has been stopped because of unknown operation %s',
                     obj.__class__.__name__,
-                    operation
+                    operation,
                 )
                 raise ValidationError(
-                    "Failed to update %s details. Operation %s could not succeed." % (
-                        obj.__class__.__name__,
-                        operation
-                    )
+                    'Failed to update %s details. Operation %s could not succeed.'
+                    % (obj.__class__.__name__, operation)
                 )
         return True
 
@@ -152,7 +150,9 @@ class PatchJSONParameters(Parameters):
         field_operaion = operation['op']
 
         if field_operaion == cls.OP_REPLACE:
-            return cls.replace(obj, operation['field_name'], operation['value'], state=state)
+            return cls.replace(
+                obj, operation['field_name'], operation['value'], state=state
+            )
 
         elif field_operaion == cls.OP_TEST:
             return cls.test(obj, operation['field_name'], operation['value'], state=state)
@@ -188,7 +188,9 @@ class PatchJSONParameters(Parameters):
         """
         # Check for existence
         if not hasattr(obj, field):
-            raise ValidationError("Field '%s' does not exist, so it cannot be patched" % field)
+            raise ValidationError(
+                "Field '%s' does not exist, so it cannot be patched" % field
+            )
         # Check for Enum objects
         try:
             obj_cls = obj.__class__
@@ -198,7 +200,10 @@ class PatchJSONParameters(Parameters):
                 enum_values = obj_column_type.enums
                 if value not in enum_values:
                     args = (field, value, enum_values)
-                    raise ValidationError("Field '%s' is an Enum and does not recognize the value '%s'.  Please select one of %r" % args)
+                    raise ValidationError(
+                        "Field '%s' is an Enum and does not recognize the value '%s'.  Please select one of %r"
+                        % args
+                    )
         except (AttributeError):
             pass
         # Set the value

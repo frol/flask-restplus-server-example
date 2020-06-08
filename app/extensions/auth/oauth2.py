@@ -1,4 +1,4 @@
-# encoding: utf-8
+# -*- coding: utf-8 -*-
 # pylint: disable=no-self-use
 """
 OAuth2 provider setup.
@@ -37,6 +37,7 @@ class OAuth2RequestValidator(provider.OAuth2RequestValidator):
 
     def __init__(self):
         from app.modules.auth.models import OAuth2Client, OAuth2Grant, OAuth2Token
+
         self._client_class = OAuth2Client
         self._grant_class = OAuth2Grant
         self._token_class = OAuth2Token
@@ -53,6 +54,7 @@ class OAuth2RequestValidator(provider.OAuth2RequestValidator):
         # pylint: disable=method-hidden,unused-argument
         # Avoid circular dependencies
         from app.modules.users.models import User
+
         return User.find(username=username, password=password)
 
     def _tokensetter(self, token, request, *args, **kwargs):
@@ -76,7 +78,7 @@ class OAuth2RequestValidator(provider.OAuth2RequestValidator):
                 )
                 db.session.add(token_instance)
         except sqlalchemy.exc.IntegrityError:
-            log.exception("Token-setter has failed.")
+            log.exception('Token-setter has failed.')
             return None
         return token_instance
 
@@ -95,11 +97,11 @@ class OAuth2RequestValidator(provider.OAuth2RequestValidator):
                     redirect_uri=request.redirect_uri,
                     scopes=request.scopes,
                     user=current_user,
-                    expires=expires
+                    expires=expires,
                 )
                 db.session.add(grant_instance)
         except sqlalchemy.exc.IntegrityError:
-            log.exception("Grant-setter has failed.")
+            log.exception('Grant-setter has failed.')
             return None
         return grant_instance
 
@@ -123,7 +125,7 @@ class OAuth2Provider(provider.OAuth2Provider):
         self.invalid_response(api_invalid_response)
 
     def init_app(self, app):
-        assert app.config['SECRET_KEY'], "SECRET_KEY must be configured!"
+        assert app.config['SECRET_KEY'], 'SECRET_KEY must be configured!'
         super(OAuth2Provider, self).init_app(app)
         self._validator = OAuth2RequestValidator()
 
@@ -175,7 +177,9 @@ class OAuth2Provider(provider.OAuth2Provider):
                     # Take last value if space separated (e.g. "Bearer XXX")
                     access_token = access_token.strip().split(' ')[-1].strip()
                     access_token = access_token
-                    authorization_value = 'Bearer {access_token}'.format(access_token=access_token)
+                    authorization_value = 'Bearer {access_token}'.format(
+                        access_token=access_token
+                    )
                     request.authorization = authorization_value
 
                 return origin_decorated_func(*args, **kwargs)

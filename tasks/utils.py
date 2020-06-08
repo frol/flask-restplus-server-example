@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 Invoke tasks helper functions
 =============================
@@ -6,16 +7,16 @@ import logging
 import os
 
 
-log = logging.getLogger(__name__) # pylint: disable=invalid-name
+log = logging.getLogger(__name__)  # pylint: disable=invalid-name
 
 
 def download_file(
-        url,
-        local_filepath,
-        chunk_size=1024*512,
-        lock_timeout=10,
-        http_timeout=None,
-        session=None
+    url,
+    local_filepath,
+    chunk_size=1024 * 512,
+    lock_timeout=10,
+    http_timeout=None,
+    session=None,
 ):
     # pylint: disable=too-many-arguments
     """
@@ -34,7 +35,7 @@ def download_file(
     except lockfile.LockTimeout:
         log.info(
             "File '%s' is locked. Probably another instance is still downloading it.",
-            local_filepath
+            local_filepath,
         )
         raise
     try:

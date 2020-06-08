@@ -1,4 +1,4 @@
-# encoding: utf-8
+# -*- coding: utf-8 -*-
 """
 OAuth2 provider models.
 
@@ -24,16 +24,16 @@ import pprint
 
 
 log = logging.getLogger(__name__)
-pp  = pprint.PrettyPrinter(indent=2)
+pp = pprint.PrettyPrinter(indent=2)
 
 
 PST = pytz.timezone('US/Pacific')
 
 
 class EmailTypes(str, enum.Enum):
-    invite   = 'invite'
-    confirm  = 'confirm'
-    receipt  = 'receipt'
+    invite = 'invite'
+    confirm = 'confirm'
+    receipt = 'receipt'
 
 
 class EmailRecord(db.Model, Timestamp):
@@ -50,18 +50,14 @@ class EmailRecord(db.Model, Timestamp):
 
     def __repr__(self):
         return (
-            "<{class_name}("
-            "id={self.id}, "
-            "type={self.email_type}, "
-            ")>".format(
-                class_name=self.__class__.__name__,
-                self=self
-            )
+            '<{class_name}('
+            'id={self.id}, '
+            'type={self.email_type}, '
+            ')>'.format(class_name=self.__class__.__name__, self=self)
         )
 
 
 class RecordedEmail(Email):
-
     def __init__(self, *args, **kwargs):
         self.email_type = None
         super(RecordedEmail, self).__init__(*args, **kwargs)
@@ -74,18 +70,16 @@ class RecordedEmail(Email):
                 if status in ['sent']:
                     for recipient in self.recipients:
                         record = EmailRecord(
-                            recipient=recipient,
-                            email_type=self.email_type
+                            recipient=recipient, email_type=self.email_type
                         )
                         with db.session.begin():
                             db.session.add(record)
-        except:
+        except Exception:
             pass
         return response
 
 
 class ErrorEmail(RecordedEmail):
-
     def __init__(self, subject, data={}, **kwargs):
 
         assert 'recipients' not in kwargs
@@ -104,19 +98,18 @@ class ErrorEmail(RecordedEmail):
         global_data_ = pp.pformat(global_data)
 
         tempate_kwargs = {
-            'error_data' : global_data_,
+            'error_data': global_data_,
         }
         self.template('email.error.html', **tempate_kwargs)
 
 
 class SystemErrorEmail(ErrorEmail):
-
     def __init__(self, module, description, data={}, **kwargs):
         subject = 'System Error'
 
         local_data = {
-            'module'      : module,
-            'description' : description,
+            'module': module,
+            'description': description,
         }
         local_data.update(data)
 

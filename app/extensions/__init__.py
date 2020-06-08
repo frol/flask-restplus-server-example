@@ -1,4 +1,4 @@
-# encoding: utf-8
+# -*- coding: utf-8 -*-
 # pylint: disable=invalid-name,wrong-import-position,wrong-import-order
 """
 Extensions setup
@@ -9,21 +9,26 @@ Extensions provide access to common resources of the application.
 Please, put new extension instantiations and initializations here.
 """
 from .logging import Logging
+
 logging = Logging()
 
 from flask_cors import CORS  # NOQA
+
 cross_origin_resource_sharing = CORS()
 
 from .flask_sqlalchemy import SQLAlchemy  # NOQA
 from sqlalchemy.ext import mutable  # NOQA
 import json  # NOQA
+
 db = SQLAlchemy()
 
 from sqlalchemy_utils import force_auto_coercion, force_instant_defaults  # NOQA
+
 force_auto_coercion()
 force_instant_defaults()
 
 from flask_login import LoginManager  # NOQA
+
 login_manager = LoginManager()
 ##########################################################################################
 # IMPORTANT: Do not uncomment the line below, it will break the oauth login management
@@ -34,9 +39,11 @@ login_manager = LoginManager()
 from flask_paranoid import Paranoid  # NOQA
 
 from flask_marshmallow import Marshmallow  # NOQA
+
 marshmallow = Marshmallow()
 
 from .auth import OAuth2Provider  # NOQA
+
 oauth2 = OAuth2Provider()
 
 from .email import mail  # NOQA

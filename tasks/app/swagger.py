@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 Swagger related invoke tasks
 """
@@ -21,6 +22,7 @@ def export(context, output_format='json', quiet=False):
     logging.getLogger().setLevel(logging.ERROR)
 
     from app import create_app
+
     app = create_app(flask_config_name='testing')
     swagger_content = app.test_client().get('/api/v1/swagger.%s' % output_format).data
     if not quiet:
@@ -45,35 +47,31 @@ def codegen(context, language, version, dry_run=False, offline=False):
             }
         )
     else:
-        with open(os.path.join('.', 'clients', language, 'swagger.json'), 'wb') as swagger_json:
+        with open(
+            os.path.join('.', 'clients', language, 'swagger.json'), 'wb'
+        ) as swagger_json:
             swagger_json.write(swagger_json_content)
 
     if not offline:
-        run(
-            "docker pull 'khorolets/swagger-codegen'"
-        )
+        run("docker pull 'khorolets/swagger-codegen'")
 
     run(
         "cd './clients/%(language)s' ;"
         # Tar the config files to pass them into swagger-codegen docker-container.
-        "tar -c swagger.json swagger_codegen_config.json"
+        'tar -c swagger.json swagger_codegen_config.json'
         "  | docker run --interactive --rm --entrypoint /bin/sh 'khorolets/swagger-codegen' -c \""
         # Unpack them, generate library code with these files.
-        "      tar -x ;"
+        '      tar -x ;'
         "      java -jar '/opt/swagger-codegen/modules/swagger-codegen-cli/target/swagger-codegen-cli.jar'"
-        "        generate"
+        '        generate'
         "          --input-spec './swagger.json'"
         "          --lang '%(language)s'"
         "          --output './dist'"
         "          --config './swagger_codegen_config.json'"
         "          --additional-properties 'packageVersion=%(version)s,projectVersion=%(version)s'"
-        "          >&2 ;"
+        '          >&2 ;'
         # tar the generated code and return it.
         "      tar -c dist\""
         # Finally, untar library source into current directory.
-        "  | tar -x"
-        % {
-            'language': language,
-            'version': version,
-        }
+        '  | tar -x' % {'language': language, 'version': version,}
     )

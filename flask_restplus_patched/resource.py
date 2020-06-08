@@ -48,7 +48,7 @@ class Resource(OriginalResource):
         for method_func in method_funcs:
             if getattr(method_func, '_access_restriction_decorators', None):
                 if not hasattr(method_func, '_cached_fake_method_func'):
-                    fake_method_func = lambda *args, **kwargs: True
+                    fake_method_func = lambda *args, **kwargs: True  # NOQA
                     # `__name__` is used in `login_required` decorator, so it
                     # is required to fake this also
                     fake_method_func.__name__ = 'options'
@@ -75,6 +75,5 @@ class Resource(OriginalResource):
         flask.request.oauth = request_oauth_backup
 
         return flask.Response(
-            status=HTTPStatus.NO_CONTENT,
-            headers={'Allow': ", ".join(allowed_methods)}
+            status=HTTPStatus.NO_CONTENT, headers={'Allow': ', '.join(allowed_methods)}
         )

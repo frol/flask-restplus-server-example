@@ -1,4 +1,4 @@
-# encoding: utf-8
+# -*- coding: utf-8 -*-
 # pylint: disable=bad-continuation
 """
 RESTful API Redemptions resources
@@ -18,12 +18,11 @@ from app.modules.users import permissions
 
 
 log = logging.getLogger(__name__)  # pylint: disable=invalid-name
-api = Namespace('dev', description="Developer Tools")  # pylint: disable=invalid-name
+api = Namespace('dev', description='Developer Tools')  # pylint: disable=invalid-name
 
 
 @api.route('/embed/')
 class Develop(Resource):
-
     @api.login_required(oauth_scopes=['users:read'])
     @api.permission_required(permissions.AdminRolePermission())
     def get(self):

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # pylint: disable=too-few-public-methods,invalid-name,missing-docstring
 import importlib
 import os
@@ -36,7 +37,17 @@ if os.path.exists(_config_filepath):
 class BaseConfig(object):
     # SQLITE
     ASSET_DATABASE_PATH = os.path.join(PROJECT_DATABASE_PATH, 'assets')
-    ASSET_ALLOWED_EXTS  = ['.jpg', '.jpe', '.jpeg', '.png', '.gif', '.svg', '.bmp', '.tif', '.tiff']
+    ASSET_ALLOWED_EXTS = [
+        '.jpg',
+        '.jpe',
+        '.jpeg',
+        '.png',
+        '.gif',
+        '.svg',
+        '.bmp',
+        '.tif',
+        '.tiff',
+    ]
 
     SQLALCHEMY_DATABASE_PATH = os.path.join(PROJECT_DATABASE_PATH, 'database.sqlite3')
     SQLALCHEMY_DATABASE_URI = 'sqlite:///%s' % (SQLALCHEMY_DATABASE_PATH)
@@ -60,11 +71,8 @@ class BaseConfig(object):
         # THIS ORDERING IS VERY SPECIFIC AND INFLUENCES WHICH MODULES CAN DEPEND ON EACH OTHER
         'assets',
         'auth',
-
         'frontend',
-
         'users',
-
         'api',
     )
 
@@ -131,4 +139,4 @@ class TestingConfig(DevelopmentConfig):
 
     # Use in-memory SQLite database for testing
     SQLALCHEMY_DATABASE_URI = 'sqlite://'
-    MAIL_SUPPRESS_SEND  = True
+    MAIL_SUPPRESS_SEND = True

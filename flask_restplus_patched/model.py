@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from apispec.ext.marshmallow.swagger import fields2jsonschema, field2property
 import flask_marshmallow
 from werkzeug import cached_property
@@ -6,7 +7,6 @@ from flask_restplus.model import Model as OriginalModel
 
 
 class SchemaMixin(object):
-
     def __deepcopy__(self, memo):
         # XXX: Flask-RESTplus makes unnecessary data copying, while
         # marshmallow.Schema doesn't support deepcopyng.
@@ -18,6 +18,7 @@ class Schema(SchemaMixin, flask_marshmallow.Schema):
 
 
 if flask_marshmallow.has_sqla:
+
     class ModelSchema(SchemaMixin, flask_marshmallow.sqla.ModelSchema):
         pass
 
@@ -32,7 +33,6 @@ class DefaultHTTPErrorSchema(Schema):
 
 
 class Model(OriginalModel):
-
     def __init__(self, name, model, **kwargs):
         # XXX: Wrapping with __schema__ is not a very elegant solution.
         super(Model, self).__init__(name, {'__schema__': model}, **kwargs)

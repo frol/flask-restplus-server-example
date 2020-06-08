@@ -1,4 +1,4 @@
-# encoding: utf-8
+# -*- coding: utf-8 -*-
 # pylint: disable=too-few-public-methods,invalid-name,abstract-method,method-hidden
 """
 RESTful API Rules
@@ -116,7 +116,7 @@ class PartialPermissionDeniedRule(Rule):
     """
 
     def check(self):
-        raise RuntimeError("Partial permissions are not intended to be checked")
+        raise RuntimeError('Partial permissions are not intended to be checked')
 
 
 class SupervisorRoleRule(ActiveUserRoleRule):

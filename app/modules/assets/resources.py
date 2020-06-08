@@ -1,4 +1,4 @@
-# encoding: utf-8
+# -*- coding: utf-8 -*-
 # pylint: disable=bad-continuation
 """
 RESTful API Assets resources
@@ -28,7 +28,7 @@ import os
 
 
 log = logging.getLogger(__name__)  # pylint: disable=invalid-name
-api = Namespace('assets', description="Assets")  # pylint: disable=invalid-name
+api = Namespace('assets', description='Assets')  # pylint: disable=invalid-name
 
 
 def process_file_upload(square=False):
@@ -42,7 +42,7 @@ def process_file_upload(square=False):
 
     upload_file = request.files.get('file', None)
     if upload_file is None:
-        abort(code=HTTPStatus.CONFLICT, message="The file was not uploaded as expected")
+        abort(code=HTTPStatus.CONFLICT, message='The file was not uploaded as expected')
 
     upload_filename = upload_file.filename
     upload_ext = os.path.splitext(upload_filename)[1]
@@ -55,10 +55,10 @@ def process_file_upload(square=False):
 
         # Sanity check
         asset_filename = secure_filename(asset_filename)
-        asset_filepath = os.path.join(asset_path, asset_filename, )
+        asset_filepath = os.path.join(asset_path, asset_filename,)
 
-        final_asset_filepath = '%s%s' % (asset_code, FINAL_EXT, )
-        final_asset_filepath = os.path.join(asset_path, final_asset_filepath, )
+        final_asset_filepath = '%s%s' % (asset_code, FINAL_EXT,)
+        final_asset_filepath = os.path.join(asset_path, final_asset_filepath,)
 
         # Check if we have a database asset with that code (very unlikely)
         existing_asset = Asset.query.filter_by(code=asset_code).first()
@@ -86,29 +86,28 @@ def process_file_upload(square=False):
     asset_.thumbnail((1000, 1000), Image.ANTIALIAS)
 
     if square:
-        width, height = asset_.size   # Get dimensions
+        width, height = asset_.size  # Get dimensions
         value = min(width, height)
-        left   = (width  - value) / 2
-        top    = (height - value) / 2
-        right  = (width  + value) / 2
+        left = (width - value) / 2
+        top = (height - value) / 2
+        right = (width + value) / 2
         bottom = (height + value) / 2
         asset_ = asset_.crop((left, top, right, bottom))
 
     # Optimize JPEG file and save
     asset_.save(final_asset_filepath, quality=75, optimize=True)
-    log.info('Saved asset: %r' % (asset_code, ))
+    log.info('Saved asset: %r' % (asset_code,))
 
     # Remove the original upload now that we have an optimized version saved to disk
     os.remove(asset_filepath)
 
     context = api.commit_or_abort(
-        db.session,
-        default_error_message="Failed to create a new asset."
+        db.session, default_error_message='Failed to create a new asset.'
     )
     with context:
         asset_kwargs = {
             'code': asset_code,
-            'ext' : FINAL_EXT,
+            'ext': FINAL_EXT,
         }
         new_asset = Asset(**asset_kwargs)
         db.session.add(new_asset)
@@ -151,8 +150,7 @@ class Assets(Resource):
 @api.route('/<int:asset_id>')
 @api.login_required(oauth_scopes=['assets:read'])
 @api.response(
-    code=HTTPStatus.NOT_FOUND,
-    description="Asset not found.",
+    code=HTTPStatus.NOT_FOUND, description='Asset not found.',
 )
 @api.resolve_object_by_model(Asset, 'asset')
 class AssetByID(Resource):

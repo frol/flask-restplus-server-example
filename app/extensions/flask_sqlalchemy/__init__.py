@@ -1,4 +1,4 @@
-# encoding: utf-8
+# -*- coding: utf-8 -*-
 """
 Flask-SQLAlchemy adapter
 ------------------------
@@ -22,7 +22,7 @@ def set_sqlite_pragma(dbapi_connection, connection_record):
     if not isinstance(dbapi_connection, sqlite3.Connection):
         return
     cursor = dbapi_connection.cursor()
-    cursor.execute("PRAGMA foreign_keys=ON")
+    cursor.execute('PRAGMA foreign_keys=ON')
     cursor.close()
 
 
@@ -65,8 +65,10 @@ class SQLAlchemy(BaseSQLAlchemy):
         super(SQLAlchemy, self).init_app(app)
 
         database_uri = app.config['SQLALCHEMY_DATABASE_URI']
-        assert database_uri, "SQLALCHEMY_DATABASE_URI must be configured!"
+        assert database_uri, 'SQLALCHEMY_DATABASE_URI must be configured!'
         if database_uri.startswith('sqlite:'):
-            self.event.listens_for(engine.Engine, "connect")(set_sqlite_pragma)
+            self.event.listens_for(engine.Engine, 'connect')(set_sqlite_pragma)
 
-        app.extensions['migrate'] = AlembicDatabaseMigrationConfig(self, compare_type=True)
+        app.extensions['migrate'] = AlembicDatabaseMigrationConfig(
+            self, compare_type=True
+        )

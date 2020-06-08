@@ -1,14 +1,14 @@
-# encoding: utf-8
+# -*- coding: utf-8 -*-
 import pytest
 import six
 
 
-@pytest.mark.parametrize('auth_scopes,redirect_uris', (
-    (['auth:write'], ['http://1', 'http://2']),
-    (['auth:write', 'auth:read'], None),
-))
+@pytest.mark.parametrize(
+    'auth_scopes,redirect_uris',
+    ((['auth:write'], ['http://1', 'http://2']), (['auth:write', 'auth:read'], None),),
+)
 def test_creating_oauth2_client(
-        flask_app_client, regular_user, db, auth_scopes, redirect_uris
+    flask_app_client, regular_user, db, auth_scopes, redirect_uris
 ):
     with flask_app_client.login(regular_user, auth_scopes=auth_scopes):
         response = flask_app_client.post(
@@ -16,7 +16,7 @@ def test_creating_oauth2_client(
             data={
                 'redirect_uris': redirect_uris,
                 'default_scopes': ['users:read', 'users:write', 'auth:read'],
-            }
+            },
         )
 
     assert response.status_code == 200
@@ -28,12 +28,16 @@ def test_creating_oauth2_client(
         'client_secret',
         'client_type',
         'default_scopes',
-        'redirect_uris'
+        'redirect_uris',
     }
     assert isinstance(response.json['client_id'], six.text_type)
     assert isinstance(response.json['client_secret'], six.text_type)
     assert isinstance(response.json['default_scopes'], list)
-    assert set(response.json['default_scopes']) == {'users:read', 'users:write', 'auth:read'}
+    assert set(response.json['default_scopes']) == {
+        'users:read',
+        'users:write',
+        'auth:read',
+    }
     assert isinstance(response.json['redirect_uris'], list)
 
     # Cleanup
@@ -46,21 +50,16 @@ def test_creating_oauth2_client(
         db.session.delete(oauth2_client_instance)
 
 
-@pytest.mark.parametrize('auth_scopes', (
-    [],
-    ['auth:read'],
-    ['auth:read', 'user:read'],
-    ['user:read'],
-))
+@pytest.mark.parametrize(
+    'auth_scopes', ([], ['auth:read'], ['auth:read', 'user:read'], ['user:read'],)
+)
 def test_creating_oauth2_client_by_unauthorized_user_must_fail(
-        flask_app_client, regular_user, auth_scopes
+    flask_app_client, regular_user, auth_scopes
 ):
     with flask_app_client.login(regular_user, auth_scopes=auth_scopes):
         response = flask_app_client.post(
             '/api/v1/auth/oauth2_clients/',
-            data={
-                'default_scopes': ['users:read', 'users:write', 'invalid'],
-            }
+            data={'default_scopes': ['users:read', 'users:write', 'invalid'],},
         )
 
     assert response.status_code == 401
@@ -69,7 +68,7 @@ def test_creating_oauth2_client_by_unauthorized_user_must_fail(
 
 
 def test_creating_oauth2_client_must_fail_for_invalid_scopes(
-        flask_app_client, regular_user
+    flask_app_client, regular_user
 ):
     with flask_app_client.login(regular_user, auth_scopes=['auth:write']):
         response = flask_app_client.post(
@@ -77,7 +76,7 @@ def test_creating_oauth2_client_must_fail_for_invalid_scopes(
             data={
                 'redirect_uris': [],
                 'default_scopes': ['users:read', 'users:write', 'invalid'],
-            }
+            },
         )
 
     assert response.status_code == 422

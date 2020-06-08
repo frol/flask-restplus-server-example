@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from functools import wraps
 
 import flask
@@ -19,16 +20,16 @@ class Namespace(OriginalNamespace):
         if doc is False:
             cls.__apidoc__ = False
             return
-        ##unshortcut_params_description(doc)
-        ##handle_deprecations(doc)
-        ##for key in 'get', 'post', 'put', 'delete', 'options', 'head', 'patch':
-        ##    if key in doc:
-        ##        if doc[key] is False:
-        ##            continue
-        ##        unshortcut_params_description(doc[key])
-        ##        handle_deprecations(doc[key])
-        ##        if 'expect' in doc[key] and not isinstance(doc[key]['expect'], (list, tuple)):
-        ##            doc[key]['expect'] = [doc[key]['expect']]
+        # unshortcut_params_description(doc)
+        # handle_deprecations(doc)
+        # for key in 'get', 'post', 'put', 'delete', 'options', 'head', 'patch':
+        #     if key in doc:
+        #         if doc[key] is False:
+        #             continue
+        #         unshortcut_params_description(doc[key])
+        #         handle_deprecations(doc[key])
+        #         if 'expect' in doc[key] and not isinstance(doc[key]['expect'], (list, tuple)):
+        #             doc[key]['expect'] = [doc[key]['expect']]
         cls.__apidoc__ = merge(getattr(cls, '__apidoc__', {}), doc)
 
     def resolve_object(self, object_arg_name, resolver):
@@ -45,6 +46,7 @@ class Namespace(OriginalNamespace):
         ...    def get(self, user):
         ...        # user is a User instance here
         """
+
         def decorator(func_or_class):
             if isinstance(func_or_class, type):
                 # Handle Resource classes decoration
@@ -56,14 +58,18 @@ class Namespace(OriginalNamespace):
             def wrapper(*args, **kwargs):
                 kwargs[object_arg_name] = resolver(kwargs)
                 return func_or_class(*args, **kwargs)
+
             return wrapper
+
         return decorator
 
     def model(self, name=None, model=None, mask=None, **kwargs):
         """
         Model registration decorator.
         """
-        if isinstance(model, (flask_marshmallow.Schema, flask_marshmallow.base_fields.FieldABC)):
+        if isinstance(
+            model, (flask_marshmallow.Schema, flask_marshmallow.base_fields.FieldABC)
+        ):
             if not name:
                 name = model.__class__.__name__
             api_model = Model(name, model, mask=mask)
@@ -75,9 +81,10 @@ class Namespace(OriginalNamespace):
         """
         Endpoint parameters registration decorator.
         """
+
         def decorator(func):
             if locations is None and parameters.many:
-                _locations = ('json', )
+                _locations = ('json',)
             else:
                 _locations = locations
             if _locations is not None:
@@ -85,9 +92,7 @@ class Namespace(OriginalNamespace):
 
             return self.doc(params=parameters)(
                 self.response(code=HTTPStatus.UNPROCESSABLE_ENTITY)(
-                    self.WEBARGS_PARSER.use_args(parameters, locations=_locations)(
-                        func
-                    )
+                    self.WEBARGS_PARSER.use_args(parameters, locations=_locations)(func)
                 )
             )
 
@@ -121,10 +126,9 @@ class Namespace(OriginalNamespace):
             assert model is None
         if model is None and code not in {HTTPStatus.ACCEPTED, HTTPStatus.NO_CONTENT}:
             if code.value not in http_exceptions.default_exceptions:
-                raise ValueError("`model` parameter is required for code %d" % code)
+                raise ValueError('`model` parameter is required for code %d' % code)
             model = self.model(
-                name='HTTPError%d' % code,
-                model=DefaultHTTPErrorSchema(http_code=code)
+                name='HTTPError%d' % code, model=DefaultHTTPErrorSchema(http_code=code)
             )
         if description is None:
             description = code.description
@@ -134,6 +138,7 @@ class Namespace(OriginalNamespace):
             This decorator handles responses to serialize the returned value
             with a given model.
             """
+
             def dump_wrapper(*args, **kwargs):
                 # pylint: disable=missing-docstring
                 response = func(*args, **kwargs)
@@ -141,7 +146,9 @@ class Namespace(OriginalNamespace):
 
                 if response is None:
                     if model is not None:
-                        raise ValueError("Response cannot not be None with HTTP status %d" % code)
+                        raise ValueError(
+                            'Response cannot not be None with HTTP status %d' % code
+                        )
                     return flask.Response(status=code)
                 elif isinstance(response, flask.Response) or model is None:
                     return response
@@ -182,22 +189,17 @@ class Namespace(OriginalNamespace):
                 if getattr(model, 'many', False):
                     api_model = [api_model]
 
-            doc_decorator = self.doc(
-                responses={
-                    code.value: (description, api_model)
-                }
-            )
+            doc_decorator = self.doc(responses={code.value: (description, api_model)})
             return doc_decorator(decorated_func_or_class)
 
         return decorator
 
     def preflight_options_handler(self, func):
-
         @wraps(func)
         def wrapper(self, *args, **kwargs):
             if 'Access-Control-Request-Method' in flask.request.headers:
                 response = flask.Response(status=HTTPStatus.OK)
-                response.headers['Access-Control-Allow-Methods'] = ", ".join(self.methods)
+                response.headers['Access-Control-Allow-Methods'] = ', '.join(self.methods)
                 return response
             return func(self, *args, **kwargs)
 
@@ -215,8 +217,7 @@ class Namespace(OriginalNamespace):
 
         return wrapper
 
-
-    def login_required(self, oauth_scopes, locations=('headers', 'session', )):
+    def login_required(self, oauth_scopes, locations=('headers', 'session',)):
         """
         A decorator which restricts access for authorized users only.
 
@@ -258,6 +259,7 @@ class Namespace(OriginalNamespace):
         ...     def post(self):
         ...         return User()
         """
+
         def decorator(func_or_class):
             """
             A helper wrapper.
@@ -284,47 +286,51 @@ class Namespace(OriginalNamespace):
 
             # Ignore the current OAuth2 scopes if another @login_required
             # decorator was applied and just copy the already applied scopes.
-            if hasattr(protected_func, '__apidoc__') \
-                    and 'security' in protected_func.__apidoc__ \
-                    and '__oauth__' in protected_func.__apidoc__['security']:
-                _oauth_scopes = protected_func.__apidoc__['security']['__oauth__']['scopes']
+            if (
+                hasattr(protected_func, '__apidoc__')
+                and 'security' in protected_func.__apidoc__
+                and '__oauth__' in protected_func.__apidoc__['security']
+            ):
+                _oauth_scopes = protected_func.__apidoc__['security']['__oauth__'][
+                    'scopes'
+                ]
             else:
                 _oauth_scopes = oauth_scopes
 
-            oauth_protection_decorator = oauth2.require_oauth(*_oauth_scopes, locations=locations)
-            self._register_access_restriction_decorator(protected_func, oauth_protection_decorator)
+            oauth_protection_decorator = oauth2.require_oauth(
+                *_oauth_scopes, locations=locations
+            )
+            self._register_access_restriction_decorator(
+                protected_func, oauth_protection_decorator
+            )
             oauth_protected_func = oauth_protection_decorator(protected_func)
 
             if 'form' in locations:
                 oauth_protected_func = self.param(
                     name='access_token',
                     description=(
-                        "This is an alternative way of passing the access_token, useful for "
-                        "making authenticated requests from the browser native forms."
+                        'This is an alternative way of passing the access_token, useful for '
+                        'making authenticated requests from the browser native forms.'
                     ),
                     _in='formData',
                     type='string',
-                    required=False
+                    required=False,
                 )(oauth_protected_func)
 
             return self.doc(
                 security={
                     # This is a temporary (namespace) configuration which gets
                     # overriden on a namespace registration (in `Api.add_namespace`).
-                    '__oauth__': {
-                        'type': 'oauth',
-                        'scopes': _oauth_scopes,
-                    }
+                    '__oauth__': {'type': 'oauth', 'scopes': _oauth_scopes,}
                 }
             )(
                 self.response(
                     code=HTTPStatus.UNAUTHORIZED.value,
                     description=(
-                        "Authentication is required"
-                        if not oauth_scopes else
-                        "Authentication with %s OAuth scope(s) is required" % (
-                            ', '.join(oauth_scopes)
-                        )
+                        'Authentication is required'
+                        if not oauth_scopes
+                        else 'Authentication with %s OAuth scope(s) is required'
+                        % (', '.join(oauth_scopes))
                     ),
                 )(oauth_protected_func)
             )
@@ -359,6 +365,7 @@ class Namespace(OriginalNamespace):
         ...     # is passed!
         ...     return family
         """
+
         def decorator(func):
             """
             A helper wrapper.
@@ -374,15 +381,19 @@ class Namespace(OriginalNamespace):
                 if not kwargs_on_request:
                     _permission_decorator = permission
                 else:
+
                     def _permission_decorator(func):
                         @wraps(func)
                         def wrapper(*args, **kwargs):
                             with permission(**kwargs_on_request(kwargs)):
                                 return func(*args, **kwargs)
+
                         return wrapper
 
                 protected_func = _permission_decorator(func)
-                self._register_access_restriction_decorator(protected_func, _permission_decorator)
+                self._register_access_restriction_decorator(
+                    protected_func, _permission_decorator
+                )
 
             # Apply `_role_permission_applied` marker for Role Permissions,
             # so don't apply unnecessary permissions in `login_required`
@@ -390,24 +401,20 @@ class Namespace(OriginalNamespace):
             #
             # TODO: Change this behaviour when implement advanced OPTIONS
             # method support
-            if (
-                    isinstance(permission, permissions.RolePermission)
-                    or
-                    (
-                        isinstance(permission, type)
-                        and
-                        issubclass(permission, permissions.RolePermission)
-                    )
+            if isinstance(permission, permissions.RolePermission) or (
+                isinstance(permission, type)
+                and issubclass(permission, permissions.RolePermission)
             ):
-                protected_func._role_permission_applied = True  # pylint: disable=protected-access
+                protected_func._role_permission_applied = (
+                    True  # pylint: disable=protected-access
+                )
 
             permission_description = permission.__doc__.strip()
             return self.doc(
-                description="**PERMISSIONS: %s**\n\n" % permission_description
+                description='**PERMISSIONS: %s**\n\n' % permission_description
             )(
                 self.response(
-                    code=HTTPStatus.FORBIDDEN.value,
-                    description=permission_description,
+                    code=HTTPStatus.FORBIDDEN.value, description=permission_description,
                 )(protected_func)
             )
 
@@ -421,4 +428,6 @@ class Namespace(OriginalNamespace):
         """
         if not hasattr(func, '_access_restriction_decorators'):
             func._access_restriction_decorators = []  # pylint: disable=protected-access
-        func._access_restriction_decorators.append(decorator_to_register)  # pylint: disable=protected-access
+        func._access_restriction_decorators.append(
+            decorator_to_register
+        )  # pylint: disable=protected-access

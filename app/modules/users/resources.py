@@ -1,4 +1,4 @@
-# encoding: utf-8
+# -*- coding: utf-8 -*-
 # pylint: disable=too-few-public-methods
 """
 RESTful API User resources
@@ -27,7 +27,7 @@ from app.modules.assets.resources import process_file_upload
 
 
 log = logging.getLogger(__name__)
-api = Namespace('users', description="Users")
+api = Namespace('users', description='Users')
 
 
 PST = pytz.timezone('US/Pacific')
@@ -60,9 +60,11 @@ class Users(Resource):
 
             or_terms = []
             for term in search:
-                codes = Code.query.filter_by(code_type=CodeTypes.checkin).filter(
-                    Code.accept_code.contains(term),
-                ).all()
+                codes = (
+                    Code.query.filter_by(code_type=CodeTypes.checkin)
+                    .filter(Code.accept_code.contains(term),)
+                    .all()
+                )
                 code_users = set([])
                 for code in codes:
                     if not code.is_expired:
@@ -95,20 +97,21 @@ class Users(Resource):
         user = User.query.filter_by(email=email).first()
 
         if user is not None:
-            abort(code=HTTPStatus.CONFLICT, message="The email address is already in use.")
+            abort(
+                code=HTTPStatus.CONFLICT, message='The email address is already in use.'
+            )
 
         args['username'] = args['email']
         if 'password' not in args:
             args['password'] = args['email'] + '123'
 
         args['is_internal'] = False
-        args['is_admin']    = False
-        args['is_staff']    = False
-        args['is_active']   = True
+        args['is_admin'] = False
+        args['is_staff'] = False
+        args['is_active'] = True
 
         context = api.commit_or_abort(
-            db.session,
-            default_error_message="Failed to create a new user."
+            db.session, default_error_message='Failed to create a new user.'
         )
         with context:
             new_user = User(**args)
@@ -125,8 +128,7 @@ class Users(Resource):
         Remove a member.
         """
         context = api.commit_or_abort(
-            db.session,
-            default_error_message="Failed to delete user."
+            db.session, default_error_message='Failed to delete user.'
         )
         with context:
             user_id = args['user_id']
@@ -139,8 +141,7 @@ class Users(Resource):
 @api.route('/<int:user_id>')
 @api.login_required(oauth_scopes=['users:read'])
 @api.response(
-    code=HTTPStatus.NOT_FOUND,
-    description="User not found.",
+    code=HTTPStatus.NOT_FOUND, description='User not found.',
 )
 @api.resolve_object_by_model(User, 'user')
 class UserByID(Resource):
@@ -150,7 +151,7 @@ class UserByID(Resource):
 
     @api.permission_required(
         permissions.OwnerRolePermission,
-        kwargs_on_request=lambda kwargs: {'obj': kwargs['user']}
+        kwargs_on_request=lambda kwargs: {'obj': kwargs['user']},
     )
     @api.response(schemas.DetailedUserSchema())
     def get(self, user):
@@ -162,7 +163,7 @@ class UserByID(Resource):
     @api.login_required(oauth_scopes=['users:write'])
     @api.permission_required(
         permissions.OwnerModifyRolePermission,
-        kwargs_on_request=lambda kwargs: {'obj': kwargs['user']}
+        kwargs_on_request=lambda kwargs: {'obj': kwargs['user']},
     )
     @api.permission_required(permissions.WriteAccessPermission())
     @api.parameters(parameters.PatchUserDetailsParameters())
@@ -173,8 +174,7 @@ class UserByID(Resource):
         Patch user details by ID.
         """
         context = api.commit_or_abort(
-            db.session,
-            default_error_message="Failed to update user details."
+            db.session, default_error_message='Failed to update user details.'
         )
         with context:
             parameters.PatchUserDetailsParameters.perform_patch(args, user)
@@ -187,8 +187,7 @@ class UserByID(Resource):
 @api.route('/picture/<int:user_id>')
 @api.login_required(oauth_scopes=['assets:read', 'users:read'])
 @api.response(
-    code=HTTPStatus.NOT_FOUND,
-    description="User not found.",
+    code=HTTPStatus.NOT_FOUND, description='User not found.',
 )
 @api.resolve_object_by_model(User, 'user')
 class UserArtworkByID(Resource):
@@ -199,7 +198,7 @@ class UserArtworkByID(Resource):
     @api.login_required(oauth_scopes=['assets:write', 'users:write'])
     @api.permission_required(
         permissions.OwnerModifyRolePermission,
-        kwargs_on_request=lambda kwargs: {'obj': kwargs['user']}
+        kwargs_on_request=lambda kwargs: {'obj': kwargs['user']},
     )
     @api.permission_required(permissions.WriteAccessPermission())
     @api.response(schemas.DetailedUserSchema())
@@ -210,8 +209,7 @@ class UserArtworkByID(Resource):
         """
         asset = process_file_upload(square=True)
         context = api.commit_or_abort(
-            db.session,
-            default_error_message="Failed to update User details."
+            db.session, default_error_message='Failed to update User details.'
         )
         with context:
             user.profile_asset_id = asset.id
@@ -235,7 +233,7 @@ class UserSignupForm(Resource):
         must be used to receive a reCAPTCHA secret key for POST /users/ form.
         """
         # TODO:
-        return {"recaptcha_server_key": "TODO"}
+        return {'recaptcha_server_key': 'TODO'}
 
 
 @api.route('/me')

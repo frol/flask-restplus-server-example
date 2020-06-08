@@ -1,4 +1,4 @@
-# coding: utf-8
+# -*- coding: utf-8 -*-
 """
 OAuth2 provider setup.
 
@@ -19,7 +19,9 @@ from app.extensions import api, oauth2
 from .models import OAuth2Client
 
 
-auth_blueprint = Blueprint('auth', __name__, url_prefix='/auth')  # pylint: disable=invalid-name
+auth_blueprint = Blueprint(
+    'auth', __name__, url_prefix='/auth'
+)  # pylint: disable=invalid-name
 
 
 @auth_blueprint.route('/oauth2/token', methods=['POST'])

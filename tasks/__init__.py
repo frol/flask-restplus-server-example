@@ -1,4 +1,4 @@
-# encoding: utf-8
+# -*- coding: utf-8 -*-
 # pylint: disable=invalid-name,wrong-import-position
 """
 The starting point of Invoke tasks for Houston.
@@ -13,7 +13,7 @@ import sysconfig
 logging.basicConfig()
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
-#logging.getLogger('app').setLevel(logging.DEBUG)
+# logging.getLogger('app').setLevel(logging.DEBUG)
 
 try:
     import colorlog
@@ -44,7 +44,7 @@ else:
                 'CRITICAL': 'bold_red',
             },
         },
-        style='%'
+        style='%',
     )
 
     for handler in logger.handlers:
@@ -56,15 +56,14 @@ else:
     handler.setFormatter(formatter)
 
 
-from invoke import Collection
-from invoke.executor import Executor
+from invoke import Collection  # NOQA
+from invoke.executor import Executor  # NOQA
 
-from . import app
+from . import app  # NOQA
 
 # NOTE: `namespace` or `ns` name is required!
-namespace = Collection(
-    app,
-)
+namespace = Collection(app,)
+
 
 def invoke_execute(context, command_name, **kwargs):
     """
@@ -74,10 +73,15 @@ def invoke_execute(context, command_name, **kwargs):
     target_task = context.root_namespace[command_name]
     return results[target_task]
 
-namespace.configure({
-    'run': {
-        'shell': '/bin/sh' if platform.system() != 'Windows' else os.environ.get('COMSPEC'),
-    },
-    'root_namespace': namespace,
-    'invoke_execute': invoke_execute,
-})
+
+namespace.configure(
+    {
+        'run': {
+            'shell': '/bin/sh'
+            if platform.system() != 'Windows'
+            else os.environ.get('COMSPEC'),
+        },
+        'root_namespace': namespace,
+        'invoke_execute': invoke_execute,
+    }
+)

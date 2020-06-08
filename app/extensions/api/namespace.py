@@ -1,4 +1,4 @@
-# encoding: utf-8
+# -*- coding: utf-8 -*-
 """
 Extended Api Namespace implementation with an application-specific helpers
 --------------------------------------------------------------------------
@@ -53,14 +53,17 @@ class Namespace(BaseNamespace):
         <MyModel(user_id=3, name="test", ...)>
         """
         if identity_arg_names is None:
-            identity_arg_names = ('%s_id' % object_arg_name, )
+            identity_arg_names = ('%s_id' % object_arg_name,)
         elif not isinstance(identity_arg_names, (list, tuple)):
-            identity_arg_names = (identity_arg_names, )
+            identity_arg_names = (identity_arg_names,)
         return self.resolve_object(
             object_arg_name,
             resolver=lambda kwargs: model.query.get_or_404(
-                [kwargs.pop(identity_arg_name) for identity_arg_name in identity_arg_names]
-            )
+                [
+                    kwargs.pop(identity_arg_name)
+                    for identity_arg_name in identity_arg_names
+                ]
+            ),
         )
 
     def model(self, name=None, model=None, **kwargs):
@@ -75,7 +78,7 @@ class Namespace(BaseNamespace):
         if isinstance(model, flask_marshmallow.Schema) and not name:
             name = model.__class__.__name__
             if name.endswith('Schema'):
-                name = name[:-len('Schema')]
+                name = name[: -len('Schema')]
         return super(Namespace, self).model(name=name, model=model, **kwargs)
 
     def paginate(self, parameters=None, locations=None):
@@ -90,11 +93,11 @@ class Namespace(BaseNamespace):
         if not parameters:
             # Use default parameters if None specified
             from app.extensions.api.parameters import PaginationParameters
+
             parameters = PaginationParameters()
 
         if not all(
-            mandatory in parameters.declared_fields
-            for mandatory in ('limit', 'offset')
+            mandatory in parameters.declared_fields for mandatory in ('limit', 'offset')
         ):
             raise AttributeError(
                 '`limit` and `offset` fields must be in Parameter passed to `paginate()`'
@@ -106,17 +109,21 @@ class Namespace(BaseNamespace):
                 queryset = func(self_, parameters_args, *args, **kwargs)
                 total_count = queryset.count()
                 return (
-                    queryset
-                        .offset(parameters_args['offset'])
-                        .limit(parameters_args['limit']),
+                    queryset.offset(parameters_args['offset']).limit(
+                        parameters_args['limit']
+                    ),
                     HTTPStatus.OK,
-                    {'X-Total-Count': total_count}
+                    {'X-Total-Count': total_count},
                 )
+
             return self.parameters(parameters, locations)(wrapper)
+
         return decorator
 
     @contextmanager
-    def commit_or_abort(self, session, default_error_message="The operation failed to complete"):
+    def commit_or_abort(
+        self, session, default_error_message='The operation failed to complete'
+    ):
         """
         Context manager to simplify a workflow in resources
 
@@ -134,11 +141,8 @@ class Namespace(BaseNamespace):
             with session.begin():
                 yield
         except ValueError as exception:
-            log.info("Database transaction was rolled back due to: %r", exception)
+            log.info('Database transaction was rolled back due to: %r', exception)
             http_exceptions.abort(code=HTTPStatus.CONFLICT, message=str(exception))
         except sqlalchemy.exc.IntegrityError as exception:
-            log.info("Database transaction was rolled back due to: %r", exception)
-            http_exceptions.abort(
-                code=HTTPStatus.CONFLICT,
-                message=default_error_message
-            )
+            log.info('Database transaction was rolled back due to: %r', exception)
+            http_exceptions.abort(code=HTTPStatus.CONFLICT, message=default_error_message)

@@ -1,4 +1,4 @@
-# encoding: utf-8
+# -*- coding: utf-8 -*-
 # pylint: disable=too-few-public-methods,invalid-name,bad-continuation
 """
 Auth resources
@@ -20,13 +20,12 @@ from .models import db, OAuth2Client
 
 
 log = logging.getLogger(__name__)
-api = Namespace('auth', description="Authentication")
+api = Namespace('auth', description='Authentication')
 
 
 def _generate_new_client(args):
     context = api.commit_or_abort(
-        db.session,
-        default_error_message="Failed to create a new OAuth2 client."
+        db.session, default_error_message='Failed to create a new OAuth2 client.'
     )
     with context:
         new_oauth2_client = OAuth2Client(
@@ -64,7 +63,9 @@ class OAuth2Clients(Resource):
         )
 
         if oauth2_clients.count() == 0 and current_user.is_admin:
-            default_scopes = list(api_v1.authorizations['oauth2_password']['scopes'].keys())
+            default_scopes = list(
+                api_v1.authorizations['oauth2_password']['scopes'].keys()
+            )
             args_ = {
                 'default_scopes': default_scopes,
             }

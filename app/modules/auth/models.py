@@ -1,4 +1,4 @@
-# encoding: utf-8
+# -*- coding: utf-8 -*-
 """
 OAuth2 provider models.
 
@@ -31,51 +31,56 @@ log = logging.getLogger(__name__)
 PST = pytz.timezone('US/Pacific')
 
 
-CODE_VALID_CHARACTERS = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F']
+CODE_VALID_CHARACTERS = [
+    '0',
+    '1',
+    '2',
+    '3',
+    '4',
+    '5',
+    '6',
+    '7',
+    '8',
+    '9',
+    'A',
+    'B',
+    'C',
+    'D',
+    'E',
+    'F',
+]
 
 
 class CodeTypes(str, enum.Enum):
-    invite  = 'invite'
-    email   = 'email'
+    invite = 'invite'
+    email = 'email'
     recover = 'recover'
     onetime = 'onetime'
 
 
 class CodeDecisions(str, enum.Enum):
-    unknown  = 'unknown'
-    error    = 'error'
-    expired  = 'expired'
-    dismiss  = 'dismiss'
-    reject   = 'reject'
+    unknown = 'unknown'
+    error = 'error'
+    expired = 'expired'
+    dismiss = 'dismiss'
+    reject = 'reject'
 
     # Accept and override should be treated the same functionally in the code
-    accept   = 'accept'
+    accept = 'accept'
     override = 'override'
 
 
 TTL_MINUTE_DEFAULT = 17
 
 CODE_SETTINGS = {
-    None : {
-        'ttl' : 7,  # The default code should last 7 days, rounded up to (local midnight time - 1 second) of the day it will expire
-        'len' : 8,  # The default code should be 8 (hexidecimal) characters long
+    None: {
+        'ttl': 7,  # The default code should last 7 days, rounded up to (local midnight time - 1 second) of the day it will expire
+        'len': 8,  # The default code should be 8 (hexidecimal) characters long
     },
-    CodeTypes.invite : {
-        'ttl' : 14,
-        'len' : 8,
-    },
-    CodeTypes.email : {
-        'ttl' : 7,
-        'len' : 64,
-    },
-    CodeTypes.recover: {
-        'ttl' : 3,
-        'len' : 64,
-    },
-    CodeTypes.onetime: {
-        'ttl' : None,  # None will default to 10 minutes
-        'len' : 8,
-    },
+    CodeTypes.invite: {'ttl': 14, 'len': 8,},
+    CodeTypes.email: {'ttl': 7, 'len': 64,},
+    CodeTypes.recover: {'ttl': 3, 'len': 64,},
+    CodeTypes.onetime: {'ttl': None, 'len': 8,},  # None will default to 10 minutes
 }
 
 
@@ -89,14 +94,18 @@ class OAuth2Client(db.Model):
     client_id = db.Column(db.String(length=40), primary_key=True)
     client_secret = db.Column(db.String(length=55), nullable=False)
 
-    user_id = db.Column(db.ForeignKey('user.id', ondelete='CASCADE'), index=True, nullable=False)
+    user_id = db.Column(
+        db.ForeignKey('user.id', ondelete='CASCADE'), index=True, nullable=False
+    )
     user = db.relationship(User)
 
     class ClientTypes(str, enum.Enum):
         public = 'public'
         confidential = 'confidential'
 
-    client_type = db.Column(db.Enum(ClientTypes), default=ClientTypes.public, nullable=False)
+    client_type = db.Column(
+        db.Enum(ClientTypes), default=ClientTypes.public, nullable=False
+    )
     redirect_uris = db.Column(ScalarListType(separator=' '), default=[], nullable=False)
     default_scopes = db.Column(ScalarListType(separator=' '), nullable=False)
 
@@ -133,7 +142,9 @@ class OAuth2Grant(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)  # pylint: disable=invalid-name
 
-    user_id = db.Column(db.ForeignKey('user.id', ondelete='CASCADE'), index=True, nullable=False)
+    user_id = db.Column(
+        db.ForeignKey('user.id', ondelete='CASCADE'), index=True, nullable=False
+    )
     user = db.relationship('User')
 
     client_id = db.Column(
@@ -182,12 +193,15 @@ class OAuth2Token(db.Model):
     )
     client = db.relationship('OAuth2Client')
 
-    user_id = db.Column(db.ForeignKey('user.id', ondelete='CASCADE'), index=True, nullable=False)
+    user_id = db.Column(
+        db.ForeignKey('user.id', ondelete='CASCADE'), index=True, nullable=False
+    )
     user = db.relationship('User')
 
     class TokenTypes(str, enum.Enum):
         # currently only bearer is supported
         Bearer = 'Bearer'
+
     token_type = db.Column(db.Enum(TokenTypes), nullable=False)
 
     access_token = db.Column(db.String(length=255), unique=True, nullable=False)
@@ -225,8 +239,7 @@ class Code(db.Model, Timestamp):
 
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), index=True, nullable=False)
     user = db.relationship(
-        'User',
-        backref=db.backref('codes', cascade='delete, delete-orphan')
+        'User', backref=db.backref('codes', cascade='delete, delete-orphan')
     )
 
     code_type = db.Column(db.Enum(CodeTypes), index=True, nullable=False)
@@ -234,10 +247,10 @@ class Code(db.Model, Timestamp):
     accept_code = db.Column(db.String(length=64), index=True, unique=True, nullable=False)
     reject_code = db.Column(db.String(length=64), index=True, unique=True, nullable=False)
 
-    expires     = db.Column(db.DateTime, nullable=False)
-    response    = db.Column(db.DateTime, nullable=True)
+    expires = db.Column(db.DateTime, nullable=False)
+    response = db.Column(db.DateTime, nullable=True)
 
-    decision    = db.Column(db.Enum(CodeDecisions), nullable=True)
+    decision = db.Column(db.Enum(CodeDecisions), nullable=True)
 
     # __table_args__ = (
     #     db.UniqueConstraint(user_id, code_type),
@@ -245,19 +258,16 @@ class Code(db.Model, Timestamp):
 
     def __repr__(self):
         return (
-            "<{class_name}("
-            "id={self.id}, "
-            "created={self.created}, "
-            "type={self.code_type}, "
-            "accept={self.accept_code}, "
-            "reject={self.reject_code}, "
-            "expires={self.expires}, "
-            "is_expired={self.is_expired}, "
-            "is_resolved={self.is_resolved}, "
-            ")>".format(
-                class_name=self.__class__.__name__,
-                self=self
-            )
+            '<{class_name}('
+            'id={self.id}, '
+            'created={self.created}, '
+            'type={self.code_type}, '
+            'accept={self.accept_code}, '
+            'reject={self.reject_code}, '
+            'expires={self.expires}, '
+            'is_expired={self.is_expired}, '
+            'is_resolved={self.is_resolved}, '
+            ')>'.format(class_name=self.__class__.__name__, self=self)
         )
 
     @classmethod
@@ -270,13 +280,25 @@ class Code(db.Model, Timestamp):
         return new_code
 
     @classmethod
-    def get(cls, user, code_type, create=True, replace=False, replace_ttl=12 * 60, create_force=False):
+    def get(
+        cls,
+        user,
+        code_type,
+        create=True,
+        replace=False,
+        replace_ttl=12 * 60,
+        create_force=False,
+    ):
         """ Replace will automatically invalidate any codes previously issued (above the replace_ttl value, in minutes)"""
         code_settings = CODE_SETTINGS.get(code_type, None)
-        assert code_settings is not None, 'Code type was unrecognized: %r' % (code_type, )
+        assert code_settings is not None, 'Code type was unrecognized: %r' % (code_type,)
 
         # Get any codes that fit this request
-        existing_codes = cls.query.filter_by(user=user, code_type=code_type).order_by(cls.created.desc()).all()
+        existing_codes = (
+            cls.query.filter_by(user=user, code_type=code_type)
+            .order_by(cls.created.desc())
+            .all()
+        )
         valid_codes = [
             code
             for code in existing_codes
@@ -289,14 +311,16 @@ class Code(db.Model, Timestamp):
                 if replace_ttl is None:
                     delete_codes = valid_codes
                 else:
-                    replace_ttl_date = datetime.datetime.now(tz=pytz.utc) - datetime.timedelta(minutes=replace_ttl)
+                    replace_ttl_date = datetime.datetime.now(
+                        tz=pytz.utc
+                    ) - datetime.timedelta(minutes=replace_ttl)
 
                     delete_codes = [
                         valid_code
                         for valid_code in valid_codes
                         if valid_code.created.replace(tzinfo=pytz.utc) < replace_ttl_date
                     ]
-                log.warning('Replacing codes, deleting %d' % (len(delete_codes), ))
+                log.warning('Replacing codes, deleting %d' % (len(delete_codes),))
                 with db.session.begin():
                     for delete_code in delete_codes:
                         db.session.delete(delete_code)
@@ -323,28 +347,38 @@ class Code(db.Model, Timestamp):
                     # Found unique codes
                     break
                 log.warning('Finding alternate codes, there was a conflict:')
-                log.warning('\tCandidate   Accept Code  : %r' % (accept_code, ))
-                log.warning('\tConflicting Accept Codes : %r' % (existing_accept_codes, ))
-                log.warning('\tCandidate   Reject Code  : %r' % (reject_code, ))
-                log.warning('\tConflicting Reject Codes : %r' % (existing_reject_codes, ))
+                log.warning('\tCandidate   Accept Code  : %r' % (accept_code,))
+                log.warning('\tConflicting Accept Codes : %r' % (existing_accept_codes,))
+                log.warning('\tCandidate   Reject Code  : %r' % (reject_code,))
+                log.warning('\tConflicting Reject Codes : %r' % (existing_reject_codes,))
 
             ttl_days = code_settings.get('ttl')
             if ttl_days is None or ttl_days < 0:
                 ttl_minutes = TTL_MINUTE_DEFAULT if ttl_days is None else 0
                 expires_ = now + datetime.timedelta(minutes=ttl_minutes)
-                expires = datetime.datetime(expires_.year, expires_.month, expires_.day, expires_.hour, expires_.minute, expires_.second, tzinfo=PST)
+                expires = datetime.datetime(
+                    expires_.year,
+                    expires_.month,
+                    expires_.day,
+                    expires_.hour,
+                    expires_.minute,
+                    expires_.second,
+                    tzinfo=PST,
+                )
             else:
                 # Round up to (midnight - 1 second) of the TTL day
                 expires_ = now + datetime.timedelta(days=ttl_days)
-                expires = datetime.datetime(expires_.year, expires_.month, expires_.day, 23, 59, 59, tzinfo=PST)
+                expires = datetime.datetime(
+                    expires_.year, expires_.month, expires_.day, 23, 59, 59, tzinfo=PST
+                )
 
             expires_utc = expires.astimezone(pytz.utc)
             code_kwargs = {
-                'user_id'     : user.id,
-                'code_type'   : code_type,
-                'accept_code' : accept_code,
-                'reject_code' : reject_code,
-                'expires'     : expires_utc,
+                'user_id': user.id,
+                'code_type': code_type,
+                'accept_code': accept_code,
+                'reject_code': reject_code,
+                'expires': expires_utc,
             }
             with db.session.begin():
                 code = Code(**code_kwargs)
@@ -356,23 +390,18 @@ class Code(db.Model, Timestamp):
 
     @classmethod
     def find(cls, code):
-        matched_codes = Code.query.filter(
-            or_(
-                Code.accept_code == code,
-                Code.reject_code == code,
-            )
-        ).order_by(cls.created.desc()).all()
+        matched_codes = (
+            Code.query.filter(or_(Code.accept_code == code, Code.reject_code == code,))
+            .order_by(cls.created.desc())
+            .all()
+        )
         return matched_codes
 
     @classmethod
     def cleanup(cls):
         codes = cls.query.all()
-        old_codes = [
-            code
-            for code in codes
-            if code.is_expired and not code.is_resolved
-        ]
-        log.warning('Cleaning codes, deleting %d' % (len(old_codes), ))
+        old_codes = [code for code in codes if code.is_expired and not code.is_resolved]
+        log.warning('Cleaning codes, deleting %d' % (len(old_codes),))
         with db.session.begin():
             for old_code in old_codes:
                 db.session.delete(old_code)
@@ -387,11 +416,7 @@ class Code(db.Model, Timestamp):
             return CodeDecisions.error, None
 
         code_str = code_str.upper()
-        code_str = ''.join([
-            char
-            for char in code_str
-            if char in CODE_VALID_CHARACTERS
-        ])
+        code_str = ''.join([char for char in code_str if char in CODE_VALID_CHARACTERS])
 
         code_list = Code.find(code_str)
         if len(code_list) == 0:

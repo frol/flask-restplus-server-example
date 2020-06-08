@@ -1,4 +1,4 @@
-# encoding: utf-8
+# -*- coding: utf-8 -*-
 """
 Serialization schemas for Assets resources RESTful API
 ----------------------------------------------------
@@ -21,9 +21,7 @@ class BaseAssetSchema(ModelSchema):
             Asset.id.key,
             Asset.code.key,
         )
-        dump_only = (
-            Asset.id.key,
-        )
+        dump_only = (Asset.id.key,)
 
 
 class DetailedAssetSchema(BaseAssetSchema):

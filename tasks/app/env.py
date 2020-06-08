@@ -1,4 +1,4 @@
-# encoding: utf-8
+# -*- coding: utf-8 -*-
 """
 Application environment related tasks for Invoke.
 """
@@ -22,9 +22,8 @@ def enter(context, install_dependencies=True, upgrade_db=True):
             context,
             'app.db.init_development_data',
             upgrade_db=False,
-            skip_on_failure=True
+            skip_on_failure=True,
         )
-
 
     import pprint
     import logging
@@ -32,6 +31,7 @@ def enter(context, install_dependencies=True, upgrade_db=True):
     import IPython
 
     import app
+
     flask_app = app.create_app()
 
     def shell_context():

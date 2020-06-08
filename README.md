@@ -1,4 +1,4 @@
-<!-- 
+<!--
 [![Build Status](https://travis-ci.org/frol/flask-restplus-server-example.svg)](https://travis-ci.org/frol/flask-restplus-server-example)
 [![Coverage Status](https://coveralls.io/repos/frol/flask-restplus-server-example/badge.svg?branch=master&service=github)](https://coveralls.io/github/frol/flask-restplus-server-example?branch=master)
 [![Codacy Coverage Status](https://api.codacy.com/project/badge/coverage/b0fc91ce77d3437ea5f107c4b7ccfa26)](https://www.codacy.com/app/frolvlad/flask-restplus-server-example)
@@ -31,7 +31,7 @@ handle Marshmallow schemas and Webargs arguments.
 
 Here is how it looks at this point of time ([live demo](http://flask-restplus-example-server.herokuapp.com/api/v1/)):
 
-<!-- 
+<!--
 ![Flask RESTplus Example API](https://raw.githubusercontent.com/frol/flask-restplus-server-example/master/docs/static/Flask_RESTplus_Example_API.png)
  -->
 
@@ -319,7 +319,7 @@ It is very easy to start exploring the example using Docker:
 $ docker run -it --rm --publish 5000:5000 frolvlad/flask-restplus-server-example
 ```
 
-<!-- 
+<!--
 [![](https://images.microbadger.com/badges/image/frolvlad/flask-restplus-server-example.svg)](http://microbadger.com/images/frolvlad/flask-restplus-server-example "Get your own image badge on microbadger.com")
  -->
 
@@ -344,9 +344,9 @@ $ tar -zxvf _db.initial.tar.gz
 $ ./venv.sh
 $ source virtualenv/houston3.7/bin/activate
 $ pip install -r requirements.txt
-$ invoke app.dependencies.install-python-dependencies 
+$ invoke app.dependencies.install-python-dependencies
 $ invoke app.dependencies.install-swagger-ui
-$ invoke app.dependencies.install                     
+$ invoke app.dependencies.install
 $ pip install -e .
 $ ./build.frontend.sh
 ```
@@ -538,7 +538,7 @@ Verified compatible projects:
 * flask-limiter
 
 ### Example integration steps
-  
+
 #### flask-limiter
 
 1. Add `flask-limiter` to end of the `app/requirements.txt` file, so it gets
@@ -578,7 +578,7 @@ installed when the application is deployed.
         """
         # Notice this is different from the simple example at the top of flask-limiter doc page.
         # The reason is explained here: https://flask-limiter.readthedocs.io/en/stable/#using-flask-pluggable-views
-        decorators = [limiter.limit("10/second")] # config as you need. 
+        decorators = [limiter.limit("10/second")] # config as you need.
 
         @api.parameters(parameters.SomeParameters())
         @api.response(schemas.SomeSchema())

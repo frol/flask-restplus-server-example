@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from __future__ import with_statement
 from alembic import context
 from sqlalchemy import engine_from_config, pool
@@ -23,9 +24,11 @@ logger = logging.getLogger('alembic.env')
 # for 'autogenerate' support
 # from myapp import mymodel
 # target_metadata = mymodel.Base.metadata
-from flask import current_app
-config.set_main_option('sqlalchemy.url',
-                       current_app.config.get('SQLALCHEMY_DATABASE_URI'))
+from flask import current_app  # NOQA
+
+config.set_main_option(
+    'sqlalchemy.url', current_app.config.get('SQLALCHEMY_DATABASE_URI')
+)
 target_metadata = current_app.extensions['migrate'].db.metadata
 
 # other values from the config, defined by the needs of env.py,
@@ -46,10 +49,9 @@ def run_migrations_offline():
     script output.
 
     """
-    url = config.get_main_option("sqlalchemy.url")
+    url = config.get_main_option('sqlalchemy.url')
     context.configure(
-        url=url,
-        render_as_batch=True,
+        url=url, render_as_batch=True,
     )
 
     with context.begin_transaction():
@@ -74,9 +76,11 @@ def run_migrations_online():
                 directives[:] = []
                 logger.info('No changes in schema detected.')
 
-    engine = engine_from_config(config.get_section(config.config_ini_section),
-                                prefix='sqlalchemy.',
-                                poolclass=pool.NullPool)
+    engine = engine_from_config(
+        config.get_section(config.config_ini_section),
+        prefix='sqlalchemy.',
+        poolclass=pool.NullPool,
+    )
 
     connection = engine.connect()
     context.configure(
@@ -92,6 +96,7 @@ def run_migrations_online():
             context.run_migrations()
     finally:
         connection.close()
+
 
 if context.is_offline_mode():
     run_migrations_offline()

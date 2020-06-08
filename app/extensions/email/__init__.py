@@ -1,4 +1,4 @@
-# encoding: utf-8
+# -*- coding: utf-8 -*-
 # pylint: disable=no-self-use
 """
 OAuth2 provider setup.
@@ -41,8 +41,8 @@ mail = Mail()
 
 pmail_kwargs = {
     'cssutils_logging_handler': cssutils_handler,
-    'cssutils_logging_level'  : logging.FATAL,
-    'cache_css_parsing'       : True,
+    'cssutils_logging_level': logging.FATAL,
+    'cache_css_parsing': True,
 }
 pmail = None
 
@@ -60,8 +60,10 @@ def _format_datetime(dt, verbose=False):
     """
     REF: https://stackoverflow.com/a/5891598
     """
+
     def _suffix(d):
-        return 'th' if 11 <= d <= 13 else {1 : 'st' , 2 : 'nd' , 3 : 'rd'}.get(d % 10, 'th')
+        return 'th' if 11 <= d <= 13 else {1: 'st', 2: 'nd', 3: 'rd'}.get(d % 10, 'th')
+
     if verbose:
         time_fmtstr = '%B {S}, %Y at %I:%M %p'
     else:
@@ -89,8 +91,8 @@ class Email(Message):
         override_recipients = current_app.config.get('MAIL_OVERRIDE_RECIPIENTS', None)
         if override_recipients is not None:
             original_recipients = kwargs.get('recipients', None)
-            log.warning('Original recipients: %r' % (original_recipients, ))
-            log.warning('Override recipients: %r' % (override_recipients, ))
+            log.warning('Original recipients: %r' % (original_recipients,))
+            log.warning('Override recipients: %r' % (override_recipients,))
             kwargs['recipients'] = override_recipients
 
         super(Email, self).__init__(*args, **kwargs)
@@ -124,9 +126,16 @@ class Email(Message):
             # Strip out unused leftover CSS and minify before sending
             assert NEWLINE_TEMP_CODE not in transformed_html
             transformed_html_ = transformed_html.replace('\n', NEWLINE_TEMP_CODE)
-            minified_css_html_ = re.sub(r'<style type="text/css">.*</style>', '', transformed_html_)
+            minified_css_html_ = re.sub(
+                r'<style type="text/css">.*</style>', '', transformed_html_
+            )
             minified_css_html = minified_css_html_.replace(NEWLINE_TEMP_CODE, '\n')
-            minified_html = htmlmin.minify(minified_css_html, remove_comments=True, remove_empty_space=True, remove_all_empty_space=True)
+            minified_html = htmlmin.minify(
+                minified_css_html,
+                remove_comments=True,
+                remove_empty_space=True,
+                remove_all_empty_space=True,
+            )
 
             # Add web fonts
             webfonts = [
@@ -135,7 +144,9 @@ class Email(Message):
                 '<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Code+Pro&display=swap">',
             ]
             webfonts_html = ''.join(webfonts)
-            minified_html = minified_html.replace('</head>', '%s</head>' % (WEBFONTS_PLACEHOLDER_CODE, ))
+            minified_html = minified_html.replace(
+                '</head>', '%s</head>' % (WEBFONTS_PLACEHOLDER_CODE,)
+            )
             final_html = minified_html.replace(WEBFONTS_PLACEHOLDER_CODE, webfonts_html)
 
             with open('email.latest.html', 'w') as temp:

@@ -1,7 +1,9 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 from __future__ import absolute_import, print_function, division
 import subprocess
 import os
+
 try:
     from setuptools import setup
 except ImportError:
@@ -15,6 +17,7 @@ def git_version():
     """
     Return the sha1 of local git HEAD as a string.
     """
+
     def _minimal_ext_cmd(cmd):
         # construct minimal environment
         env = {}
@@ -26,12 +29,9 @@ def git_version():
         env['LANGUAGE'] = 'C'
         env['LANG'] = 'C'
         env['LC_ALL'] = 'C'
-        out = subprocess.Popen(
-            cmd,
-            stdout=subprocess.PIPE,
-            env=env
-        ).communicate()[0]
+        out = subprocess.Popen(cmd, stdout=subprocess.PIPE, env=env).communicate()[0]
         return out
+
     try:
         out = _minimal_ext_cmd(['git', 'rev-parse', 'HEAD'])
         git_revision = out.strip().decode('ascii')
@@ -53,25 +53,25 @@ Programming Language :: Python
 Programming Language :: Python :: 3.7
 Topic :: Internet :: WWW/HTTP :: Dynamic Content
 '''
-NAME                = 'Houston'
-MAINTAINER          = 'Wild Me, non-profit'
-MAINTAINER_EMAIL    = 'dev@wildme.org'
-DESCRIPTION         = 'The backend server for the new Wildbook frontend and API.'
-LONG_DESCRIPTION    = DESCRIPTION
-KEYWORDS            = ['wild me', 'hoston', 'wildbook']
-URL                 = 'https://hoston.dyn.wildme.io/'
-DOWNLOAD_URL        = ''
-LICENSE             = 'Apache'
-AUTHOR              = MAINTAINER
-AUTHOR_EMAIL        = MAINTAINER_EMAIL
-PLATFORMS           = ['Linux', 'Mac OS-X', 'Unix']
-MAJOR               = 0
-MINOR               = 1
-MICRO               = 0
-REVISION            = git_version()
-SUFFIX              = REVISION[:8]
-VERSION             = '%d.%d.%d.%s' % (MAJOR, MINOR, MICRO, SUFFIX)
-PACKAGES            = ['.']
+NAME = 'Houston'
+MAINTAINER = 'Wild Me, non-profit'
+MAINTAINER_EMAIL = 'dev@wildme.org'
+DESCRIPTION = 'The backend server for the new Wildbook frontend and API.'
+LONG_DESCRIPTION = DESCRIPTION
+KEYWORDS = ['wild me', 'hoston', 'wildbook']
+URL = 'https://hoston.dyn.wildme.io/'
+DOWNLOAD_URL = ''
+LICENSE = 'Apache'
+AUTHOR = MAINTAINER
+AUTHOR_EMAIL = MAINTAINER_EMAIL
+PLATFORMS = ['Linux', 'Mac OS-X', 'Unix']
+MAJOR = 0
+MINOR = 1
+MICRO = 0
+REVISION = git_version()
+SUFFIX = REVISION[:8]
+VERSION = '%d.%d.%d.%s' % (MAJOR, MINOR, MICRO, SUFFIX)
+PACKAGES = ['.']
 
 
 def write_version_py(filename=os.path.join(PROJECT_ROOT, 'app', 'version.py')):
@@ -93,10 +93,7 @@ full_version = '%%(version)s.%%(git_revision)s' %% {
         GIT_REVISION = 'unknown'
 
     FULL_VERSION += '.' + GIT_REVISION
-    text = cnt % {
-        'version': VERSION,
-        'git_revision': GIT_REVISION
-    }
+    text = cnt % {'version': VERSION, 'git_revision': GIT_REVISION}
     try:
         with open(filename, 'w') as a:
             a.write(text)

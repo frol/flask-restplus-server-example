@@ -1,4 +1,4 @@
-# encoding: utf-8
+# -*- coding: utf-8 -*-
 # pylint: disable=missing-docstring
 """
 This file contains initialization data for development usage only.
@@ -24,7 +24,7 @@ def report_purchases(context):
     for payment in payments:
         cart = payment.cart
         charged += payment.charged
-        comp = (payment.total - payment.charged)
+        comp = payment.total - payment.charged
         complement += comp
         if comp == 0:
             for item in cart['items']:
@@ -48,18 +48,18 @@ def report_purchases(context):
 
 @app_context_task
 def all(context, skip_on_failure=False):
-    log.info("Initializing reporting checks...")
+    log.info('Initializing reporting checks...')
 
     try:
         report_purchases(context)
     except AssertionError as exception:
         if not skip_on_failure:
-            log.error("%s", exception)
+            log.error('%s', exception)
         else:
             log.debug(
-                "The following error was ignored due to the `skip_on_failure` flag: %s",
-                exception
+                'The following error was ignored due to the `skip_on_failure` flag: %s',
+                exception,
             )
-            log.info("Running reporting is skipped.")
+            log.info('Running reporting is skipped.')
     else:
-        log.info("Reporting successfully applied.")
+        log.info('Reporting successfully applied.')

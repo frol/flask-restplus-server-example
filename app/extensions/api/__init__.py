@@ -1,4 +1,4 @@
-# encoding: utf-8
+# -*- coding: utf-8 -*-
 """
 API extension
 =============
@@ -17,19 +17,21 @@ import logging
 log = logging.getLogger(__name__)
 
 
-api_v1 = Api( # pylint: disable=invalid-name
+api_v1 = Api(  # pylint: disable=invalid-name
     version='1.0.0',
-    title="Houston",
+    title='Houston',
     description=(
-        '\n'.join([
-            'This is the backend API documentation for the Houston server.',
-            '',
-            'The API features:',
-            '* Self-documented RESTful API server using auto-generated OpenAPI specifications;',
-            '* OAuth2 Password Flow (Resource Owner Password Credentials Grant) support;',
-            '* Role-based permission system (it is also auto-documented);',
-            '* PATCH method handled accordingly to RFC 6902;',
-        ])
+        '\n'.join(
+            [
+                'This is the backend API documentation for the Houston server.',
+                '',
+                'The API features:',
+                '* Self-documented RESTful API server using auto-generated OpenAPI specifications;',
+                '* OAuth2 Password Flow (Resource Owner Password Credentials Grant) support;',
+                '* Role-based permission system (it is also auto-documented);',
+                '* PATCH method handled accordingly to RFC 6902;',
+            ]
+        )
     ),
 )
 
@@ -42,8 +44,9 @@ def serve_swaggerui_assets(path):
 
     if not current_app.debug:
         import warnings
+
         warnings.warn(
-            "/swaggerui/ is recommended to be served by public-facing server (e.g. NGINX)"
+            '/swaggerui/ is recommended to be served by public-facing server (e.g. NGINX)'
         )
 
     static_root = current_app.config['STATIC_ROOT']

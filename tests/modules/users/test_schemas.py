@@ -1,4 +1,4 @@
-# encoding: utf-8
+# -*- coding: utf-8 -*-
 # pylint: disable=invalid-name,missing-docstring
 
 from app.modules.users import schemas
@@ -9,8 +9,9 @@ def test_BaseUserSchema_dump_empty_input():
     assert dumped_result.errors == {}
     assert dumped_result.data == {}
 
+
 def test_BaseUserSchema_dump_user_instance(user_instance):
-    user_instance.password = "password"
+    user_instance.password = 'password'
     dumped_result = schemas.BaseUserSchema().dump(user_instance)
     assert dumped_result.errors == {}
     assert 'password' not in dumped_result.data
@@ -19,11 +20,12 @@ def test_BaseUserSchema_dump_user_instance(user_instance):
         'username',
         'first_name',
         'middle_name',
-        'last_name'
+        'last_name',
     }
 
+
 def test_DetailedUserSchema_dump_user_instance(user_instance):
-    user_instance.password = "password"
+    user_instance.password = 'password'
     dumped_result = schemas.DetailedUserSchema().dump(user_instance)
     assert dumped_result.errors == {}
     assert 'password' not in dumped_result.data
@@ -40,6 +42,7 @@ def test_DetailedUserSchema_dump_user_instance(user_instance):
         'is_staff',
         'is_admin',
     }
+
 
 def test_UserSignupFormSchema_dump():
     form_data = {'recaptcha_server_key': 'key'}

@@ -1,4 +1,4 @@
-# encoding: utf-8
+# -*- coding: utf-8 -*-
 # pylint: disable=too-few-public-methods,invalid-name,abstract-method,method-hidden
 """
 RESTful API permissions
@@ -20,6 +20,7 @@ class PermissionExtendedQuery(BaseQuery):
     Example:
     >>> DataTransformation.query.get_or_403(id)
     """
+
     def __init__(self, permisssion, *args, **kwargs):
         super(PermissionExtendedQuery, self).__init__(*args, **kwargs)
         self.permisssion = permisssion
@@ -118,9 +119,8 @@ class AdminRolePermission(PasswordRequiredPermissionMixin, RolePermission):
     """
 
     def rule(self):
-        return (
-            rules.InternalRoleRule()
-            | (rules.AdminRoleRule() & super(AdminRolePermission, self).rule())
+        return rules.InternalRoleRule() | (
+            rules.AdminRoleRule() & super(AdminRolePermission, self).rule()
         )
 
 
@@ -150,15 +150,9 @@ class SupervisorRolePermission(PasswordRequiredPermissionMixin, RolePermission):
         super(SupervisorRolePermission, self).__init__(**kwargs)
 
     def rule(self):
-        return (
-            rules.InternalRoleRule()
-            | (
-                (
-                    rules.AdminRoleRule()
-                    | rules.SupervisorRoleRule(obj=self._obj)
-                )
-                & super(SupervisorRolePermission, self).rule()
-            )
+        return rules.InternalRoleRule() | (
+            (rules.AdminRoleRule() | rules.SupervisorRoleRule(obj=self._obj))
+            & super(SupervisorRolePermission, self).rule()
         )
 
 
@@ -179,17 +173,14 @@ class OwnerRolePermission(PasswordRequiredPermissionMixin, RolePermission):
         super(OwnerRolePermission, self).__init__(**kwargs)
 
     def rule(self):
-        return (
-            rules.InternalRoleRule()
-            | (
-                (
-                    rules.AdminRoleRule()
-                    | rules.PrivilegedFamilyListRoleRule()
-                    | rules.OwnerRoleRule(obj=self._obj)
-                    | rules.SupervisorRoleRule(obj=self._obj)
-                )
-                & super(OwnerRolePermission, self).rule()
+        return rules.InternalRoleRule() | (
+            (
+                rules.AdminRoleRule()
+                | rules.PrivilegedFamilyListRoleRule()
+                | rules.OwnerRoleRule(obj=self._obj)
+                | rules.SupervisorRoleRule(obj=self._obj)
             )
+            & super(OwnerRolePermission, self).rule()
         )
 
 
@@ -210,15 +201,12 @@ class OwnerModifyRolePermission(PasswordRequiredPermissionMixin, RolePermission)
         super(OwnerModifyRolePermission, self).__init__(**kwargs)
 
     def rule(self):
-        return (
-            rules.InternalRoleRule()
-            | (
-                (
-                    rules.AdminRoleRule()
-                    | rules.PrivilegedFamilyModifyRoleRule()
-                    | rules.OwnerRoleRule(obj=self._obj)
-                    | rules.SupervisorRoleRule(obj=self._obj)
-                )
-                & super(OwnerModifyRolePermission, self).rule()
+        return rules.InternalRoleRule() | (
+            (
+                rules.AdminRoleRule()
+                | rules.PrivilegedFamilyModifyRoleRule()
+                | rules.OwnerRoleRule(obj=self._obj)
+                | rules.SupervisorRoleRule(obj=self._obj)
             )
+            & super(OwnerModifyRolePermission, self).rule()
         )

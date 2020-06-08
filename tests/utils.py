@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 Testing utils
 -------------
@@ -63,7 +64,9 @@ class AutoAuthFlaskClient(FlaskClient):
             extra_headers = (
                 (
                     'Authorization',
-                    '{token.token_type} {token.access_token}'.format(token=oauth2_bearer_token)
+                    '{token.token_type} {token.access_token}'.format(
+                        token=oauth2_bearer_token
+                    ),
                 ),
             )
             if kwargs.get('headers'):
@@ -93,19 +96,19 @@ class JSONResponse(Response):
 
 
 def generate_user_instance(
-        user_id=None,
-        username="username",
-        password=None,
-        email=None,
-        first_name="First Name",
-        middle_name="Middle Name",
-        last_name="Last Name",
-        created=None,
-        updated=None,
-        is_active=True,
-        is_staff=False,
-        is_admin=False,
-        is_internal=False
+    user_id=None,
+    username='username',
+    password=None,
+    email=None,
+    first_name='First Name',
+    middle_name='Middle Name',
+    last_name='Last Name',
+    created=None,
+    updated=None,
+    is_active=True,
+    is_staff=False,
+    is_admin=False,
+    is_internal=False,
 ):
     """
     Returns:
@@ -113,6 +116,7 @@ def generate_user_instance(
     """
     # pylint: disable=too-many-arguments
     from app.modules.users.models import User
+
     if password is None:
         password = '%s_password' % username
     user_instance = User(
@@ -128,7 +132,7 @@ def generate_user_instance(
         is_active=is_active,
         is_staff=is_staff,
         is_admin=is_admin,
-        is_internal=is_internal
+        is_internal=is_internal,
     )
     user_instance.password_secret = password
     return user_instance

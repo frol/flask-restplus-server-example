@@ -1,4 +1,4 @@
-# encoding: utf-8
+# -*- coding: utf-8 -*-
 # pylint: disable=wrong-import-order
 """
 Input arguments (Parameters) for Auth resources
@@ -19,7 +19,7 @@ class ListOAuth2ClientsParameters(PaginationParameters):
     @validates('user_id')
     def validate_user_id(self, data):
         if current_user.id != data:
-            raise ValidationError("It is only allowed to query your own OAuth2 clients.")
+            raise ValidationError('It is only allowed to query your own OAuth2 clients.')
 
 
 class CreateOAuth2ClientParameters(PostFormParameters):
@@ -28,6 +28,10 @@ class CreateOAuth2ClientParameters(PostFormParameters):
 
     @validates('default_scopes')
     def validate_default_scopes(self, data):
-        unknown_scopes = set(data) - set(api.api_v1.authorizations['oauth2_password']['scopes'])
+        unknown_scopes = set(data) - set(
+            api.api_v1.authorizations['oauth2_password']['scopes']
+        )
         if unknown_scopes:
-            raise ValidationError("'%s' scope(s) are not supported." % (', '.join(unknown_scopes)))
+            raise ValidationError(
+                "'%s' scope(s) are not supported." % (', '.join(unknown_scopes))
+            )

@@ -1,4 +1,4 @@
-# encoding: utf-8
+# -*- coding: utf-8 -*-
 # pylint: disable=too-few-public-methods
 """
 Auth schemas
@@ -15,6 +15,7 @@ class BaseOAuth2ClientSchema(ModelSchema):
     """
     Base OAuth2 client schema exposes only the most general fields.
     """
+
     default_scopes = base_fields.List(base_fields.String, required=True)
     redirect_uris = base_fields.List(base_fields.String, required=True)
 
@@ -40,15 +41,14 @@ class DetailedOAuth2ClientSchema(BaseOAuth2ClientSchema):
     """
 
     class Meta(BaseOAuth2ClientSchema.Meta):
-        fields = BaseOAuth2ClientSchema.Meta.fields + (
-            OAuth2Client.client_secret.key,
-        )
+        fields = BaseOAuth2ClientSchema.Meta.fields + (OAuth2Client.client_secret.key,)
 
 
 class BaseCodeSchema(ModelSchema):
     """
     Base OAuth2 client schema exposes only the most general fields.
     """
+
     class Meta:
         # pylint: disable=missing-docstring
         model = Code

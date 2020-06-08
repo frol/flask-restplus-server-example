@@ -1,4 +1,4 @@
-# encoding: utf-8
+# -*- coding: utf-8 -*-
 """
 Assets module
 ============
@@ -12,8 +12,8 @@ def init_app(app, **kwargs):
     """
     Init Assets module.
     """
-    api_v1.add_oauth_scope('assets:read', "Provide access to Assets details")
-    api_v1.add_oauth_scope('assets:write', "Provide write access to Assets details")
+    api_v1.add_oauth_scope('assets:read', 'Provide access to Assets details')
+    api_v1.add_oauth_scope('assets:write', 'Provide write access to Assets details')
 
     # Touch underlying modules
     from . import models, resources

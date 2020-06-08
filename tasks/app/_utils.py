@@ -1,4 +1,4 @@
-# encoding: utf-8
+# -*- coding: utf-8 -*-
 """
 Invoke tasks utilities for apps.
 """
@@ -11,6 +11,7 @@ class Task(BaseTask):
     """
     A patched Invoke Task adding support for decorated functions.
     """
+
     def __init__(self, *args, **kwargs):
         super(Task, self).__init__(*args, **kwargs)
         # Make these tasks always contextualized (this is the only option in
@@ -55,6 +56,7 @@ def app_context_task(*args, **kwargs):
             app = kwargs.pop('app', None)
             if app is None:
                 from app import create_app
+
                 app = create_app()
 
             with app.app_context():

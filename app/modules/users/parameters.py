@@ -1,4 +1,4 @@
-# encoding: utf-8
+# -*- coding: utf-8 -*-
 # pylint: disable=wrong-import-order
 """
 Input arguments (Parameters) for User resources RESTful API
@@ -23,7 +23,7 @@ class ListUserParameters(PaginationParameters):
     New user creation (sign up) parameters.
     """
 
-    search = base_fields.String(description="Example: search@email.com", required=False)
+    search = base_fields.String(description='Example: search@email.com', required=False)
 
 
 class CreateUserParameters(Parameters, schemas.BaseUserSchema):
@@ -33,8 +33,8 @@ class CreateUserParameters(Parameters, schemas.BaseUserSchema):
 
     # username = base_fields.String(description="Example: root", required=True)
 
-    email = base_fields.Email(description="Example: root@gmail.com", required=True)
-    password = base_fields.String(description="No rules yet", required=False)
+    email = base_fields.Email(description='Example: root@gmail.com', required=True)
+    password = base_fields.String(description='No rules yet', required=False)
 
     # recaptcha_key = base_fields.String(
     #     description=(
@@ -81,7 +81,7 @@ class DeleteUserParameters(Parameters):
     New user creation (sign up) parameters.
     """
 
-    user_id = base_fields.Integer(description="The ID of the user", required=True)
+    user_id = base_fields.Integer(description='The ID of the user', required=True)
 
 
 class PatchUserDetailsParameters(PatchJSONParameters):
@@ -91,49 +91,41 @@ class PatchUserDetailsParameters(PatchJSONParameters):
     """
 
     PATH_CHOICES = tuple(
-        '/%s' % field for field in (
+        '/%s' % field
+        for field in (
             'current_password',
             User.email.key,
             User.password.key,
-
             User.first_name.key,
             User.middle_name.key,
             User.last_name.key,
             User.suffix_name.key,
-
             User.birth_month.key,
             User.birth_year.key,
-
             User.phone.key,
-
             User.address_line1.key,
             User.address_line2.key,
             User.address_city.key,
             User.address_state.key,
             User.address_zip.key,
-
             User.is_active.fget.__name__,
             User.is_staff.fget.__name__,
             User.is_admin.fget.__name__,
-
             User.in_beta.fget.__name__,
             User.in_alpha.fget.__name__,
         )
     )
 
     SENSITIVE_PATH_CHOICES = tuple(
-        '/%s' % field for field in (
-            User.email.key,
-            User.password.key,
-        )
+        '/%s' % field for field in (User.email.key, User.password.key,)
     )
 
     ADMIN_PATH_CHOICES = tuple(
-        '/%s' % field for field in (
+        '/%s' % field
+        for field in (
             User.is_active.fget.__name__,
             User.is_staff.fget.__name__,
             User.is_admin.fget.__name__,
-
             User.in_beta.fget.__name__,
             User.in_alpha.fget.__name__,
         )
@@ -145,8 +137,10 @@ class PatchUserDetailsParameters(PatchJSONParameters):
         Additional check for 'current_password' as User hasn't field 'current_password'
         """
         if field == 'current_password':
-            if current_user.password != value and obj.password != value:  # pylint: disable=consider-using-in
-                abort(code=HTTPStatus.FORBIDDEN, message="Wrong password")
+            if (
+                current_user.password != value and obj.password != value
+            ):  # pylint: disable=consider-using-in
+                abort(code=HTTPStatus.FORBIDDEN, message='Wrong password')
             else:
                 state['current_password'] = value
                 return True
@@ -167,8 +161,8 @@ class PatchUserDetailsParameters(PatchJSONParameters):
         if field in cls.SENSITIVE_PATH_CHOICES:
             if 'current_password' not in state:
                 raise ValidationError(
-                    "Updating sensitive user settings requires `current_password` test operation "
-                    "performed before replacements."
+                    'Updating sensitive user settings requires `current_password` test operation '
+                    'performed before replacements.'
                 )
 
         # if field in {User.is_active.fget.__name__, User.is_staff.fget.__name__}:
@@ -184,7 +178,7 @@ class PatchUserDetailsParameters(PatchJSONParameters):
         if field in cls.ADMIN_PATH_CHOICES:
             if not current_user.is_admin:
                 raise ValidationError(
-                    "Updating administrator-only user settings requires the logged in user to be an administrator"
+                    'Updating administrator-only user settings requires the logged in user to be an administrator'
                 )
 
                 # context = permissions.AdminRolePermission(

@@ -1,4 +1,4 @@
-# encoding: utf-8
+# -*- coding: utf-8 -*-
 # pylint: disable=missing-docstring
 """
 This file contains initialization data for development usage only.
@@ -31,23 +31,23 @@ def user_staff_permissions(context):
                     db.session.merge(user)
                     updated += 1
 
-    print('Updated %d users' % (updated, ))
+    print('Updated %d users' % (updated,))
 
 
 @app_context_task
 def all(context, skip_on_failure=False):
-    log.info("Initializing consistency checks...")
+    log.info('Initializing consistency checks...')
 
     try:
         user_staff_permissions(context)
     except AssertionError as exception:
         if not skip_on_failure:
-            log.error("%s", exception)
+            log.error('%s', exception)
         else:
             log.debug(
-                "The following error was ignored due to the `skip_on_failure` flag: %s",
-                exception
+                'The following error was ignored due to the `skip_on_failure` flag: %s',
+                exception,
             )
-            log.info("Running consistency checks is skipped.")
+            log.info('Running consistency checks is skipped.')
     else:
-        log.info("Consistency checks successfully applied.")
+        log.info('Consistency checks successfully applied.')

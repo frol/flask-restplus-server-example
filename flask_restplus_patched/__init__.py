@@ -1,6 +1,8 @@
-from flask_restplus import *
+# -*- coding: utf-8 -*-
+from flask_restplus import *  # NOQA
 from .api import Api
 from .model import Schema, DefaultHTTPErrorSchema
+
 try:
     from .model import ModelSchema
 except ImportError:

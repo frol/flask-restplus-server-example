@@ -1,4 +1,4 @@
-# encoding: utf-8
+# -*- coding: utf-8 -*-
 """
 Application dependencies related tasks for Invoke.
 """
@@ -23,9 +23,10 @@ def install_python_dependencies(context, force=False):
     """
     Install Python dependencies listed in requirements.txt.
     """
-    log.info("Installing project dependencies...")
-    context.run("pip install -r requirements.txt %s" % ('--upgrade' if force else ''))
-    log.info("Project dependencies are installed.")
+    log.info('Installing project dependencies...')
+    context.run('pip install -r requirements.txt %s' % ('--upgrade' if force else ''))
+    log.info('Project dependencies are installed.')
+
 
 @task
 def install_swagger_ui(context, force=False):
@@ -33,10 +34,10 @@ def install_swagger_ui(context, force=False):
     """
     Install Swagger UI HTML/JS/CSS assets.
     """
-    log.info("Installing Swagger UI assets...")
+    log.info('Installing Swagger UI assets...')
 
     try:
-        FileExistsError
+        FileExistsError  # NOQA
     except NameError:
         FileExistsError = OSError
     try:
@@ -44,7 +45,9 @@ def install_swagger_ui(context, force=False):
     except FileExistsError:
         pass
 
-    swagger_ui_zip_filepath = os.path.join(context.app.static_root, 'bower', 'swagger-ui.zip')
+    swagger_ui_zip_filepath = os.path.join(
+        context.app.static_root, 'bower', 'swagger-ui.zip'
+    )
     swagger_ui_root = os.path.join(context.app.static_root, 'bower', 'swagger-ui')
 
     if force:
@@ -58,22 +61,24 @@ def install_swagger_ui(context, force=False):
             pass
 
     # We are going to install Swagger UI from a fork which includes useful patches
-    log.info("Downloading Swagger UI assets...")
+    log.info('Downloading Swagger UI assets...')
     download_file(
-        url="https://github.com/swagger-api/swagger-ui/archive/v2.2.10.zip",
-        local_filepath=swagger_ui_zip_filepath
+        url='https://github.com/swagger-api/swagger-ui/archive/v2.2.10.zip',
+        local_filepath=swagger_ui_zip_filepath,
     )
 
     # Unzip swagger-ui.zip/dist into swagger-ui folder
-    log.info("Unpacking Swagger UI assets...")
+    log.info('Unpacking Swagger UI assets...')
     with zipfile.ZipFile(swagger_ui_zip_filepath) as swagger_ui_zip_file:
         for zipped_member in swagger_ui_zip_file.infolist():
-            zipped_member_path = os.path.relpath(zipped_member.filename, 'swagger-ui-2.2.10')
+            zipped_member_path = os.path.relpath(
+                zipped_member.filename, 'swagger-ui-2.2.10'
+            )
 
             # We only need the 'dist' folder
             try:
                 commonpath = os.path.commonpath
-            except:  # Python 2.x fallback
+            except Exception:  # Python 2.x fallback
                 commonpath = os.path.commonprefix
             if not commonpath([zipped_member_path, 'dist']):
                 continue
@@ -91,7 +96,8 @@ def install_swagger_ui(context, force=False):
                     with open(extract_path, mode='wb') as unzipped_file:
                         unzipped_file.write(zipped_file.read())
 
-    log.info("Swagger UI is installed.")
+    log.info('Swagger UI is installed.')
+
 
 @task
 def install(context):

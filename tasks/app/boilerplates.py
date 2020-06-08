@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # pylint: disable=line-too-long
 """
 Boilerplates
@@ -29,17 +30,19 @@ def crud_module(context, module_name='', module_name_singular=''):
     try:
         import jinja2
     except ImportError:
-        log.critical("jinja2 is required to create boilerplates. Please, do `pip install jinja2`")
+        log.critical(
+            'jinja2 is required to create boilerplates. Please, do `pip install jinja2`'
+        )
         return
 
     if not module_name:
-        log.critical("Module name is required")
+        log.critical('Module name is required')
         return
 
     if not re.match('^[a-zA-Z0-9_]+$', module_name):
         log.critical(
-            "Module module_name is allowed to contain only letters, numbers and underscores "
-            "([a-zA-Z0-9_]+)"
+            'Module module_name is allowed to contain only letters, numbers and underscores '
+            '([a-zA-Z0-9_]+)'
         )
         return
 
@@ -48,17 +51,9 @@ def crud_module(context, module_name='', module_name_singular=''):
 
     module_path = 'app/modules/%s' % module_name
 
-    module_title = " ".join(
-        [word.capitalize()
-            for word in module_name.split('_')
-        ]
-    )
+    module_title = ' '.join([word.capitalize() for word in module_name.split('_')])
 
-    model_name = "".join(
-        [word.capitalize()
-            for word in module_name_singular.split('_')
-        ]
-    )
+    model_name = ''.join([word.capitalize() for word in module_name_singular.split('_')])
 
     if os.path.exists(module_path):
         log.critical('Module `%s` already exists.', module_name)
@@ -83,20 +78,18 @@ def crud_module(context, module_name='', module_name_singular=''):
             module_title=module_title,
             module_namespace=module_name.replace('_', '-'),
             model_name=model_name,
-        ).dump(
-            '%s/%s.py' % (module_path, template_file)
-        )
+        ).dump('%s/%s.py' % (module_path, template_file))
 
-    log.info("Module `%s` has been created.", module_name)
+    log.info('Module `%s` has been created.', module_name)
     print(
-        "Add `%(module_name)s` to `ENABLED_MODULES` in `config.py`\n"
-        "ENABLED_MODULES = (\n"
+        'Add `%(module_name)s` to `ENABLED_MODULES` in `config.py`\n'
+        'ENABLED_MODULES = (\n'
         "\t'auth',\n"
         "\t'users',\n"
         "\t'families',\n"
         "\t'%(module_name)s',\n\n"
         "\t'api',\n"
-        ")\n\n"
-        "You can find your module at `app/modules/` directory"
+        ')\n\n'
+        'You can find your module at `app/modules/` directory'
         % {'module_name': module_name}
     )

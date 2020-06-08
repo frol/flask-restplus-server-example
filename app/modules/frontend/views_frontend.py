@@ -1,4 +1,4 @@
-# coding: utf-8
+# -*- coding: utf-8 -*-
 """
 OAuth2 provider setup.
 
@@ -16,7 +16,13 @@ from .views import FRONTEND_STATIC_ROOT
 
 log = logging.getLogger(__name__)
 
-frontend_blueprint = Blueprint('frontend', __name__, url_prefix='/', static_url_path='', static_folder=FRONTEND_STATIC_ROOT)          # pylint: disable=invalid-name
+frontend_blueprint = Blueprint(
+    'frontend',
+    __name__,
+    url_prefix='/',
+    static_url_path='',
+    static_folder=FRONTEND_STATIC_ROOT,
+)  # pylint: disable=invalid-name
 
 
 @frontend_blueprint.route('/', methods=['GET'])

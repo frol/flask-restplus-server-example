@@ -1,4 +1,4 @@
-# encoding: utf-8
+# -*- coding: utf-8 -*-
 # pylint: disable=missing-docstring,redefined-outer-name
 import pytest
 
@@ -22,13 +22,14 @@ def patch_User_password_scheme():
     password_field_context = models.User.password.property.columns[0].type.context
     # NOTE: This is used here to forcefully resolve the LazyCryptContext
     password_field_context.context_kwds
-    password_field_context._config._init_scheme_list(('plaintext', ))
+    password_field_context._config._init_scheme_list(('plaintext',))
     password_field_context._config._init_records()
     password_field_context._config._init_default_schemes()
     yield
-    password_field_context._config._init_scheme_list(('bcrypt', ))
+    password_field_context._config._init_scheme_list(('bcrypt',))
     password_field_context._config._init_records()
     password_field_context._config._init_default_schemes()
+
 
 @pytest.fixture()
 def user_instance(patch_User_password_scheme):
@@ -38,12 +39,14 @@ def user_instance(patch_User_password_scheme):
     _user_instance.get_id = lambda: user_id
     return _user_instance
 
+
 @pytest.yield_fixture()
 def authenticated_user_instance(flask_app, user_instance):
     with flask_app.test_request_context('/'):
         login_user(user_instance)
         yield current_user
         logout_user()
+
 
 @pytest.yield_fixture()
 def anonymous_user_instance(flask_app):

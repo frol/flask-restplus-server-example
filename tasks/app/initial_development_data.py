@@ -1,4 +1,4 @@
-# encoding: utf-8
+# -*- coding: utf-8 -*-
 # pylint: disable=missing-docstring
 """
 This file contains initialization data for development usage only.
@@ -19,7 +19,7 @@ def init_users():
             password='q',
             is_active=True,
             is_staff=False,
-            is_admin=True
+            is_admin=True,
         )
         db.session.add(root_user)
 
@@ -27,7 +27,7 @@ def init_users():
             username='documentation',
             email='documentation@localhost',
             password='w',
-            is_active=False
+            is_active=False,
         )
         db.session.add(docs_user)
 
@@ -36,7 +36,7 @@ def init_users():
             email='staff@localhost',
             password='w',
             is_active=True,
-            is_staff=False
+            is_staff=False,
         )
         db.session.add(staff_member)
 
@@ -45,7 +45,7 @@ def init_users():
             email='internal@localhost',
             password='q',
             is_active=True,
-            is_internal=True
+            is_internal=True,
         )
         db.session.add(internal_user)
 
@@ -61,7 +61,7 @@ def init_auth(docs_user):
             client_secret='KQ()SWK)SQK)QWSKQW(SKQ)S(QWSQW(SJ*HQ&HQW*SQ*^SSQWSGQSG',
             user_id=docs_user.id,
             redirect_uris=[],
-            default_scopes=api.api_v1.authorizations['oauth2_password']['scopes']
+            default_scopes=api.api_v1.authorizations['oauth2_password']['scopes'],
         )
         db.session.add(oauth2_client)
     return oauth2_client
@@ -71,12 +71,17 @@ def init():
     # Automatically update `default_scopes` for `documentation` OAuth2 Client,
     # as it is nice to have an ability to evaluate all available API calls.
     with db.session.begin():
-        OAuth2Client.query.filter(OAuth2Client.client_id == 'documentation').update({
-            OAuth2Client.default_scopes: api.api_v1.authorizations['oauth2_password']['scopes'],
-        })
+        OAuth2Client.query.filter(OAuth2Client.client_id == 'documentation').update(
+            {
+                OAuth2Client.default_scopes: api.api_v1.authorizations['oauth2_password'][
+                    'scopes'
+                ],
+            }
+        )
 
-    assert User.query.count() == 0, \
-        "Database is not empty. You should not re-apply fixtures! Aborted."
+    assert (
+        User.query.count() == 0
+    ), 'Database is not empty. You should not re-apply fixtures! Aborted.'
 
     docs_user = init_users()  # pylint: disable=unused-variable
     init_auth(docs_user)

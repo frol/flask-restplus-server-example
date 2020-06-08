@@ -53,7 +53,7 @@ clients/*/swagger.json
 clients/*/dist
 virtualenv/
 
-*.tar 
+*.tar
 app/version.py
 
 # macOS specific ignores
