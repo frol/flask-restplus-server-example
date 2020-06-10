@@ -1,4 +1,4 @@
-{% extends "layout.html" %}
+{% extends "layout.jinja2" %}
 
 {% block title %}Home{% endblock %}
 
@@ -23,9 +23,9 @@
     Version {{ version }}
   </div>
 
-  {% include "home.login.html" %}
+  {% include "home.login.jinja2" %}
 
-  {% include "home.logout.html" %}
+  {% include "home.logout.jinja2" %}
 
 {% endblock %}
 

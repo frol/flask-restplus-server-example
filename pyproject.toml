@@ -7,7 +7,7 @@ exclude = '''
     \.git,
     \_assets,
     \_db,
-    \_frrontend,
+    \_frontend,
     clients,
     deploy,
     Houston.egg-info,
