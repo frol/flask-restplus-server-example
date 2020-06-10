@@ -23,6 +23,7 @@ import datetime
 import pytz
 
 import random
+import uuid
 
 
 log = logging.getLogger(__name__)
@@ -91,21 +92,20 @@ class OAuth2Client(db.Model):
 
     __tablename__ = 'oauth2_client'
 
-    client_id = db.Column(db.String(length=40), primary_key=True)
-    client_secret = db.Column(db.String(length=55), nullable=False)
+    guid = db.Column(db.GUID, default=uuid.uuid4, primary_key=True)
+    secret = db.Column(db.String(length=64), nullable=False)
 
-    user_id = db.Column(
-        db.ForeignKey('user.id', ondelete='CASCADE'), index=True, nullable=False
+    user_guid = db.Column(
+        db.ForeignKey('user.guid', ondelete='CASCADE'), index=True, nullable=False
     )
     user = db.relationship(User)
 
-    class ClientTypes(str, enum.Enum):
+    class ClientLevels(str, enum.Enum):
         public = 'public'
+        session = 'session'
         confidential = 'confidential'
 
-    client_type = db.Column(
-        db.Enum(ClientTypes), default=ClientTypes.public, nullable=False
-    )
+    level = db.Column(db.Enum(ClientLevels), default=ClientLevels.public, nullable=False)
     redirect_uris = db.Column(ScalarListType(separator=' '), default=[], nullable=False)
     default_scopes = db.Column(ScalarListType(separator=' '), nullable=False)
 
@@ -117,10 +117,10 @@ class OAuth2Client(db.Model):
         return None
 
     @classmethod
-    def find(cls, client_id):
-        if not client_id:
+    def find(cls, client_guid):
+        if not client_guid:
             return None
-        return cls.query.get(client_id)
+        return cls.query.get(client_guid)
 
     def validate_scopes(self, scopes):
         # The only reason for this override is that Swagger UI has a bug which leads to that
@@ -140,18 +140,17 @@ class OAuth2Grant(db.Model):
 
     __tablename__ = 'oauth2_grant'
 
-    id = db.Column(db.Integer, primary_key=True)  # pylint: disable=invalid-name
+    guid = db.Column(
+        db.GUID, default=uuid.uuid4, primary_key=True
+    )  # pylint: disable=invalid-name
 
-    user_id = db.Column(
-        db.ForeignKey('user.id', ondelete='CASCADE'), index=True, nullable=False
+    user_guid = db.Column(
+        db.ForeignKey('user.guid', ondelete='CASCADE'), index=True, nullable=False
     )
     user = db.relationship('User')
 
-    client_id = db.Column(
-        db.String(length=40),
-        db.ForeignKey('oauth2_client.client_id'),
-        index=True,
-        nullable=False,
+    client_guid = db.Column(
+        db.GUID, db.ForeignKey('oauth2_client.guid'), index=True, nullable=False,
     )
     client = db.relationship('OAuth2Client')
 
@@ -167,8 +166,8 @@ class OAuth2Grant(db.Model):
             db.session.delete(self)
 
     @classmethod
-    def find(cls, client_id, code):
-        return cls.query.filter_by(client_id=client_id, code=code).first()
+    def find(cls, client_guid, code):
+        return cls.query.filter_by(client_guid=client_guid, code=code).first()
 
     @property
     def is_expired(self):
@@ -184,17 +183,17 @@ class OAuth2Token(db.Model):
 
     __tablename__ = 'oauth2_token'
 
-    id = db.Column(db.Integer, primary_key=True)  # pylint: disable=invalid-name
-    client_id = db.Column(
-        db.String(length=40),
-        db.ForeignKey('oauth2_client.client_id'),
-        index=True,
-        nullable=False,
+    guid = db.Column(
+        db.GUID, default=uuid.uuid4, primary_key=True
+    )  # pylint: disable=invalid-name
+
+    client_guid = db.Column(
+        db.GUID, db.ForeignKey('oauth2_client.guid'), index=True, nullable=False,
     )
     client = db.relationship('OAuth2Client')
 
-    user_id = db.Column(
-        db.ForeignKey('user.id', ondelete='CASCADE'), index=True, nullable=False
+    user_guid = db.Column(
+        db.ForeignKey('user.guid', ondelete='CASCADE'), index=True, nullable=False
     )
     user = db.relationship('User')
 
@@ -204,8 +203,8 @@ class OAuth2Token(db.Model):
 
     token_type = db.Column(db.Enum(TokenTypes), nullable=False)
 
-    access_token = db.Column(db.String(length=255), unique=True, nullable=False)
-    refresh_token = db.Column(db.String(length=255), unique=True, nullable=True)
+    access_token = db.Column(db.String(length=128), unique=True, nullable=False)
+    refresh_token = db.Column(db.String(length=128), unique=True, nullable=True)
     expires = db.Column(db.DateTime, nullable=False)
     scopes = db.Column(ScalarListType(separator=' '), nullable=False)
 
@@ -235,9 +234,11 @@ class Code(db.Model, Timestamp):
 
     __tablename__ = 'code'
 
-    id = db.Column(db.Integer, primary_key=True)  # pylint: disable=invalid-name
+    guid = db.Column(
+        db.GUID, default=uuid.uuid4, primary_key=True
+    )  # pylint: disable=invalid-name
 
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), index=True, nullable=False)
+    user_guid = db.Column(db.GUID, db.ForeignKey('user.guid'), index=True, nullable=False)
     user = db.relationship(
         'User', backref=db.backref('codes', cascade='delete, delete-orphan')
     )
@@ -253,13 +254,13 @@ class Code(db.Model, Timestamp):
     decision = db.Column(db.Enum(CodeDecisions), nullable=True)
 
     # __table_args__ = (
-    #     db.UniqueConstraint(user_id, code_type),
+    #     db.UniqueConstraint(user_guid, code_type),
     # )
 
     def __repr__(self):
         return (
             '<{class_name}('
-            'id={self.id}, '
+            'guid={self.guid}, '
             'created={self.created}, '
             'type={self.code_type}, '
             'accept={self.accept_code}, '
@@ -374,7 +375,7 @@ class Code(db.Model, Timestamp):
 
             expires_utc = expires.astimezone(pytz.utc)
             code_kwargs = {
-                'user_id': user.id,
+                'user_guid': user.guid,
                 'code_type': code_type,
                 'accept_code': accept_code,
                 'reject_code': reject_code,

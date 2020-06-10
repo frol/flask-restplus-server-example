@@ -42,7 +42,7 @@ def test_getting_user_info_by_unauthorized_user(
 ):
     # pylint: disable=invalid-name
     with flask_app_client.login(regular_user, auth_scopes=('users:read',)):
-        response = flask_app_client.get('/api/v1/users/%d' % admin_user.id)
+        response = flask_app_client.get('/api/v1/users/%d' % admin_user.guid)
 
     assert response.status_code == 403
     assert response.content_type == 'application/json'
@@ -53,7 +53,7 @@ def test_getting_user_info_by_unauthorized_user(
 def test_getting_user_info_by_authorized_user(flask_app_client, regular_user, admin_user):
     # pylint: disable=invalid-name
     with flask_app_client.login(admin_user, auth_scopes=('users:read',)):
-        response = flask_app_client.get('/api/v1/users/%d' % regular_user.id)
+        response = flask_app_client.get('/api/v1/users/%d' % regular_user.guid)
 
     assert response.status_code == 200
     assert response.content_type == 'application/json'
@@ -65,7 +65,7 @@ def test_getting_user_info_by_authorized_user(flask_app_client, regular_user, ad
 def test_getting_user_info_by_owner(flask_app_client, regular_user):
     # pylint: disable=invalid-name
     with flask_app_client.login(regular_user, auth_scopes=('users:read',)):
-        response = flask_app_client.get('/api/v1/users/%d' % regular_user.id)
+        response = flask_app_client.get('/api/v1/users/%d' % regular_user.guid)
 
     assert response.status_code == 200
     assert response.content_type == 'application/json'

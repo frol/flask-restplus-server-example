@@ -22,6 +22,8 @@ import datetime
 import pytz
 import pprint
 
+import uuid
+
 
 log = logging.getLogger(__name__)
 pp = pprint.PrettyPrinter(indent=2)
@@ -43,7 +45,9 @@ class EmailRecord(db.Model, Timestamp):
 
     __tablename__ = 'email'
 
-    id = db.Column(db.Integer, primary_key=True)  # pylint: disable=invalid-name
+    guid = db.Column(
+        db.GUID, default=uuid.uuid4, primary_key=True
+    )  # pylint: disable=invalid-name
 
     recipient = db.Column(db.String, index=True, nullable=False)
     email_type = db.Column(db.Enum(EmailTypes), index=True, nullable=False)
@@ -51,7 +55,7 @@ class EmailRecord(db.Model, Timestamp):
     def __repr__(self):
         return (
             '<{class_name}('
-            'id={self.id}, '
+            'guid={self.guid}, '
             'type={self.email_type}, '
             ')>'.format(class_name=self.__class__.__name__, self=self)
         )

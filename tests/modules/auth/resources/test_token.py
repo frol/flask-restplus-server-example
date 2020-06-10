@@ -13,8 +13,8 @@ def test_regular_user_can_retrieve_token(
     data = {
         'username': regular_user.username,
         'password': 'regular_user_password',
-        'client_id': regular_user_oauth2_client.client_id,
-        'client_secret': regular_user_oauth2_client.client_secret,
+        'client_guid': regular_user_oauth2_client.guid,
+        'client_secret': regular_user_oauth2_client.secret,
         'grant_type': 'password',
     }
     if scope is not None:
@@ -70,7 +70,7 @@ def test_regular_user_cant_retrieve_token_with_invalid_credentials(
         data={
             'username': regular_user.username,
             'password': 'wrong_password',
-            'client_id': 'wrong_client_id',
+            'client_guid': 'wrong_client_guid',
             'client_secret': 'wrong_client_secret',
             'grant_type': 'password',
         },
@@ -95,8 +95,8 @@ def test_regular_user_can_refresh_token(
         content_type='application/x-www-form-urlencoded',
         data={
             'refresh_token': regular_user_oauth2_token.refresh_token,
-            'client_id': regular_user_oauth2_token.client.client_id,
-            'client_secret': regular_user_oauth2_token.client.client_secret,
+            'client_guid': regular_user_oauth2_token.client.guid,
+            'client_secret': regular_user_oauth2_token.client.secret,
             'grant_type': 'refresh_token',
         },
     )
@@ -127,8 +127,8 @@ def test_regular_user_cant_refresh_token_with_invalid_refresh_token(
         content_type='application/x-www-form-urlencoded',
         data={
             'refresh_token': 'wrong_refresh_token',
-            'client_id': regular_user_oauth2_token.client.client_id,
-            'client_secret': regular_user_oauth2_token.client.client_secret,
+            'client_guid': regular_user_oauth2_token.client.guid,
+            'client_secret': regular_user_oauth2_token.client.secret,
             'grant_type': 'refresh_token',
         },
     )
@@ -149,8 +149,8 @@ def test_regular_user_can_revoke_token(
 ):
     data = {
         'token': regular_user_oauth2_token.refresh_token,
-        'client_id': regular_user_oauth2_token.client.client_id,
-        'client_secret': regular_user_oauth2_token.client.client_secret,
+        'client_guid': regular_user_oauth2_token.client.guid,
+        'client_secret': regular_user_oauth2_token.client.secret,
     }
     revoke_token_response = flask_app_client.post(
         '/auth/oauth2/revoke',
@@ -161,8 +161,8 @@ def test_regular_user_can_revoke_token(
                 (
                     '%s:%s'
                     % (
-                        regular_user_oauth2_token.client.client_id,
-                        regular_user_oauth2_token.client.client_secret,
+                        regular_user_oauth2_token.client.guid,
+                        regular_user_oauth2_token.client.secret,
                     )
                 ).encode('utf-8')
             ),

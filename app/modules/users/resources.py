@@ -68,10 +68,10 @@ class Users(Resource):
                 code_users = set([])
                 for code in codes:
                     if not code.is_expired:
-                        code_users.add(code.user.id)
+                        code_users.add(code.user.guid)
 
                 or_term = or_(
-                    User.id.in_(code_users),
+                    User.guid.in_(code_users),
                     User.email.contains(term),
                     User.phone.contains(term),
                     User.first_name.contains(term),
@@ -131,14 +131,14 @@ class Users(Resource):
             db.session, default_error_message='Failed to delete user.'
         )
         with context:
-            user_id = args['user_id']
-            user = User.query.filter_by(id=user_id).first_or_404()
+            user_guid = args['user_guid']
+            user = User.query.filter_by(id=user_guid).first_or_404()
             db.session.delete(user)
 
         return None
 
 
-@api.route('/<int:user_id>')
+@api.route('/<int:user_guid>')
 @api.login_required(oauth_scopes=['users:read'])
 @api.response(
     code=HTTPStatus.NOT_FOUND, description='User not found.',
@@ -184,7 +184,7 @@ class UserByID(Resource):
         return user
 
 
-@api.route('/picture/<int:user_id>')
+@api.route('/picture/<int:user_guid>')
 @api.login_required(oauth_scopes=['assets:read', 'users:read'])
 @api.response(
     code=HTTPStatus.NOT_FOUND, description='User not found.',
@@ -212,7 +212,7 @@ class UserArtworkByID(Resource):
             db.session, default_error_message='Failed to update User details.'
         )
         with context:
-            user.profile_asset_id = asset.id
+            user.profile_asset_guid = asset.guid
             db.session.merge(user)
 
         return user
@@ -248,10 +248,10 @@ class UserMe(Resource):
         """
         Get current user details.
         """
-        return User.query.get_or_404(current_user.id)
+        return User.query.get_or_404(current_user.guid)
 
 
-@api.route('/sync')
+@api.route('/edm/sync')
 # @api.login_required(oauth_scopes=['users:read'])
 class UserEDMSync(Resource):
     """
@@ -263,5 +263,13 @@ class UserEDMSync(Resource):
         """
         Get current user details.
         """
-        users = current_app.edm.get_users()
-        return users
+        edm_users, new_users, stale_users = User.edm_sync_users()
+
+        response = {
+            'local': User.query.count(),
+            'remote': len(edm_users),
+            'added': len(new_users),
+            'updated': len(stale_users),
+        }
+
+        return response

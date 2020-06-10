@@ -8,6 +8,8 @@ from tests import utils
 
 from app.modules.users import models
 
+import uuid
+
 
 @pytest.yield_fixture()
 def patch_User_password_scheme():
@@ -34,9 +36,8 @@ def patch_User_password_scheme():
 @pytest.fixture()
 def user_instance(patch_User_password_scheme):
     # pylint: disable=unused-argument,invalid-name
-    user_id = 1
-    _user_instance = utils.generate_user_instance(user_id=user_id)
-    _user_instance.get_id = lambda: user_id
+    user_guid = uuid.uuid4()
+    _user_instance = utils.generate_user_instance(user_guid=user_guid)
     return _user_instance
 
 

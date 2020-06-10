@@ -36,6 +36,9 @@ if os.path.exists(_config_filepath):
 
 class BaseConfig(object):
     # SQLITE
+    PROJECT_ROOT = PROJECT_ROOT
+    PROJECT_DATABASE_PATH = PROJECT_DATABASE_PATH
+
     ASSET_DATABASE_PATH = os.path.join(PROJECT_DATABASE_PATH, 'assets')
     ASSET_ALLOWED_EXTS = [
         '.jpg',

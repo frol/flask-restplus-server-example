@@ -18,6 +18,7 @@ from app.extensions.api.parameters import PaginationParameters
 from . import schemas, parameters
 from .models import db, OAuth2Client
 
+import uuid
 
 log = logging.getLogger(__name__)
 api = Namespace('auth', description='Authentication')
@@ -29,9 +30,9 @@ def _generate_new_client(args):
     )
     with context:
         new_oauth2_client = OAuth2Client(
-            user_id=current_user.id,
-            client_id=security.gen_salt(40),
-            client_secret=security.gen_salt(50),
+            user_guid=current_user.guid,
+            client_guid=uuid.uuid4(),
+            client_secret=security.gen_salt(64),
             **args
         )
         db.session.add(new_oauth2_client)
@@ -58,8 +59,8 @@ class OAuth2Clients(Resource):
         """
         oauth2_clients = OAuth2Client.query
         oauth2_clients = oauth2_clients.filter(
-            OAuth2Client.user_id == current_user.id,
-            OAuth2Client.client_type != 'confidential',
+            OAuth2Client.user_guid == current_user.guid,
+            OAuth2Client.level != OAuth2Client.ClientLevels.confidential,
         )
 
         if oauth2_clients.count() == 0 and current_user.is_admin:
@@ -84,7 +85,7 @@ class OAuth2Clients(Resource):
         """
         Create a new OAuth2 Client.
 
-        Essentially, OAuth2 Client is a ``client_id`` and ``client_secret``
+        Essentially, OAuth2 Client is a ``client_guid`` and ``client_secret``
         pair associated with a user.
         """
         new_oauth2_client = _generate_new_client(args)

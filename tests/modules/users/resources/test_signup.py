@@ -29,7 +29,7 @@ def create_new_user(flask_app_client, data, must_succeed=True):
 
 def test_new_user_creation(patch_User_password_scheme, flask_app_client, db):
     # pylint: disable=invalid-name,unused-argument
-    user_id = create_new_user(
+    user_guid = create_new_user(
         flask_app_client,
         data={
             'username': 'user1',
@@ -37,12 +37,12 @@ def test_new_user_creation(patch_User_password_scheme, flask_app_client, db):
             'password': 'user1_password',
         },
     )
-    assert isinstance(user_id, int)
+    assert isinstance(user_guid, int)
 
     # Cleanup
     from app.modules.users.models import User
 
-    user1_instance = User.query.get(user_id)
+    user1_instance = User.query.get(user_guid)
     assert user1_instance.username == 'user1'
     assert user1_instance.email == 'user1@email.com'
     assert user1_instance.password == 'user1_password'
@@ -90,7 +90,7 @@ def test_new_user_creation_without_captcha_but_admin_user(
 ):
     # pylint: disable=invalid-name,unused-argument
     with flask_app_client.login(admin_user):
-        user_id = create_new_user(
+        user_guid = create_new_user(
             flask_app_client,
             data={
                 'recaptcha_key': None,
@@ -99,12 +99,12 @@ def test_new_user_creation_without_captcha_but_admin_user(
                 'password': 'user1_password',
             },
         )
-    assert isinstance(user_id, int)
+    assert isinstance(user_guid, int)
 
     # Cleanup
     from app.modules.users.models import User
 
-    user1_instance = User.query.get(user_id)
+    user1_instance = User.query.get(user_guid)
     assert user1_instance.username == 'user1'
     assert user1_instance.email == 'user1@email.com'
     assert user1_instance.password == 'user1_password'
@@ -115,7 +115,7 @@ def test_new_user_creation_without_captcha_but_admin_user(
 
 def test_new_user_creation_duplicate_must_fail(flask_app_client, db):
     # pylint: disable=invalid-name
-    user_id = create_new_user(
+    user_guid = create_new_user(
         flask_app_client,
         data={
             'username': 'user1',
@@ -139,6 +139,6 @@ def test_new_user_creation_duplicate_must_fail(flask_app_client, db):
     # Cleanup
     from app.modules.users.models import User
 
-    user1_instance = User.query.get(user_id)
+    user1_instance = User.query.get(user_guid)
     with db.session.begin():
         db.session.delete(user1_instance)

@@ -43,7 +43,7 @@ class AutoAuthFlaskClient(FlaskClient):
             from app.modules.auth.models import OAuth2Client, OAuth2Token
 
             oauth2_client = OAuth2Client(
-                client_id='OAUTH2_%s' % self._user.username,
+                client_guid='OAUTH2_%s' % self._user.username,
                 client_secret='SECRET',
                 user=self._user,
                 default_scopes=[],
@@ -96,7 +96,7 @@ class JSONResponse(Response):
 
 
 def generate_user_instance(
-    user_id=None,
+    user_guid=None,
     username='username',
     password=None,
     email=None,
@@ -120,7 +120,7 @@ def generate_user_instance(
     if password is None:
         password = '%s_password' % username
     user_instance = User(
-        id=user_id,
+        guid=user_guid,
         username=username,
         first_name=first_name,
         middle_name=middle_name,

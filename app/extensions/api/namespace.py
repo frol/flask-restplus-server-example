@@ -37,23 +37,23 @@ class Namespace(BaseNamespace):
             object_arg_name (str) - argument name for a resolved object
             identity_arg_names (tuple) - a list of argument names holding an
                 object identity, by default it will be auto-generated as
-                ``%(object_arg_name)s_id``.
+                ``%(object_arg_name)s_guid``.
 
         Example:
         >>> @namespace.resolve_object_by_model(User, 'user')
-        ... def get_user_by_id(user):
+        ... def get_user_by_guid(user):
         ...     return user
-        >>> get_user_by_id(user_id=3)
+        >>> get_user_by_guid(user_guid=3)
         <User(id=3, ...)>
 
-        >>> @namespace.resolve_object_by_model(MyModel, 'my_model', ('user_id', 'model_name'))
+        >>> @namespace.resolve_object_by_model(MyModel, 'my_model', ('user_guid', 'model_name'))
         ... def get_object_by_two_primary_keys(my_model):
         ...     return my_model
-        >>> get_object_by_two_primary_keys(user_id=3, model_name="test")
-        <MyModel(user_id=3, name="test", ...)>
+        >>> get_object_by_two_primary_keys(user_guid=3, model_name="test")
+        <MyModel(user_guid=3, name="test", ...)>
         """
         if identity_arg_names is None:
-            identity_arg_names = ('%s_id' % object_arg_name,)
+            identity_arg_names = ('%s_guid' % object_arg_name,)
         elif not isinstance(identity_arg_names, (list, tuple)):
             identity_arg_names = (identity_arg_names,)
         return self.resolve_object(

@@ -9,20 +9,25 @@ import os
 
 from app.extensions import db
 
+import uuid
+
 
 class Asset(db.Model, Timestamp):
     """
     Assets database model.
     """
 
-    id = db.Column(db.Integer, primary_key=True)  # pylint: disable=invalid-name
+    guid = db.Column(
+        db.GUID, default=uuid.uuid4, primary_key=True
+    )  # pylint: disable=invalid-name
+
     code = db.Column(db.String(length=64), nullable=False)
     ext = db.Column(db.String(length=5), nullable=False)
 
     def __repr__(self):
         return (
             '<{class_name}('
-            'id={self.id}, '
+            'guid={self.guid}, '
             "file=\"{self.code}{self.ext}\""
             ')>'.format(class_name=self.__class__.__name__, self=self)
         )

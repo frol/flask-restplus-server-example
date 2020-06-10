@@ -23,15 +23,15 @@ class BaseOAuth2ClientSchema(ModelSchema):
         # pylint: disable=missing-docstring
         model = OAuth2Client
         fields = (
-            OAuth2Client.user_id.key,
-            OAuth2Client.client_id.key,
-            OAuth2Client.client_type.key,
+            OAuth2Client.guid.key,
+            OAuth2Client.user_guid.key,
+            OAuth2Client.level.key,
             OAuth2Client.default_scopes.key,
             OAuth2Client.redirect_uris.key,
         )
         dump_only = (
-            OAuth2Client.user_id.key,
-            OAuth2Client.client_id.key,
+            OAuth2Client.guid.key,
+            OAuth2Client.user_guid.key,
         )
 
 
@@ -41,7 +41,7 @@ class DetailedOAuth2ClientSchema(BaseOAuth2ClientSchema):
     """
 
     class Meta(BaseOAuth2ClientSchema.Meta):
-        fields = BaseOAuth2ClientSchema.Meta.fields + (OAuth2Client.client_secret.key,)
+        fields = BaseOAuth2ClientSchema.Meta.fields + (OAuth2Client.secret.key,)
 
 
 class BaseCodeSchema(ModelSchema):
@@ -53,8 +53,8 @@ class BaseCodeSchema(ModelSchema):
         # pylint: disable=missing-docstring
         model = Code
         fields = (
-            Code.id.key,
-            Code.user_id.key,
+            Code.guid.key,
+            Code.user_guid.key,
             Code.code_type.key,
             Code.accept_code.key,
             Code.reject_code.key,

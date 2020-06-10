@@ -23,15 +23,15 @@ def test_creating_oauth2_client(
     assert response.content_type == 'application/json'
     assert isinstance(response.json, dict)
     assert set(response.json.keys()) >= {
-        'user_id',
-        'client_id',
-        'client_secret',
-        'client_type',
+        'user_guid',
+        'guid',
+        'secret',
+        'level',
         'default_scopes',
         'redirect_uris',
     }
-    assert isinstance(response.json['client_id'], six.text_type)
-    assert isinstance(response.json['client_secret'], six.text_type)
+    assert isinstance(response.json['guid'], six.text_type)
+    assert isinstance(response.json['secret'], six.text_type)
     assert isinstance(response.json['default_scopes'], list)
     assert set(response.json['default_scopes']) == {
         'users:read',
@@ -43,8 +43,8 @@ def test_creating_oauth2_client(
     # Cleanup
     from app.modules.auth.models import OAuth2Client
 
-    oauth2_client_instance = OAuth2Client.query.get(response.json['client_id'])
-    assert oauth2_client_instance.client_secret == response.json['client_secret']
+    oauth2_client_instance = OAuth2Client.query.get(response.json['client_guid'])
+    assert oauth2_client_instance.secret == response.json['client_secret']
 
     with db.session.begin():
         db.session.delete(oauth2_client_instance)

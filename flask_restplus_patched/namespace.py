@@ -37,11 +37,11 @@ class Namespace(OriginalNamespace):
         A helper decorator to resolve object instance from arguments (e.g. identity).
 
         Example:
-        >>> @namespace.route('/<int:user_id>')
+        >>> @namespace.route('/<int:user_guid>')
         ... class MyResource(Resource):
         ...    @namespace.resolve_object(
         ...        object_arg_name='user',
-        ...        resolver=lambda kwargs: User.query.get_or_404(kwargs.pop('user_id'))
+        ...        resolver=lambda kwargs: User.query.get_or_404(kwargs.pop('user_guid'))
         ...    )
         ...    def get(self, user):
         ...        # user is a User instance here

@@ -41,7 +41,7 @@ def create_user(
 
 @app_context_task
 def create_oauth2_client(
-    context, username, client_id, client_secret, default_scopes=None
+    context, username, client_guid, client_secret, default_scopes=None
 ):
     """
     Create a new OAuth2 Client associated with a given user (username).
@@ -59,7 +59,7 @@ def create_oauth2_client(
         default_scopes = list(api_v1.authorizations['oauth2_password']['scopes'].keys())
 
     oauth2_client = OAuth2Client(
-        client_id=client_id,
+        client_guid=client_guid,
         client_secret=client_secret,
         user=user,
         default_scopes=default_scopes,

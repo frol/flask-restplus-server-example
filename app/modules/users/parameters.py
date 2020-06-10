@@ -81,7 +81,7 @@ class DeleteUserParameters(Parameters):
     New user creation (sign up) parameters.
     """
 
-    user_id = base_fields.Integer(description='The ID of the user', required=True)
+    user_guid = base_fields.UUID(description='The GUID of the user', required=True)
 
 
 class PatchUserDetailsParameters(PatchJSONParameters):
@@ -100,8 +100,6 @@ class PatchUserDetailsParameters(PatchJSONParameters):
             User.middle_name.key,
             User.last_name.key,
             User.suffix_name.key,
-            User.birth_month.key,
-            User.birth_year.key,
             User.phone.key,
             User.address_line1.key,
             User.address_line2.key,

@@ -10,6 +10,14 @@ from app.extensions import db, api
 from app.modules.users.models import User
 from app.modules.auth.models import OAuth2Client
 
+import uuid
+
+
+DOCUMENTATION_CLIENT_GUID = uuid.UUID('d43216f8-7783-4c76-b9ce-944c96757822')
+DOCUMENTATION_CLIENT_SECRET = (
+    'v8cEpH899bfA8CglzMDTvsyyEzYJeYQgzsxFAIwEEjA0NbtGEvsCj4m1z25HoAUu'
+)
+
 
 def init_users():
     with db.session.begin():
@@ -57,9 +65,9 @@ def init_auth(docs_user):
     # of Resource Owner Password Credentials Flow
     with db.session.begin():
         oauth2_client = OAuth2Client(
-            client_id='documentation',
-            client_secret='KQ()SWK)SQK)QWSKQW(SKQ)S(QWSQW(SJ*HQ&HQW*SQ*^SSQWSGQSG',
-            user_id=docs_user.id,
+            guid=DOCUMENTATION_CLIENT_GUID,
+            secret=DOCUMENTATION_CLIENT_SECRET,
+            user_guid=docs_user.guid,
             redirect_uris=[],
             default_scopes=api.api_v1.authorizations['oauth2_password']['scopes'],
         )
@@ -71,7 +79,7 @@ def init():
     # Automatically update `default_scopes` for `documentation` OAuth2 Client,
     # as it is nice to have an ability to evaluate all available API calls.
     with db.session.begin():
-        OAuth2Client.query.filter(OAuth2Client.client_id == 'documentation').update(
+        OAuth2Client.query.filter(OAuth2Client.guid == DOCUMENTATION_CLIENT_GUID).update(
             {
                 OAuth2Client.default_scopes: api.api_v1.authorizations['oauth2_password'][
                     'scopes'

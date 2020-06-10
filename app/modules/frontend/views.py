@@ -23,6 +23,8 @@ import datetime
 import pytz
 import os
 
+import uuid
+
 log = logging.getLogger(__name__)
 
 PST = pytz.timezone('US/Pacific')
@@ -100,7 +102,7 @@ def create_session_oauth2_token(cleanup_tokens=False, check_renewal=False):
 
     # Retrieve Oauth2 client for user and/or clean-up multiple clients
     session_oauth2_clients = OAuth2Client.query.filter_by(
-        user=current_user, client_type=OAuth2Client.ClientTypes.confidential
+        user=current_user, level=OAuth2Client.ClientLevels.session
     ).all()
     session_oauth2_client = None
     if len(session_oauth2_clients) == 1:
@@ -114,9 +116,9 @@ def create_session_oauth2_token(cleanup_tokens=False, check_renewal=False):
 
     if session_oauth2_client is None:
         session_oauth2_client = OAuth2Client(
-            client_id='_session_oauth2_%s' % current_user.username,
-            client_secret=security.gen_salt(50),
-            client_type=OAuth2Client.ClientTypes.confidential,
+            guid=uuid.uuid4(),
+            secret=security.gen_salt(64),
+            level=OAuth2Client.ClientLevels.session,
             user=current_user,
             default_scopes=default_scopes,
         )
@@ -144,7 +146,7 @@ def create_session_oauth2_token(cleanup_tokens=False, check_renewal=False):
         client=session_oauth2_client,
         user=current_user,
         token_type='Bearer',
-        access_token=security.gen_salt(32),
+        access_token=security.gen_salt(128),
         scopes=default_scopes,
         expires=expires,
     )

@@ -8,7 +8,7 @@ def test_modifying_user_info_by_owner(flask_app_client, user, db):
     saved_middle_name = user.middle_name
     with flask_app_client.login(user, auth_scopes=('users:write',)):
         response = flask_app_client.patch(
-            '/api/v1/users/%d' % user.id,
+            '/api/v1/users/%d' % user.guid,
             content_type='application/json',
             data=json.dumps(
                 [
@@ -30,7 +30,7 @@ def test_modifying_user_info_by_owner(flask_app_client, user, db):
     assert response.content_type == 'application/json'
     assert isinstance(response.json, dict)
     assert set(response.json.keys()) >= {'id', 'username'}
-    assert response.json['id'] == user.id
+    assert response.json['id'] == user.guid
     assert 'password' not in response.json.keys()
 
     # Restore original state
@@ -50,7 +50,7 @@ def test_modifying_user_info_by_admin(flask_app_client, admin_user, user, db):
     saved_middle_name = user.middle_name
     with flask_app_client.login(admin_user, auth_scopes=('users:write',)):
         response = flask_app_client.patch(
-            '/api/v1/users/%d' % user.id,
+            '/api/v1/users/%d' % user.guid,
             content_type='application/json',
             data=json.dumps(
                 [
@@ -75,7 +75,7 @@ def test_modifying_user_info_by_admin(flask_app_client, admin_user, user, db):
     assert response.content_type == 'application/json'
     assert isinstance(response.json, dict)
     assert set(response.json.keys()) >= {'id', 'username'}
-    assert response.json['id'] == user.id
+    assert response.json['id'] == user.guid
     assert 'password' not in response.json.keys()
 
     # Restore original state
@@ -101,7 +101,7 @@ def test_modifying_user_info_admin_fields_by_not_admin(flask_app_client, user, d
     saved_middle_name = user.middle_name
     with flask_app_client.login(user, auth_scopes=('users:write',)):
         response = flask_app_client.patch(
-            '/api/v1/users/%d' % user.id,
+            '/api/v1/users/%d' % user.guid,
             content_type='application/json',
             data=json.dumps(
                 [
@@ -139,7 +139,7 @@ def test_modifying_user_info_with_invalid_format_must_fail(flask_app_client, use
     # pylint: disable=invalid-name
     with flask_app_client.login(user, auth_scopes=('users:write',)):
         response = flask_app_client.patch(
-            '/api/v1/users/%d' % user.id,
+            '/api/v1/users/%d' % user.guid,
             content_type='application/json',
             data=json.dumps(
                 [
@@ -159,7 +159,7 @@ def test_modifying_user_info_with_invalid_password_must_fail(flask_app_client, u
     # pylint: disable=invalid-name
     with flask_app_client.login(user, auth_scopes=('users:write',)):
         response = flask_app_client.patch(
-            '/api/v1/users/%d' % user.id,
+            '/api/v1/users/%d' % user.guid,
             content_type='application/json',
             data=json.dumps(
                 [
@@ -189,7 +189,7 @@ def test_modifying_user_info_with_conflict_data_must_fail(
     # pylint: disable=invalid-name
     with flask_app_client.login(user, auth_scopes=('users:write',)):
         response = flask_app_client.patch(
-            '/api/v1/users/%d' % user.id,
+            '/api/v1/users/%d' % user.guid,
             content_type='application/json',
             data=json.dumps(
                 [

@@ -1,19 +1,21 @@
 # -*- coding: utf-8 -*-
 """empty message
 
-Revision ID: cb07bac06970
+Revision ID: ff232fed26c0
 Revises: None
-Create Date: 2020-04-22 14:50:09.652260
+Create Date: 2020-06-09 14:56:30.898935
 
 """
 
 # revision identifiers, used by Alembic.
-revision = 'cb07bac06970'
+revision = 'ff232fed26c0'
 down_revision = None
 
 from alembic import op
 import sqlalchemy as sa
 import sqlalchemy_utils
+
+import app.extensions
 
 
 def upgrade():
@@ -22,47 +24,58 @@ def upgrade():
         'asset',
         sa.Column('created', sa.DateTime(), nullable=False),
         sa.Column('updated', sa.DateTime(), nullable=False),
-        sa.Column('id', sa.Integer(), nullable=False),
+        sa.Column('guid', app.extensions.GUID(), nullable=False),
         sa.Column('code', sa.String(length=64), nullable=False),
         sa.Column('ext', sa.String(length=5), nullable=False),
-        sa.PrimaryKeyConstraint('id', name=op.f('pk_asset')),
+        sa.PrimaryKeyConstraint('guid', name=op.f('pk_asset')),
     )
     op.create_table(
         'user',
         sa.Column('created', sa.DateTime(), nullable=False),
         sa.Column('updated', sa.DateTime(), nullable=False),
-        sa.Column('id', sa.Integer(), nullable=False),
+        sa.Column('guid', app.extensions.GUID(), nullable=False),
+        sa.Column('version', sa.Integer(), nullable=True),
         sa.Column('username', sa.String(length=120), nullable=False),
         sa.Column('email', sa.String(length=120), nullable=False),
+        sa.Column('agreement', sa.Boolean(), nullable=False),
         sa.Column(
             'password',
             sqlalchemy_utils.types.password.PasswordType(max_length=128),
             nullable=False,
         ),
+        sa.Column('title_name', sa.String(length=8), nullable=True),
         sa.Column('first_name', sa.String(length=30), nullable=False),
         sa.Column('middle_name', sa.String(length=30), nullable=True),
         sa.Column('last_name', sa.String(length=30), nullable=False),
         sa.Column('suffix_name', sa.String(length=8), nullable=True),
-        sa.Column('birth_month', sa.Integer(), nullable=True),
-        sa.Column('birth_year', sa.Integer(), nullable=True),
         sa.Column('phone', sa.String(length=20), nullable=True),
+        sa.Column('url', sa.String(length=120), nullable=True),
         sa.Column('address_line1', sa.String(length=120), nullable=True),
         sa.Column('address_line2', sa.String(length=120), nullable=True),
         sa.Column('address_city', sa.String(length=120), nullable=True),
+        sa.Column('address_region', sa.String(length=30), nullable=True),
         sa.Column('address_state', sa.String(length=30), nullable=True),
+        sa.Column('address_country', sa.String(length=30), nullable=True),
         sa.Column('address_zip', sa.String(length=10), nullable=True),
-        sa.Column('profile_asset_id', sa.Integer(), nullable=True),
+        sa.Column('address_gps_latitude', sa.Float(), nullable=True),
+        sa.Column('address_gps_longitude', sa.Float(), nullable=True),
+        sa.Column('profile_asset_guid', app.extensions.GUID(), nullable=True),
         sa.Column('static_roles', sa.Integer(), nullable=False),
-        sa.PrimaryKeyConstraint('id', name=op.f('pk_user')),
-        sa.UniqueConstraint('email', name=op.f('uq_user_email')),
-        sa.UniqueConstraint('username', name=op.f('uq_user_username')),
+        sa.PrimaryKeyConstraint('guid', name=op.f('pk_user')),
     )
+    with op.batch_alter_table('user', schema=None) as batch_op:
+        batch_op.create_index(
+            batch_op.f('ix_user_address_country'), ['address_country'], unique=False
+        )
+        batch_op.create_index(batch_op.f('ix_user_email'), ['email'], unique=True)
+        batch_op.create_index(batch_op.f('ix_user_username'), ['username'], unique=True)
+
     op.create_table(
         'code',
         sa.Column('created', sa.DateTime(), nullable=False),
         sa.Column('updated', sa.DateTime(), nullable=False),
-        sa.Column('id', sa.Integer(), nullable=False),
-        sa.Column('user_id', sa.Integer(), nullable=False),
+        sa.Column('guid', app.extensions.GUID(), nullable=False),
+        sa.Column('user_guid', app.extensions.GUID(), nullable=False),
         sa.Column(
             'code_type',
             sa.Enum('invite', 'email', 'recover', 'onetime', name='codetypes'),
@@ -87,9 +100,9 @@ def upgrade():
             nullable=True,
         ),
         sa.ForeignKeyConstraint(
-            ['user_id'], ['user.id'], name=op.f('fk_code_user_id_user')
+            ['user_guid'], ['user.guid'], name=op.f('fk_code_user_guid_user')
         ),
-        sa.PrimaryKeyConstraint('id', name=op.f('pk_code')),
+        sa.PrimaryKeyConstraint('guid', name=op.f('pk_code')),
     )
     with op.batch_alter_table('code', schema=None) as batch_op:
         batch_op.create_index(
@@ -101,16 +114,18 @@ def upgrade():
         batch_op.create_index(
             batch_op.f('ix_code_reject_code'), ['reject_code'], unique=True
         )
-        batch_op.create_index(batch_op.f('ix_code_user_id'), ['user_id'], unique=False)
+        batch_op.create_index(
+            batch_op.f('ix_code_user_guid'), ['user_guid'], unique=False
+        )
 
     op.create_table(
         'oauth2_client',
-        sa.Column('client_id', sa.String(length=40), nullable=False),
-        sa.Column('client_secret', sa.String(length=55), nullable=False),
-        sa.Column('user_id', sa.Integer(), nullable=False),
+        sa.Column('guid', app.extensions.GUID(), nullable=False),
+        sa.Column('secret', sa.String(length=64), nullable=False),
+        sa.Column('user_guid', app.extensions.GUID(), nullable=False),
         sa.Column(
-            'client_type',
-            sa.Enum('public', 'confidential', name='clienttypes'),
+            'level',
+            sa.Enum('public', 'session', 'confidential', name='clientlevels'),
             nullable=False,
         ),
         sa.Column(
@@ -124,23 +139,23 @@ def upgrade():
             nullable=False,
         ),
         sa.ForeignKeyConstraint(
-            ['user_id'],
-            ['user.id'],
-            name=op.f('fk_oauth2_client_user_id_user'),
+            ['user_guid'],
+            ['user.guid'],
+            name=op.f('fk_oauth2_client_user_guid_user'),
             ondelete='CASCADE',
         ),
-        sa.PrimaryKeyConstraint('client_id', name=op.f('pk_oauth2_client')),
+        sa.PrimaryKeyConstraint('guid', name=op.f('pk_oauth2_client')),
     )
     with op.batch_alter_table('oauth2_client', schema=None) as batch_op:
         batch_op.create_index(
-            batch_op.f('ix_oauth2_client_user_id'), ['user_id'], unique=False
+            batch_op.f('ix_oauth2_client_user_guid'), ['user_guid'], unique=False
         )
 
     op.create_table(
         'oauth2_grant',
-        sa.Column('id', sa.Integer(), nullable=False),
-        sa.Column('user_id', sa.Integer(), nullable=False),
-        sa.Column('client_id', sa.String(length=40), nullable=False),
+        sa.Column('guid', app.extensions.GUID(), nullable=False),
+        sa.Column('user_guid', app.extensions.GUID(), nullable=False),
+        sa.Column('client_guid', app.extensions.GUID(), nullable=False),
         sa.Column('code', sa.String(length=255), nullable=False),
         sa.Column('redirect_uri', sa.String(length=255), nullable=False),
         sa.Column('expires', sa.DateTime(), nullable=False),
@@ -148,60 +163,60 @@ def upgrade():
             'scopes', sqlalchemy_utils.types.scalar_list.ScalarListType(), nullable=False
         ),
         sa.ForeignKeyConstraint(
-            ['client_id'],
-            ['oauth2_client.client_id'],
-            name=op.f('fk_oauth2_grant_client_id_oauth2_client'),
+            ['client_guid'],
+            ['oauth2_client.guid'],
+            name=op.f('fk_oauth2_grant_client_guid_oauth2_client'),
         ),
         sa.ForeignKeyConstraint(
-            ['user_id'],
-            ['user.id'],
-            name=op.f('fk_oauth2_grant_user_id_user'),
+            ['user_guid'],
+            ['user.guid'],
+            name=op.f('fk_oauth2_grant_user_guid_user'),
             ondelete='CASCADE',
         ),
-        sa.PrimaryKeyConstraint('id', name=op.f('pk_oauth2_grant')),
+        sa.PrimaryKeyConstraint('guid', name=op.f('pk_oauth2_grant')),
     )
     with op.batch_alter_table('oauth2_grant', schema=None) as batch_op:
         batch_op.create_index(
-            batch_op.f('ix_oauth2_grant_client_id'), ['client_id'], unique=False
+            batch_op.f('ix_oauth2_grant_client_guid'), ['client_guid'], unique=False
         )
         batch_op.create_index(batch_op.f('ix_oauth2_grant_code'), ['code'], unique=False)
         batch_op.create_index(
-            batch_op.f('ix_oauth2_grant_user_id'), ['user_id'], unique=False
+            batch_op.f('ix_oauth2_grant_user_guid'), ['user_guid'], unique=False
         )
 
     op.create_table(
         'oauth2_token',
-        sa.Column('id', sa.Integer(), nullable=False),
-        sa.Column('client_id', sa.String(length=40), nullable=False),
-        sa.Column('user_id', sa.Integer(), nullable=False),
+        sa.Column('guid', app.extensions.GUID(), nullable=False),
+        sa.Column('client_guid', app.extensions.GUID(), nullable=False),
+        sa.Column('user_guid', app.extensions.GUID(), nullable=False),
         sa.Column('token_type', sa.Enum('Bearer', name='tokentypes'), nullable=False),
-        sa.Column('access_token', sa.String(length=255), nullable=False),
-        sa.Column('refresh_token', sa.String(length=255), nullable=True),
+        sa.Column('access_token', sa.String(length=128), nullable=False),
+        sa.Column('refresh_token', sa.String(length=128), nullable=True),
         sa.Column('expires', sa.DateTime(), nullable=False),
         sa.Column(
             'scopes', sqlalchemy_utils.types.scalar_list.ScalarListType(), nullable=False
         ),
         sa.ForeignKeyConstraint(
-            ['client_id'],
-            ['oauth2_client.client_id'],
-            name=op.f('fk_oauth2_token_client_id_oauth2_client'),
+            ['client_guid'],
+            ['oauth2_client.guid'],
+            name=op.f('fk_oauth2_token_client_guid_oauth2_client'),
         ),
         sa.ForeignKeyConstraint(
-            ['user_id'],
-            ['user.id'],
-            name=op.f('fk_oauth2_token_user_id_user'),
+            ['user_guid'],
+            ['user.guid'],
+            name=op.f('fk_oauth2_token_user_guid_user'),
             ondelete='CASCADE',
         ),
-        sa.PrimaryKeyConstraint('id', name=op.f('pk_oauth2_token')),
+        sa.PrimaryKeyConstraint('guid', name=op.f('pk_oauth2_token')),
         sa.UniqueConstraint('access_token', name=op.f('uq_oauth2_token_access_token')),
         sa.UniqueConstraint('refresh_token', name=op.f('uq_oauth2_token_refresh_token')),
     )
     with op.batch_alter_table('oauth2_token', schema=None) as batch_op:
         batch_op.create_index(
-            batch_op.f('ix_oauth2_token_client_id'), ['client_id'], unique=False
+            batch_op.f('ix_oauth2_token_client_guid'), ['client_guid'], unique=False
         )
         batch_op.create_index(
-            batch_op.f('ix_oauth2_token_user_id'), ['user_id'], unique=False
+            batch_op.f('ix_oauth2_token_user_guid'), ['user_guid'], unique=False
         )
 
     # ### end Alembic commands ###
@@ -210,27 +225,32 @@ def upgrade():
 def downgrade():
     # ### commands auto generated by Alembic - please adjust! ###
     with op.batch_alter_table('oauth2_token', schema=None) as batch_op:
-        batch_op.drop_index(batch_op.f('ix_oauth2_token_user_id'))
-        batch_op.drop_index(batch_op.f('ix_oauth2_token_client_id'))
+        batch_op.drop_index(batch_op.f('ix_oauth2_token_user_guid'))
+        batch_op.drop_index(batch_op.f('ix_oauth2_token_client_guid'))
 
     op.drop_table('oauth2_token')
     with op.batch_alter_table('oauth2_grant', schema=None) as batch_op:
-        batch_op.drop_index(batch_op.f('ix_oauth2_grant_user_id'))
+        batch_op.drop_index(batch_op.f('ix_oauth2_grant_user_guid'))
         batch_op.drop_index(batch_op.f('ix_oauth2_grant_code'))
-        batch_op.drop_index(batch_op.f('ix_oauth2_grant_client_id'))
+        batch_op.drop_index(batch_op.f('ix_oauth2_grant_client_guid'))
 
     op.drop_table('oauth2_grant')
     with op.batch_alter_table('oauth2_client', schema=None) as batch_op:
-        batch_op.drop_index(batch_op.f('ix_oauth2_client_user_id'))
+        batch_op.drop_index(batch_op.f('ix_oauth2_client_user_guid'))
 
     op.drop_table('oauth2_client')
     with op.batch_alter_table('code', schema=None) as batch_op:
-        batch_op.drop_index(batch_op.f('ix_code_user_id'))
+        batch_op.drop_index(batch_op.f('ix_code_user_guid'))
         batch_op.drop_index(batch_op.f('ix_code_reject_code'))
         batch_op.drop_index(batch_op.f('ix_code_code_type'))
         batch_op.drop_index(batch_op.f('ix_code_accept_code'))
 
     op.drop_table('code')
+    with op.batch_alter_table('user', schema=None) as batch_op:
+        batch_op.drop_index(batch_op.f('ix_user_username'))
+        batch_op.drop_index(batch_op.f('ix_user_email'))
+        batch_op.drop_index(batch_op.f('ix_user_address_country'))
+
     op.drop_table('user')
     op.drop_table('asset')
     # ### end Alembic commands ###

@@ -73,8 +73,8 @@ class OAuth2RequestValidator(provider.OAuth2RequestValidator):
                     token_type=token['token_type'],
                     scopes=[scope for scope in token['scope'].split(' ') if scope],
                     expires=expires,
-                    client_id=request.client.client_id,
-                    user_id=request.user.id,
+                    client_guid=request.client.guid,
+                    user_guid=request.user.guid,
                 )
                 db.session.add(token_instance)
         except sqlalchemy.exc.IntegrityError:
@@ -82,7 +82,7 @@ class OAuth2RequestValidator(provider.OAuth2RequestValidator):
             return None
         return token_instance
 
-    def _grantsetter(self, client_id, code, request, *args, **kwargs):
+    def _grantsetter(self, client_guid, code, request, *args, **kwargs):
         # pylint: disable=method-hidden,unused-argument
         # TODO: review expiration time
         # decide the expires time yourself
@@ -92,7 +92,7 @@ class OAuth2RequestValidator(provider.OAuth2RequestValidator):
         try:
             with db.session.begin():
                 grant_instance = self._grant_class(
-                    client_id=client_id,
+                    client_guid=client_guid,
                     code=code['code'],
                     redirect_uri=request.redirect_uri,
                     scopes=request.scopes,

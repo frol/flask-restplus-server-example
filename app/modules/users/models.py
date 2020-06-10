@@ -6,7 +6,7 @@ User database models
 import enum
 import logging
 
-from flask import url_for
+from flask import url_for, current_app
 from sqlalchemy_utils import types as column_types, Timestamp
 
 from flask_login import current_user
@@ -14,9 +14,13 @@ from app.extensions import db
 from app.extensions.api.parameters import _get_is_static_role_property
 from app.modules.assets.models import Asset
 
-import datetime
 import pytz
+import uuid
 
+from werkzeug import security
+
+import tqdm
+import types
 
 log = logging.getLogger(__name__)
 
@@ -24,97 +28,161 @@ log = logging.getLogger(__name__)
 PST = pytz.timezone('US/Pacific')
 
 
-def _format_datetime(dt):
-    if dt is None:
-        return None
-    return dt.strftime('%I:%M %p').strip('0')
+class EDMObjectMixin(object):
+    def _process_edm_attribute(self, data, edm_attribute):
+        edm_attribute = edm_attribute.strip()
+        edm_attribute = edm_attribute.strip('.')
+        edm_attribute_list = edm_attribute.split('.')
+
+        num_components = len(edm_attribute_list)
+
+        if num_components == 0:
+            raise AttributeError()
+
+        edm_attribute_ = edm_attribute_list[0]
+        edm_attribute_ = edm_attribute_.strip()
+        data_ = getattr(data, edm_attribute_)
+
+        if num_components == 1:
+            return data_
+
+        edm_attribute_list_ = edm_attribute_list[1:]
+        edm_attribute_ = '.'.join(edm_attribute_list_)
+
+        return self._process_edm_attribute(data_, edm_attribute_)
+
+    def _process_edm_data(self, data, version):
+        with db.session.begin():
+            for edm_attribute in self.EDM_ATTRIBUTE_MAPPING:
+                try:
+                    edm_value = self._process_edm_attribute(data, edm_attribute)
+
+                    attribute = self.EDM_ATTRIBUTE_MAPPING.get(edm_attribute, None)
+                    assert attribute is not None
+                    assert hasattr(self, attribute), 'User attribute not found'
+
+                    attribute_ = getattr(self, attribute)
+
+                    if isinstance(attribute_, (types.MethodType,)):
+                        attribute_(edm_value)
+                    else:
+                        setattr(self, attribute, edm_value)
+                except AttributeError:
+                    log.warning('Could not find EDM attribute %r' % (edm_attribute,))
+
+            self.version = version
+            db.session.merge(self)
 
 
-def _get_age_property():
-    """
-    A helper function that aims to provide a property getter and setter
-    for static roles.
+class EDMUserMixin(EDMObjectMixin):
 
-    Returns:
-        property_method (property) - preconfigured getter and setter property
-        for accessing role.
-    """
+    # fmt: off
+    EDM_ATTRIBUTE_MAPPING = {
+        'acceptedUserAgreement' : 'agreement',
+        'fullName'              : 'first_name',
+        'userURL'               : 'url',
+        'username'              : 'username',
+        'profileAsset.url'      : '_process_edm_profile_url',
+    }
+    # fmt: on
 
-    @property
-    def _age_property(self):
-        delta_years = None
-        delta_months = None
+    @classmethod
+    def edm_sync_users(cls, verbose=True):
+        edm_users = current_app.edm.get_users()
 
-        default_birth_day = 1
+        if verbose:
+            log.info('Checking %d EDM users against local cache...' % (len(edm_users),))
 
-        try:
-            if self.birth_month is not None and self.birth_year is not None:
-                birth_date = datetime.date(
-                    self.birth_year, self.birth_month, default_birth_day
-                )
-            else:
-                birth_date = None
-        except Exception:
-            birth_date = None
+        stale_users = []
+        new_users = []
+        with db.session.begin():
+            for guid in tqdm.tqdm(edm_users):
+                user = edm_users[guid]
+                version = user.get('version', None)
+                assert version is not None
+                user = User.query.filter(User.guid == guid).first()
+                if user is None:
+                    username = 'username-%s' % (guid,)
+                    email = '%s@localhost' % (username,)
+                    password = security.gen_salt(128)
+                    user = User(
+                        guid=guid,
+                        username=username,
+                        email=email,
+                        password=password,
+                        version=None,
+                        is_active=True,
+                        is_staff=False,
+                        is_admin=False,
+                    )
+                    db.session.add(user)
+                    new_users.append(user)
+                if user.version != version:
+                    stale_users.append((user, version))
 
-        if birth_date is not None:
-            now = datetime.datetime.now(tz=PST)
-            today_date = datetime.date(now.year, now.month, default_birth_day)
+        if verbose:
+            log.info('Added %d new users' % (len(new_users),))
 
-            delta_years = today_date.year - birth_date.year
-            delta_months = today_date.month - birth_date.month
-            if delta_months < 0:
-                delta_years -= 1
-                delta_months %= 12
+        if verbose:
+            log.info('Updating %d stale users using EDM...' % (len(stale_users),))
 
-        age = {
-            'years': delta_years,
-            'months': delta_months,
-        }
+        for user, version in tqdm.tqdm(stale_users):
+            user.edm_sync(version)
 
-        return age
+        return edm_users, new_users, stale_users
 
-    @_age_property.setter
-    def _age_property(self, value):
-        log.error('Cannot set User.age property')
-        pass
+    def edm_sync(self, version):
+        data = current_app.edm.get_user_data(self.guid)
 
-    _age_property.fget.__name__ = 'age'
-    return _age_property
+        assert uuid.UUID(data.uuid) == self.guid
+        assert data.class_ in ['org.ecocean.User']
+
+        self._process_edm_data(data, version)
+
+    def _process_edm_profile_url(self, url):
+        log.warning('User._process_edm_profile_url() not implemented yet')
 
 
-class User(db.Model, Timestamp):
+class User(db.Model, Timestamp, EDMUserMixin):
     """
     User database model.
     """
 
-    id = db.Column(db.Integer, primary_key=True)  # pylint: disable=invalid-name
-    username = db.Column(db.String(length=120), unique=True, nullable=False)
-    email = db.Column(db.String(length=120), unique=True, nullable=False)
+    guid = db.Column(
+        db.GUID, default=uuid.uuid4, primary_key=True
+    )  # pylint: disable=invalid-name
+    version = db.Column(db.Integer, default=None, nullable=True)
+
+    username = db.Column(db.String(length=120), index=True, unique=True, nullable=False)
+    email = db.Column(db.String(length=120), index=True, unique=True, nullable=False)
+
+    agreement = db.Column(db.Boolean, default=False, nullable=False)
 
     password = db.Column(
         column_types.PasswordType(max_length=128, schemes=('bcrypt',)), nullable=False
     )
 
-    # title_name    = db.Column(db.String(length=8),  default='', nullable=True)
+    title_name = db.Column(db.String(length=8), nullable=True)
     first_name = db.Column(db.String(length=30), default='', nullable=False)
-    middle_name = db.Column(db.String(length=30), default='', nullable=True)
+    middle_name = db.Column(db.String(length=30), nullable=True)
     last_name = db.Column(db.String(length=30), default='', nullable=False)
-    suffix_name = db.Column(db.String(length=8), default='', nullable=True)
-
-    birth_month = db.Column(db.Integer, default=None, nullable=True)
-    birth_year = db.Column(db.Integer, default=None, nullable=True)
-    age = _get_age_property()
+    suffix_name = db.Column(db.String(length=8), nullable=True)
 
     phone = db.Column(db.String(length=20), nullable=True)
+    url = db.Column(db.String(length=120), nullable=True)
 
     address_line1 = db.Column(db.String(length=120), nullable=True)
     address_line2 = db.Column(db.String(length=120), nullable=True)
     address_city = db.Column(db.String(length=120), nullable=True)
+    address_region = db.Column(db.String(length=30), nullable=True)
     address_state = db.Column(db.String(length=30), nullable=True)
+    address_country = db.Column(db.String(length=30), index=True, nullable=True)
     address_zip = db.Column(db.String(length=10), nullable=True)
 
-    profile_asset_id = db.Column(db.Integer(), nullable=True)
+    address_gps_latitude = db.Column(db.Float, nullable=True)
+    address_gps_longitude = db.Column(db.Float, nullable=True)
+
+    profile_asset_guid = db.Column(db.GUID, nullable=True)
 
     class StaticRoles(enum.Enum):
         # pylint: disable=missing-docstring,unsubscriptable-object
@@ -152,7 +220,7 @@ class User(db.Model, Timestamp):
     def __repr__(self):
         return (
             '<{class_name}('
-            'id={self.id}, '
+            'guid={self.guid}, '
             "username=\"{self.username}\", "
             "email=\"{self.email}\", "
             'is_internal={self.is_internal}, '
@@ -162,24 +230,44 @@ class User(db.Model, Timestamp):
             ')>'.format(class_name=self.__class__.__name__, self=self)
         )
 
-    def has_static_role(self, role):
-        return (self.static_roles & role.mask) != 0
+    @classmethod
+    def suggest_password(cls):
+        from xkcdpass import xkcd_password as xp
 
-    def set_static_role(self, role):
-        if self.has_static_role(role):
-            return
-        self.static_roles |= role.mask
+        xp_wordfile = xp.locate_wordfile()
+        xp_wordlist = xp.generate_wordlist(
+            wordfile=xp_wordfile, min_length=4, max_length=6, valid_chars='[a-z]'
+        )
+        suggested_password = xp.generate_xkcdpassword(
+            xp_wordlist, numwords=4, acrostic='wild', delimiter=' '
+        )
+        return suggested_password
 
-    def unset_static_role(self, role):
-        if not self.has_static_role(role):
-            return
-        self.static_roles ^= role.mask
+    @classmethod
+    def find(cls, username=None, email=None, password=None):
+        assert (
+            username is None or email is None
+        ), 'Must specify only ONE (username or email) for User lookup'
 
-    def check_owner(self, user):
-        return self == user
+        # Look-up via username or email
+        if username is not None:
+            user = User.query.filter_by(username=username).first()
+        elif email is not None:
+            user = User.query.filter_by(email=email).first()
+        else:
+            user = None
 
-    def check_supervisor(self, user):
-        return self.check_owner(user)
+        # If a password is specified, do a check
+        if user is not None and password is not None:
+            if user.password != password:
+                user = None
+
+        # Check for invalid
+        if not user:
+            user = None
+
+        # Return User or None
+        return user
 
     @property
     def is_authenticated(self):
@@ -203,8 +291,33 @@ class User(db.Model, Timestamp):
             return False
         return code.is_resolved
 
-    def get_id(self):
-        return self.username
+    @property
+    def picture(self):
+        asset = Asset.query.filter_by(id=self.profile_asset_guid).first()
+        if asset is None:
+            placeholder_guid = (self.guid % 7) + 1
+            filename = 'images/placeholder_profile_%d.png' % (placeholder_guid,)
+            return url_for('static', filename=filename)
+        return url_for('frontend.asset', code=asset.code)
+
+    def has_static_role(self, role):
+        return (self.static_roles & role.mask) != 0
+
+    def set_static_role(self, role):
+        if self.has_static_role(role):
+            return
+        self.static_roles |= role.mask
+
+    def unset_static_role(self, role):
+        if not self.has_static_role(role):
+            return
+        self.static_roles ^= role.mask
+
+    def check_owner(self, user):
+        return self == user
+
+    def check_supervisor(self, user):
+        return self.check_owner(user)
 
     def get_codes(self, code_type, **kwargs):
         # This import for Code needs to be local
@@ -247,59 +360,11 @@ class User(db.Model, Timestamp):
 
         # Logout of sessions and API keys
         auth_list = []
-        auth_list += OAuth2Token.query.filter_by(user_id=self.id).all()
-        auth_list += OAuth2Grant.query.filter_by(user_id=self.id).all()
-        auth_list += OAuth2Client.query.filter_by(user_id=self.id).all()
-        auth_list += Code.query.filter_by(user_id=self.id).all()
+        auth_list += OAuth2Token.query.filter_by(user_guid=self.guid).all()
+        auth_list += OAuth2Grant.query.filter_by(user_guid=self.guid).all()
+        auth_list += OAuth2Client.query.filter_by(user_guid=self.guid).all()
+        auth_list += Code.query.filter_by(user_guid=self.guid).all()
         for auth_ in auth_list:
             auth_.delete()
 
         return self
-
-    @classmethod
-    def find(cls, username=None, email=None, password=None):
-        assert (
-            username is None or email is None
-        ), 'Must specify only ONE (username or email) for User lookup'
-
-        # Look-up via username or email
-        if username is not None:
-            user = User.query.filter_by(username=username).first()
-        elif email is not None:
-            user = User.query.filter_by(email=email).first()
-        else:
-            user = None
-
-        # If a password is specified, do a check
-        if user is not None and password is not None:
-            if user.password != password:
-                user = None
-
-        # Check for invalid
-        if not user:
-            user = None
-
-        # Return User or None
-        return user
-
-    @classmethod
-    def suggest_password(cls):
-        from xkcdpass import xkcd_password as xp
-
-        xp_wordfile = xp.locate_wordfile()
-        xp_wordlist = xp.generate_wordlist(
-            wordfile=xp_wordfile, min_length=4, max_length=6, valid_chars='[a-z]'
-        )
-        suggested_password = xp.generate_xkcdpassword(
-            xp_wordlist, numwords=4, acrostic='wild', delimiter=' '
-        )
-        return suggested_password
-
-    @property
-    def picture(self):
-        asset = Asset.query.filter_by(id=self.profile_asset_id).first()
-        if asset is None:
-            placeholder_id = (self.id % 7) + 1
-            filename = 'images/placeholder_profile_%d.png' % (placeholder_id,)
-            return url_for('static', filename=filename)
-        return url_for('frontend.asset', code=asset.code)

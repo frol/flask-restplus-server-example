@@ -14,11 +14,11 @@ from app.extensions.api.parameters import PaginationParameters
 
 
 class ListOAuth2ClientsParameters(PaginationParameters):
-    user_id = base_fields.Integer(required=True)
+    user_guid = base_fields.UUID(required=True)
 
-    @validates('user_id')
-    def validate_user_id(self, data):
-        if current_user.id != data:
+    @validates('user_guid')
+    def validate_user_guid(self, data):
+        if current_user.guid != data:
             raise ValidationError('It is only allowed to query your own OAuth2 clients.')
 
 

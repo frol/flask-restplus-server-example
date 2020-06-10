@@ -67,8 +67,8 @@ def revoke_token():
 #         return api.abort(code=HTTPStatus.UNAUTHORIZED)
 
 #     if request.method == 'GET':
-#         client_id = kwargs.get('client_id')
-#         oauth2_client = OAuth2Client.query.get_or_404(client_id=client_id)
+#         client_guid = kwargs.get('client_guid')
+#         oauth2_client = OAuth2Client.query.get_or_404(client_guid=client_guid)
 #         kwargs['client'] = oauth2_client
 #         kwargs['user'] = current_user
 #         # TODO: improve template design
