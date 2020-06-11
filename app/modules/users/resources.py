@@ -73,9 +73,9 @@ class Users(Resource):
                 or_term = or_(
                     User.guid.in_(code_users),
                     User.email.contains(term),
-                    User.phone.contains(term),
-                    User.first_name.contains(term),
-                    User.last_name.contains(term),
+                    User.affiliation.contains(term),
+                    User.forum_id.contains(term),
+                    User.full_name.contains(term),
                 )
                 or_terms.append(or_term)
             users = User.query.filter(and_(*or_terms))
