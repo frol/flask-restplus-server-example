@@ -147,7 +147,7 @@ class Assets(Resource):
         return process_file_upload()
 
 
-@api.route('/<int:asset_guid>')
+@api.route('/<uuid:asset_guid>')
 @api.login_required(oauth_scopes=['assets:read'])
 @api.response(
     code=HTTPStatus.NOT_FOUND, description='Asset not found.',

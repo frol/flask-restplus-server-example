@@ -138,7 +138,7 @@ class Users(Resource):
         return None
 
 
-@api.route('/<int:user_guid>')
+@api.route('/<uuid:user_guid>')
 @api.login_required(oauth_scopes=['users:read'])
 @api.response(
     code=HTTPStatus.NOT_FOUND, description='User not found.',
@@ -184,7 +184,7 @@ class UserByID(Resource):
         return user
 
 
-@api.route('/picture/<int:user_guid>')
+@api.route('/picture/<uuid:user_guid>')
 @api.login_required(oauth_scopes=['assets:read', 'users:read'])
 @api.response(
     code=HTTPStatus.NOT_FOUND, description='User not found.',

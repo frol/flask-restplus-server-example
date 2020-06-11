@@ -32,11 +32,7 @@ from .views import (
 log = logging.getLogger(__name__)
 
 backend_blueprint = Blueprint(
-    'backend',
-    __name__,
-    url_prefix='/houston',
-    static_url_path='/static',
-    static_folder=HOUSTON_STATIC_ROOT,
+    'backend', __name__, url_prefix='/houston', static_folder=HOUSTON_STATIC_ROOT,
 )  # pylint: disable=invalid-name
 
 
@@ -44,11 +40,11 @@ backend_blueprint = Blueprint(
 def home(*args, **kwargs):
     # pylint: disable=unused-argument
     """
-    This endpoint offers the home page html
+    This endpoint offers the home page
     """
     from app.version import version
 
-    return _render_template('home.html', version=version)
+    return _render_template('home.jinja2', version=version)
 
 
 @backend_blueprint.route('/login', methods=['POST'])

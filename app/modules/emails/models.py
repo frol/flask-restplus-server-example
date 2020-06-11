@@ -104,7 +104,7 @@ class ErrorEmail(RecordedEmail):
         tempate_kwargs = {
             'error_data': global_data_,
         }
-        self.template('email.error.html', **tempate_kwargs)
+        self.template('email.error.jinja2', **tempate_kwargs)
 
 
 class SystemErrorEmail(ErrorEmail):

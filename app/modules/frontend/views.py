@@ -35,6 +35,10 @@ HOUSTON_STATIC_ROOT = os.path.join(PROJECT_ROOT, 'app', 'static')
 
 FRONTEND_STATIC_ROOT = os.path.join(HOUSTON_STATIC_ROOT, 'dist-latest')
 
+DOCUMENTATION_STATIC_ROOT = os.path.join(
+    HOUSTON_STATIC_ROOT, 'bower', 'swagger-ui', 'dist'
+)
+
 
 def _render_template(template, **kwargs):
     now = datetime.datetime.now(tz=PST)

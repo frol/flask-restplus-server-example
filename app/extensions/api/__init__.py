@@ -36,29 +36,10 @@ api_v1 = Api(  # pylint: disable=invalid-name
 )
 
 
-def serve_swaggerui_assets(path):
-    """
-    Swagger-UI assets serving route.
-    """
-    from flask import send_from_directory
-
-    if not current_app.debug:
-        import warnings
-
-        warnings.warn(
-            '/swaggerui/ is recommended to be served by public-facing server (e.g. NGINX)'
-        )
-
-    static_root = current_app.config['STATIC_ROOT']
-    return send_from_directory(static_root, path)
-
-
 def init_app(app, **kwargs):
     # pylint: disable=unused-argument
     """
     API extension initialization point.
     """
-    app.route('/swaggerui/<path:path>')(serve_swaggerui_assets)
-
     # Prevent config variable modification with runtime changes
     api_v1.authorizations = deepcopy(app.config['AUTHORIZATIONS'])

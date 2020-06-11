@@ -10,12 +10,15 @@ except ImportError:
     pass  # Python 2 has built-in reload() function
 import os
 import platform
-import warnings
+import logging
 
 try:
     from invoke import ctask as task
 except ImportError:  # Invoke 0.13 renamed ctask to task
     from invoke import task
+
+
+log = logging.getLogger(__name__)
 
 
 @task(default=True)
@@ -84,7 +87,7 @@ def run(
         os.execvpe('uwsgi', uwsgi_args, os.environ)
     else:
         if platform.system() == 'Windows':
-            warnings.warn(
+            log.warning(
                 "Auto-reloader feature doesn't work on Windows. "
                 'Follow the issue for more details: '
                 'https://github.com/frol/flask-restplus-server-example/issues/16'
