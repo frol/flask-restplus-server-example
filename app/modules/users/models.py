@@ -78,10 +78,9 @@ class EDMUserMixin(EDMObjectMixin):
 
     # fmt: off
     EDM_ATTRIBUTE_MAPPING = {
-        'acceptedUserAgreement' : 'agreement',
-        'fullName'              : 'first_name',
-        'userURL'               : 'url',
-        'username'              : 'username',
+        'acceptedUserAgreement' : 'accepted_user_agreement',
+        'fullName'              : 'full_name',
+        'userURL'               : 'website',
         'profileAsset.url'      : '_process_edm_profile_url',
     }
     # fmt: on
@@ -162,24 +161,24 @@ class User(db.Model, Timestamp, EDMUserMixin):
     full_name = db.Column(db.String(length=120), default='', nullable=False) # can be migrated from EDM field "fullName"
     website = db.Column(db.String(length=120), nullable=True) # can be migrated from EDM field "userURL"
     location = db.Column(db.String(length=120), nullable=True)
-    affiliation = db.Column(db.String(length=120), nullable=True) # can be migrated from EDM field "affiliation"
-    forum_id = db.Column(db.String(length=120), nullable=True) # can be migrated from EDM field "affiliation"
+    affiliation = db.Column(db.String(length=120), nullable=True) # can be migrated from BE field "affiliation"
+    forum_id = db.Column(db.String(length=120), nullable=True)
 
     accepted_user_agreement = db.Column(db.Boolean, default=False, nullable=False) # can be migrated from EDM field "acceptedUserAgreement"
     use_usa_date_format = db.Column(db.Boolean, default=True, nullable=False)
     show_email_in_profile = db.Column(db.Boolean, default=False, nullable=False)
-    receive_notification_emails = db.Column(db.Boolean, default=True, nullable=False) # can be migrated from EDM field "receiveEmails"
+    receive_notification_emails = db.Column(db.Boolean, default=True, nullable=False) # can be migrated from BE field "receiveEmails"
     receive_newsletter_emails = db.Column(db.Boolean, default=False, nullable=False)
-    shares_data = db.Column(db.Boolean, default=True, nullable=False) # can be migrated from EDM field "sharing"
+    shares_data = db.Column(db.Boolean, default=True, nullable=False) # can be migrated from BE field "sharing"
 
     last_seen = db.Column(db.DateTime, nullable=True)
     date_created = db.Column(db.DateTime, nullable=True)
-    last_modified = db.Column(db.DateTime, nullable=True) # can be migrated from EDM field "modified"
+    last_modified = db.Column(db.DateTime, nullable=True) # can be migrated from BE field "modified"
 
     default_identification_catalogue = db.Column(db.GUID, nullable=True) # this may just be a string, however EDM wants to do ID catalogues 
 
-    profile_asset_guid = db.Column(db.GUID, nullable=True) # type should be resolved with Jon's MediaAsset class 
-    footer_logo_asset_guid = db.Column(db.GUID, nullable=True) # type should be resolved with Jon's MediaAsset class 
+    profile_asset_guid = db.Column(db.GUID, nullable=True) # should be reconciled with Jon's MediaAsset class 
+    footer_logo_asset_guid = db.Column(db.GUID, nullable=True) # should be reconciled with Jon's MediaAsset class 
 
     class StaticRoles(enum.Enum):
         # pylint: disable=missing-docstring,unsubscriptable-object
