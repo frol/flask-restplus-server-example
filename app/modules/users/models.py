@@ -163,6 +163,7 @@ class User(db.Model, Timestamp, EDMUserMixin):
     location = db.Column(db.String(length=120), nullable=True)
     affiliation = db.Column(db.String(length=120), nullable=True) # can be migrated from BE field "affiliation"
     forum_id = db.Column(db.String(length=120), nullable=True)
+    locale = db.Column(db.String(length=20), default='EN', nullable=True)
 
     accepted_user_agreement = db.Column(db.Boolean, default=False, nullable=False) # can be migrated from EDM field "acceptedUserAgreement"
     use_usa_date_format = db.Column(db.Boolean, default=True, nullable=False)
