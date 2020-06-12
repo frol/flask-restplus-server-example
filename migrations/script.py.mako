@@ -15,6 +15,7 @@ import sqlalchemy as sa
 import sqlalchemy_utils
 
 import app
+import app.extensions
 
 ${imports if imports else ""}
 

@@ -7,11 +7,11 @@ import enum
 import logging
 
 from flask import url_for, current_app
-import sqlalchemy
 from sqlalchemy_utils import types as column_types, Timestamp
 
 from flask_login import current_user
 from app.extensions import db
+from app.extensions.edm import EDMObjectMixin
 from app.extensions.api.parameters import _get_is_static_role_property
 from app.modules.assets.models import Asset
 
@@ -23,7 +23,6 @@ import uuid
 from werkzeug import security
 
 import tqdm
-import types
 
 log = logging.getLogger(__name__)
 
@@ -40,53 +39,7 @@ class TimestampViewed(Timestamp):
         self.updated = datetime.utcnow()
 
 
-class EDMObjectMixin(object):
-    def _process_edm_attribute(self, data, edm_attribute):
-        edm_attribute = edm_attribute.strip()
-        edm_attribute = edm_attribute.strip('.')
-        edm_attribute_list = edm_attribute.split('.')
-
-        num_components = len(edm_attribute_list)
-
-        if num_components == 0:
-            raise AttributeError()
-
-        edm_attribute_ = edm_attribute_list[0]
-        edm_attribute_ = edm_attribute_.strip()
-        data_ = getattr(data, edm_attribute_)
-
-        if num_components == 1:
-            return data_
-
-        edm_attribute_list_ = edm_attribute_list[1:]
-        edm_attribute_ = '.'.join(edm_attribute_list_)
-
-        return self._process_edm_attribute(data_, edm_attribute_)
-
-    def _process_edm_data(self, data, version):
-        with db.session.begin():
-            for edm_attribute in self.EDM_ATTRIBUTE_MAPPING:
-                try:
-                    edm_value = self._process_edm_attribute(data, edm_attribute)
-
-                    attribute = self.EDM_ATTRIBUTE_MAPPING.get(edm_attribute, None)
-                    assert attribute is not None
-                    assert hasattr(self, attribute), 'User attribute not found'
-
-                    attribute_ = getattr(self, attribute)
-
-                    if isinstance(attribute_, (types.MethodType,)):
-                        attribute_(edm_value)
-                    else:
-                        setattr(self, attribute, edm_value)
-                except AttributeError:
-                    log.warning('Could not find EDM attribute %r' % (edm_attribute,))
-
-            self.version = version
-            db.session.merge(self)
-
-
-class EDMUserMixin(EDMObjectMixin):
+class UserEDMMixin(EDMObjectMixin):
 
     # fmt: off
     EDM_ATTRIBUTE_MAPPING = {
@@ -154,7 +107,7 @@ class EDMUserMixin(EDMObjectMixin):
         log.warning('User._process_edm_profile_url() not implemented yet')
 
 
-class User(db.Model, TimestampViewed, EDMUserMixin):
+class User(db.Model, TimestampViewed, UserEDMMixin):
     """
     User database model.
     """

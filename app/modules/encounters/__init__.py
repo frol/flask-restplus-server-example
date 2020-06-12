@@ -1,6 +1,6 @@
 # encoding: utf-8
 """
-{{ module_title }} module
+Encounters module
 ============
 """
 
@@ -10,10 +10,10 @@ from app.extensions.api import api_v1
 def init_app(app, **kwargs):
     # pylint: disable=unused-argument,unused-variable
     """
-    Init {{ module_title }} module.
+    Init Encounters module.
     """
-    api_v1.add_oauth_scope('{{ module_namespace }}:read', "Provide access to {{ module_title }} details")
-    api_v1.add_oauth_scope('{{ module_namespace }}:write', "Provide write access to {{ module_title }} details")
+    api_v1.add_oauth_scope('encounters:read', 'Provide access to Encounters details')
+    api_v1.add_oauth_scope('encounters:write', 'Provide write access to Encounters details')
 
     # Touch underlying modules
     from . import models, resources

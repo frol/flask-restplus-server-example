@@ -19,11 +19,11 @@ class Base{{ model_name }}Schema(ModelSchema):
         # pylint: disable=missing-docstring
         model = {{ model_name }}
         fields = (
-            {{ model_name }}.id.key,
+            {{ model_name }}.guid.key,
             {{ model_name }}.title.key,
         )
         dump_only = (
-            {{ model_name }}.id.key,
+            {{ model_name }}.guid.key,
         )
 
 
