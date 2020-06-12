@@ -8,8 +8,10 @@ import logging
 
 from flask import current_app, request, session, render_template  # NOQA
 from flask_login import current_user  # NOQA
+from app.extensions import db
 import requests
 from collections import namedtuple
+import types
 import json
 
 import pytz
@@ -289,6 +291,52 @@ class EDMManager(EDMManagerEndpointMixin, EDMManagerUserMixin):
                 response = response.json()
 
         return response
+
+
+class EDMObjectMixin(object):
+    def _process_edm_attribute(self, data, edm_attribute):
+        edm_attribute = edm_attribute.strip()
+        edm_attribute = edm_attribute.strip('.')
+        edm_attribute_list = edm_attribute.split('.')
+
+        num_components = len(edm_attribute_list)
+
+        if num_components == 0:
+            raise AttributeError()
+
+        edm_attribute_ = edm_attribute_list[0]
+        edm_attribute_ = edm_attribute_.strip()
+        data_ = getattr(data, edm_attribute_)
+
+        if num_components == 1:
+            return data_
+
+        edm_attribute_list_ = edm_attribute_list[1:]
+        edm_attribute_ = '.'.join(edm_attribute_list_)
+
+        return self._process_edm_attribute(data_, edm_attribute_)
+
+    def _process_edm_data(self, data, version):
+        with db.session.begin():
+            for edm_attribute in self.EDM_ATTRIBUTE_MAPPING:
+                try:
+                    edm_value = self._process_edm_attribute(data, edm_attribute)
+
+                    attribute = self.EDM_ATTRIBUTE_MAPPING.get(edm_attribute, None)
+                    assert attribute is not None
+                    assert hasattr(self, attribute), 'User attribute not found'
+
+                    attribute_ = getattr(self, attribute)
+
+                    if isinstance(attribute_, (types.MethodType,)):
+                        attribute_(edm_value)
+                    else:
+                        setattr(self, attribute, edm_value)
+                except AttributeError:
+                    log.warning('Could not find EDM attribute %r' % (edm_attribute,))
+
+            self.version = version
+            db.session.merge(self)
 
 
 def init_app(app, **kwargs):

@@ -71,7 +71,7 @@ def crud_module(context, module_name='', module_name_singular=''):
         'resources',
         'schemas',
     ):
-        template = env.get_template('%s.py.template' % template_file)
+        template = env.get_template('%s.py.jinja2' % template_file)
         template.stream(
             module_name=module_name,
             module_name_singular=module_name_singular,

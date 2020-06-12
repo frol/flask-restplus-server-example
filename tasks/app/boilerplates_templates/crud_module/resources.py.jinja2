@@ -12,7 +12,7 @@ from flask_restplus_patched import Resource
 from flask_restplus._http import HTTPStatus
 
 from app.extensions import db
-from app.extensions.api import Namespace, abort
+from app.extensions.api import Namespace
 from app.extensions.api.parameters import PaginationParameters
 from app.modules.users import permissions
 
@@ -51,16 +51,17 @@ class {{ module_title.replace(' ', '') }}(Resource):
         """
         Create a new instance of {{ model_name }}.
         """
-        with api.commit_or_abort(
-                db.session,
-                default_error_message="Failed to create a new {{ model_name }}"
-            ):
+        context = api.commit_or_abort(
+            db.session,
+            default_error_message="Failed to create a new {{ model_name }}"
+        )
+        with context:
             {{ module_name_singular }} = {{ model_name }}(**args)
             db.session.add({{ module_name_singular }})
         return {{ module_name_singular }}
 
 
-@api.route('/<int:{{ module_name_singular }}_id>')
+@api.route('/<uuid:{{ module_name_singular }}_guid>')
 @api.login_required(oauth_scopes=['{{ module_namespace }}:read'])
 @api.response(
     code=HTTPStatus.NOT_FOUND,
@@ -88,10 +89,11 @@ class {{ model_name }}ByID(Resource):
         """
         Patch {{ model_name }} details by ID.
         """
-        with api.commit_or_abort(
-                db.session,
-                default_error_message="Failed to update {{ model_name }} details."
-            ):
+        context = api.commit_or_abort(
+            db.session,
+            default_error_message="Failed to update {{ model_name }} details."
+        )
+        with context:
             parameters.Patch{{ model_name }}DetailsParameters.perform_patch(args, obj={{ module_name_singular }})
             db.session.merge({{ module_name_singular }})
         return {{ module_name_singular }}
@@ -104,9 +106,10 @@ class {{ model_name }}ByID(Resource):
         """
         Delete a {{ model_name }} by ID.
         """
-        with api.commit_or_abort(
-                db.session,
-                default_error_message="Failed to delete the {{ model_name }}."
-            ):
+        context = api.commit_or_abort(
+            db.session,
+            default_error_message="Failed to delete the {{ model_name }}."
+        )
+        with context:
             db.session.delete({{ module_name_singular }})
         return None
