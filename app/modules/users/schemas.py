@@ -22,11 +22,10 @@ class BaseUserSchema(ModelSchema):
         fields = (
             User.guid.key,
             User.email.key,
-            User.first_name.key,
-            User.middle_name.key,
-            User.last_name.key,
-            User.suffix_name.key,
-            # User.username.key,
+            User.full_name.key,
+            User.affiliation.key,
+            User.location.key,
+            User.profile_asset_guid.key,
             User.is_active.fget.__name__,
             User.is_staff.fget.__name__,
             User.is_admin.fget.__name__,
@@ -43,24 +42,31 @@ class DetailedUserPermissionsSchema(ModelSchema):
 
 
 class DetailedUserSchema(BaseUserSchema):
-    """ Detailed user schema exposes all useful fields. """
+    """ Detailed user schema exposes all fields used to render a normal user profile. """
 
     class Meta(BaseUserSchema.Meta):
         fields = BaseUserSchema.Meta.fields + (
-            User.is_email_confirmed.fget.__name__,
-            User.phone.key,
-            User.address_line1.key,
-            User.address_line2.key,
-            User.address_city.key,
-            User.address_state.key,
-            User.address_zip.key,
-            User.created.key,
-            User.updated.key,
-            User.in_beta.fget.__name__,
-            User.in_alpha.fget.__name__,
-            User.picture.fget.__name__,
+            User.last_seen.key,
+            User.date_created.key,
+            User.forum_id.key,
+            User.website.key,
         )
 
+class PersonalUserSchema(DetailedUserSchema):
+    """ Personal user schema exposes all fields needed to render a user profile
+    that can be edited by the currently logged in user. """
+
+    class Meta(DetailedUserSchema.Meta):
+        fields = DetailedUserSchema.Meta.fields + (
+            User.default_identification_catalogue.key,
+            User.footer_logo_asset_guid.key,
+            User.shares_data.key,
+            User.receive_newsletter_emails.key,
+            User.receive_notification_emails.key,
+            User.show_email_in_profile.key,
+            User.use_usa_date_format.key,
+            User.accepted_user_agreement.key,
+        )
 
 class UserSignupFormSchema(Schema):
     recaptcha_server_key = base_fields.String(required=True)

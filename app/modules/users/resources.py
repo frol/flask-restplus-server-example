@@ -73,9 +73,9 @@ class Users(Resource):
                 or_term = or_(
                     User.guid.in_(code_users),
                     User.email.contains(term),
-                    User.phone.contains(term),
-                    User.first_name.contains(term),
-                    User.last_name.contains(term),
+                    User.affiliation.contains(term),
+                    User.forum_id.contains(term),
+                    User.full_name.contains(term),
                 )
                 or_terms.append(or_term)
             users = User.query.filter(and_(*or_terms))
@@ -109,6 +109,9 @@ class Users(Resource):
         args['is_admin'] = False
         args['is_staff'] = False
         args['is_active'] = True
+        args['date_created'] = datetime.datetime.now()
+        args['last_modified'] = datetime.datetime.now()
+        args['last_seen'] = datetime.datetime.now()
 
         context = api.commit_or_abort(
             db.session, default_error_message='Failed to create a new user.'
@@ -173,6 +176,9 @@ class UserByID(Resource):
         """
         Patch user details by ID.
         """
+
+        args['last_modified'] = datetime.datetime.now()
+
         context = api.commit_or_abort(
             db.session, default_error_message='Failed to update user details.'
         )
@@ -243,7 +249,7 @@ class UserMe(Resource):
     Useful reference to the authenticated user itself.
     """
 
-    @api.response(schemas.DetailedUserSchema())
+    @api.response(schemas.PersonalUserSchema())
     def get(self):
         """
         Get current user details.

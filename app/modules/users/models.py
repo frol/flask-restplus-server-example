@@ -7,12 +7,15 @@ import enum
 import logging
 
 from flask import url_for, current_app
+import sqlalchemy
 from sqlalchemy_utils import types as column_types, Timestamp
 
 from flask_login import current_user
 from app.extensions import db
 from app.extensions.api.parameters import _get_is_static_role_property
 from app.modules.assets.models import Asset
+
+from datetime import datetime
 
 import pytz
 import uuid
@@ -26,6 +29,15 @@ log = logging.getLogger(__name__)
 
 
 PST = pytz.timezone('US/Pacific')
+
+
+class TimestampViewed(Timestamp):
+    """Adds `viewed` column to a derived declarative model."""
+
+    viewed = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+
+    def view(self):
+        self.updated = datetime.utcnow()
 
 
 class EDMObjectMixin(object):
@@ -78,10 +90,9 @@ class EDMUserMixin(EDMObjectMixin):
 
     # fmt: off
     EDM_ATTRIBUTE_MAPPING = {
-        'acceptedUserAgreement' : 'agreement',
-        'fullName'              : 'first_name',
-        'userURL'               : 'url',
-        'username'              : 'username',
+        'acceptedUserAgreement' : 'accepted_user_agreement',
+        'fullName'              : 'full_name',
+        'userURL'               : 'website',
         'profileAsset.url'      : '_process_edm_profile_url',
     }
     # fmt: on
@@ -143,7 +154,7 @@ class EDMUserMixin(EDMObjectMixin):
         log.warning('User._process_edm_profile_url() not implemented yet')
 
 
-class User(db.Model, Timestamp, EDMUserMixin):
+class User(db.Model, TimestampViewed, EDMUserMixin):
     """
     User database model.
     """
@@ -153,36 +164,54 @@ class User(db.Model, Timestamp, EDMUserMixin):
     )  # pylint: disable=invalid-name
     version = db.Column(db.Integer, default=None, nullable=True)
 
-    username = db.Column(db.String(length=120), index=True, unique=True, nullable=False)
     email = db.Column(db.String(length=120), index=True, unique=True, nullable=False)
-
-    agreement = db.Column(db.Boolean, default=False, nullable=False)
 
     password = db.Column(
         column_types.PasswordType(max_length=128, schemes=('bcrypt',)), nullable=False
-    )
+    )  # can me migrated from EDM field "password"
 
-    title_name = db.Column(db.String(length=8), nullable=True)
-    first_name = db.Column(db.String(length=30), default='', nullable=False)
-    middle_name = db.Column(db.String(length=30), nullable=True)
-    last_name = db.Column(db.String(length=30), default='', nullable=False)
-    suffix_name = db.Column(db.String(length=8), nullable=True)
+    full_name = db.Column(
+        db.String(length=120), default='', nullable=False
+    )  # can be migrated from EDM field "fullName"
+    website = db.Column(
+        db.String(length=120), nullable=True
+    )  # can be migrated from EDM field "userURL"
+    location = db.Column(db.String(length=120), nullable=True)
+    affiliation = db.Column(
+        db.String(length=120), nullable=True
+    )  # can be migrated from BE field "affiliation"
+    forum_id = db.Column(db.String(length=120), nullable=True)
+    locale = db.Column(db.String(length=20), default='EN', nullable=True)
 
-    phone = db.Column(db.String(length=20), nullable=True)
-    url = db.Column(db.String(length=120), nullable=True)
+    accepted_user_agreement = db.Column(
+        db.Boolean, default=False, nullable=False
+    )  # can be migrated from EDM field "acceptedUserAgreement"
+    use_usa_date_format = db.Column(db.Boolean, default=True, nullable=False)
+    show_email_in_profile = db.Column(db.Boolean, default=False, nullable=False)
+    receive_notification_emails = db.Column(
+        db.Boolean, default=True, nullable=False
+    )  # can be migrated from BE field "receiveEmails"
+    receive_newsletter_emails = db.Column(db.Boolean, default=False, nullable=False)
+    shares_data = db.Column(
+        db.Boolean, default=True, nullable=False
+    )  # can be migrated from BE field "sharing"
 
-    address_line1 = db.Column(db.String(length=120), nullable=True)
-    address_line2 = db.Column(db.String(length=120), nullable=True)
-    address_city = db.Column(db.String(length=120), nullable=True)
-    address_region = db.Column(db.String(length=30), nullable=True)
-    address_state = db.Column(db.String(length=30), nullable=True)
-    address_country = db.Column(db.String(length=30), index=True, nullable=True)
-    address_zip = db.Column(db.String(length=10), nullable=True)
+    last_seen = db.Column(db.DateTime, nullable=True)
+    date_created = db.Column(db.DateTime, nullable=True)
+    last_modified = db.Column(
+        db.DateTime, nullable=True
+    )  # can be migrated from BE field "modified"
 
-    address_gps_latitude = db.Column(db.Float, nullable=True)
-    address_gps_longitude = db.Column(db.Float, nullable=True)
+    default_identification_catalogue = db.Column(
+        db.GUID, nullable=True
+    )  # this may just be a string, however EDM wants to do ID catalogues
 
-    profile_asset_guid = db.Column(db.GUID, nullable=True)
+    profile_asset_guid = db.Column(
+        db.GUID, nullable=True
+    )  # should be reconciled with Jon's MediaAsset class
+    footer_logo_asset_guid = db.Column(
+        db.GUID, nullable=True
+    )  # should be reconciled with Jon's MediaAsset class
 
     class StaticRoles(enum.Enum):
         # pylint: disable=missing-docstring,unsubscriptable-object

@@ -54,10 +54,20 @@ class EDMManagerEndpointMixin(object):
         },
         'user': {
             'list': '//v0/org.ecocean.User/list',
-            'data': '//org.ecocean.User/%s',
+            'data': '//v0/org.ecocean.User/%s',
         },
         'encounter': {
             'list': '//v0/org.ecocean.Encounter/list',
+        },
+        'organization': {
+            'list': '//v0/org.ecocean.Organization/list',
+            'data': '//v0/org.ecocean.Organization/%s',
+        },
+        'collaboration': {
+            'list': '//v0/org.ecocean.security.Collaboration/list',
+        },
+        'role': {
+            'list': '//v0/org.ecocean.Role/list',
         },
     }
     # fmt: on
@@ -135,12 +145,14 @@ class EDMManager(EDMManagerEndpointMixin, EDMManagerUserMixin):
     https://nextgen.dev-wildbook.org/api/org.ecocean.Organization?id==%273b868b21-729f-46ca-933f-c4ecdf02e97d%27
     """
 
-    def __init__(self, app, *args, **kwargs):
-        self._parse_config_edm_uris(app)
-        self._init_sessions(app)
-
+    def __init__(self, app, pre_initialize=False, *args, **kwargs):
         super(EDMManager, self).__init__(*args, **kwargs)
+        self.initialized = False
+        self.app = app
         app.edm = self
+
+        if pre_initialize:
+            self._ensure_initialed()
 
     def _parse_config_edm_uris(self, app):
         edm_uri_dict = app.config.get('EDM_URIS', None)
@@ -235,6 +247,12 @@ class EDMManager(EDMManagerEndpointMixin, EDMManagerUserMixin):
             self.sessions[target] = requests.Session()
             self._get('session.login', username, password, target=target)
 
+    def _ensure_initialed(self):
+        if not self.initialized:
+            self.initialized = True
+            self._parse_config_edm_uris(self.app)
+            self._init_sessions(self.app)
+
     def _get(
         self,
         tag,
@@ -244,6 +262,8 @@ class EDMManager(EDMManagerEndpointMixin, EDMManagerUserMixin):
         decode_as_dict=False,
         verbose=True
     ):
+        self._ensure_initialed()
+
         endpoint_fmtstr = self._endpoint_fmtstr(tag, target=target)
         endpoint = endpoint_fmtstr % args
 

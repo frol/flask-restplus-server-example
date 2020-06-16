@@ -214,17 +214,30 @@ def upgrade(
     backup=True,
 ):
     """Upgrade to a later version"""
+    _db_filepath = current_app.config.get('SQLALCHEMY_DATABASE_PATH', None)
+    _db_filepath_backup = '%s.backup' % (_db_filepath,)
+
     if backup:
-        _db_filepath = current_app.config.get('SQLALCHEMY_DATABASE_PATH', None)
         if os.path.exists(_db_filepath):
-            _db_filepath_backup = '%s.backup' % (_db_filepath,)
-            log.info('Pre-upgrade Sqlite3 Database Backup')
+            log.info('Pre-upgrade Sqlite3 database backup')
             log.info('\tDatabase : %r' % (_db_filepath,))
             log.info('\tBackup   : %r' % (_db_filepath_backup,))
             shutil.copy2(_db_filepath, _db_filepath_backup)
 
     config = _get_config(directory, x_arg=x_arg)
-    command.upgrade(config, revision, sql=sql, tag=tag)
+    try:
+        command.upgrade(config, revision, sql=sql, tag=tag)
+    except Exception:
+        if os.path.exists(_db_filepath_backup):
+            log.error('Rolling back Sqlite3 database to backup')
+            shutil.copy2(_db_filepath_backup, _db_filepath)
+            log.error('...restored')
+        log.critical('Database upgrade failed', exc_info=True)
+    finally:
+        if os.path.exists(_db_filepath_backup):
+            log.info('Deleting database backup %r' % (_db_filepath_backup,))
+            os.remove(_db_filepath_backup)
+            log.info('...deleted')
 
 
 @app_context_task(

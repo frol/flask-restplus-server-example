@@ -702,6 +702,12 @@ class MyObjects(Resource):
         return create_my_object(args)
 ```
 
+How to Update Schemas
+============
+1. Update schema objects in `/app/modules`
+2. Run `invoke app.db.migrate`
+3. A new file should have been created in `/app/migrations/versions`. Add `import app.extensions` to the top of that file
+4. Run `invoke app.db.upgrade`
 
 Useful Links
 ============
