@@ -248,14 +248,10 @@ class EDMManager(EDMManagerEndpointMixin, EDMManagerUserMixin):
             self._get('session.login', username, password, target=target)
 
     def _ensure_initialed(self):
-        try:
-            if not self.initialized:
-                self._parse_config_edm_uris(self.app)
-                self._init_sessions(self.app)
-                self.initialized = True
-            return True
-        except Exception:
-            return False
+        if not self.initialized:
+            self.initialized = True
+            self._parse_config_edm_uris(self.app)
+            self._init_sessions(self.app)
 
     def _get(
         self,

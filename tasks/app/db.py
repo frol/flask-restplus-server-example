@@ -214,10 +214,11 @@ def upgrade(
     backup=True,
 ):
     """Upgrade to a later version"""
+    _db_filepath = current_app.config.get('SQLALCHEMY_DATABASE_PATH', None)
+    _db_filepath_backup = '%s.backup' % (_db_filepath,)
+
     if backup:
-        _db_filepath = current_app.config.get('SQLALCHEMY_DATABASE_PATH', None)
         if os.path.exists(_db_filepath):
-            _db_filepath_backup = '%s.backup' % (_db_filepath,)
             log.info('Pre-upgrade Sqlite3 database backup')
             log.info('\tDatabase : %r' % (_db_filepath,))
             log.info('\tBackup   : %r' % (_db_filepath_backup,))
