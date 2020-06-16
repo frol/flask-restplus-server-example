@@ -7,12 +7,15 @@ import enum
 import logging
 
 from flask import url_for, current_app
+import sqlalchemy
 from sqlalchemy_utils import types as column_types, Timestamp
 
 from flask_login import current_user
 from app.extensions import db
 from app.extensions.api.parameters import _get_is_static_role_property
 from app.modules.assets.models import Asset
+
+from datetime import datetime
 
 import pytz
 import uuid
@@ -26,6 +29,15 @@ log = logging.getLogger(__name__)
 
 
 PST = pytz.timezone('US/Pacific')
+
+
+class TimestampViewed(Timestamp):
+    """Adds `viewed` column to a derived declarative model."""
+
+    viewed = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+
+    def view(self):
+        self.updated = datetime.utcnow()
 
 
 class EDMObjectMixin(object):
@@ -142,7 +154,7 @@ class EDMUserMixin(EDMObjectMixin):
         log.warning('User._process_edm_profile_url() not implemented yet')
 
 
-class User(db.Model, Timestamp, EDMUserMixin):
+class User(db.Model, TimestampViewed, EDMUserMixin):
     """
     User database model.
     """
@@ -156,30 +168,50 @@ class User(db.Model, Timestamp, EDMUserMixin):
 
     password = db.Column(
         column_types.PasswordType(max_length=128, schemes=('bcrypt',)), nullable=False
-    ) # can me migrated from EDM field "password"
+    )  # can me migrated from EDM field "password"
 
-    full_name = db.Column(db.String(length=120), default='', nullable=False) # can be migrated from EDM field "fullName"
-    website = db.Column(db.String(length=120), nullable=True) # can be migrated from EDM field "userURL"
+    full_name = db.Column(
+        db.String(length=120), default='', nullable=False
+    )  # can be migrated from EDM field "fullName"
+    website = db.Column(
+        db.String(length=120), nullable=True
+    )  # can be migrated from EDM field "userURL"
     location = db.Column(db.String(length=120), nullable=True)
-    affiliation = db.Column(db.String(length=120), nullable=True) # can be migrated from BE field "affiliation"
+    affiliation = db.Column(
+        db.String(length=120), nullable=True
+    )  # can be migrated from BE field "affiliation"
     forum_id = db.Column(db.String(length=120), nullable=True)
     locale = db.Column(db.String(length=20), default='EN', nullable=True)
 
-    accepted_user_agreement = db.Column(db.Boolean, default=False, nullable=False) # can be migrated from EDM field "acceptedUserAgreement"
+    accepted_user_agreement = db.Column(
+        db.Boolean, default=False, nullable=False
+    )  # can be migrated from EDM field "acceptedUserAgreement"
     use_usa_date_format = db.Column(db.Boolean, default=True, nullable=False)
     show_email_in_profile = db.Column(db.Boolean, default=False, nullable=False)
-    receive_notification_emails = db.Column(db.Boolean, default=True, nullable=False) # can be migrated from BE field "receiveEmails"
+    receive_notification_emails = db.Column(
+        db.Boolean, default=True, nullable=False
+    )  # can be migrated from BE field "receiveEmails"
     receive_newsletter_emails = db.Column(db.Boolean, default=False, nullable=False)
-    shares_data = db.Column(db.Boolean, default=True, nullable=False) # can be migrated from BE field "sharing"
+    shares_data = db.Column(
+        db.Boolean, default=True, nullable=False
+    )  # can be migrated from BE field "sharing"
 
     last_seen = db.Column(db.DateTime, nullable=True)
     date_created = db.Column(db.DateTime, nullable=True)
-    last_modified = db.Column(db.DateTime, nullable=True) # can be migrated from BE field "modified"
+    last_modified = db.Column(
+        db.DateTime, nullable=True
+    )  # can be migrated from BE field "modified"
 
-    default_identification_catalogue = db.Column(db.GUID, nullable=True) # this may just be a string, however EDM wants to do ID catalogues 
+    default_identification_catalogue = db.Column(
+        db.GUID, nullable=True
+    )  # this may just be a string, however EDM wants to do ID catalogues
 
-    profile_asset_guid = db.Column(db.GUID, nullable=True) # should be reconciled with Jon's MediaAsset class 
-    footer_logo_asset_guid = db.Column(db.GUID, nullable=True) # should be reconciled with Jon's MediaAsset class 
+    profile_asset_guid = db.Column(
+        db.GUID, nullable=True
+    )  # should be reconciled with Jon's MediaAsset class
+    footer_logo_asset_guid = db.Column(
+        db.GUID, nullable=True
+    )  # should be reconciled with Jon's MediaAsset class
 
     class StaticRoles(enum.Enum):
         # pylint: disable=missing-docstring,unsubscriptable-object
