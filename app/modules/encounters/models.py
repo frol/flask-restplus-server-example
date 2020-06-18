@@ -1,17 +1,15 @@
-# encoding: utf-8
+# -*- coding: utf-8 -*-
 """
 Encounters database models
 --------------------
 """
 
-from sqlalchemy_utils import Timestamp
-
-from app.extensions import db
+from app.extensions import db, TimestampViewed
 
 import uuid
 
 
-class Encounter(db.Model, Timestamp):
+class Encounter(db.Model, TimestampViewed):
     """
     Encounters database model.
     """
@@ -26,10 +24,7 @@ class Encounter(db.Model, Timestamp):
             '<{class_name}('
             'guid={self.id}, '
             'title=\'{self.title}\''
-            ')>'.format(
-                class_name=self.__class__.__name__,
-                self=self
-            )
+            ')>'.format(class_name=self.__class__.__name__, self=self)
         )
 
     @db.validates('title')

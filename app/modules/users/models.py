@@ -7,15 +7,14 @@ import enum
 import logging
 
 from flask import url_for, current_app
-from sqlalchemy_utils import types as column_types, Timestamp
+from sqlalchemy_utils import types as column_types
 
 from flask_login import current_user
-from app.extensions import db
+from app.extensions import db, TimestampViewed
 from app.extensions.edm import EDMObjectMixin
 from app.extensions.api.parameters import _get_is_static_role_property
-from app.modules.assets.models import Asset
 
-from datetime import datetime
+from app.modules.assets.models import Asset
 
 import pytz
 import uuid
@@ -28,15 +27,6 @@ log = logging.getLogger(__name__)
 
 
 PST = pytz.timezone('US/Pacific')
-
-
-class TimestampViewed(Timestamp):
-    """Adds `viewed` column to a derived declarative model."""
-
-    viewed = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
-
-    def view(self):
-        self.updated = datetime.utcnow()
 
 
 class UserEDMMixin(EDMObjectMixin):

@@ -20,10 +20,13 @@ from .flask_sqlalchemy import SQLAlchemy  # NOQA
 from sqlalchemy.ext import mutable  # NOQA
 from sqlalchemy.types import TypeDecorator, CHAR  # NOQA
 from sqlalchemy.dialects.postgresql import UUID  # NOQA
+from sqlalchemy_utils import types as column_types, Timestamp  # NOQA
 
 import uuid  # NOQA
 
 import json  # NOQA
+
+from datetime import datetime  # NOQA
 
 db = SQLAlchemy()
 
@@ -62,6 +65,9 @@ from . import api  # NOQA
 import stripe  # NOQA
 
 
+##########################################################################################
+
+
 class JsonEncodedDict(db.TypeDecorator):
     """Enables JSON storage by encoding and decoding on the fly."""
 
@@ -78,9 +84,6 @@ class JsonEncodedDict(db.TypeDecorator):
             return {}
         else:
             return json.loads(value)
-
-
-mutable.MutableDict.associate_with(JsonEncodedDict)
 
 
 class GUID(db.TypeDecorator):
@@ -120,7 +123,24 @@ class GUID(db.TypeDecorator):
             return value
 
 
+class TimestampViewed(Timestamp):
+    """Adds `viewed` column to a derived declarative model."""
+
+    viewed = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+
+    def view(self):
+        self.updated = datetime.utcnow()
+
+
+##########################################################################################
+
+
+mutable.MutableDict.associate_with(JsonEncodedDict)
+
 db.GUID = GUID
+
+
+##########################################################################################
 
 
 def init_app(app):

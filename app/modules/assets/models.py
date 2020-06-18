@@ -4,15 +4,14 @@ Assets database models
 --------------------
 """
 from flask import current_app
-from sqlalchemy_utils import Timestamp
 import os
 
-from app.extensions import db
+from app.extensions import db, TimestampViewed
 
 import uuid
 
 
-class Asset(db.Model, Timestamp):
+class Asset(db.Model, TimestampViewed):
     """
     Assets database model.
     """
