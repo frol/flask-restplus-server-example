@@ -75,12 +75,10 @@ class BaseConfig(object):
         'assets',
         'auth',
         'frontend',
-
         'users',
         'encounters',
         'organizations',
         'collaborations',
-
         'api',
     )
 
