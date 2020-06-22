@@ -19,8 +19,6 @@ from app.modules.assets.models import Asset
 import pytz
 import uuid
 
-from werkzeug import security
-
 import tqdm
 
 log = logging.getLogger(__name__)
@@ -42,35 +40,36 @@ class UserEDMMixin(EDMObjectMixin):
 
     @classmethod
     def edm_sync_users(cls, verbose=True):
+        from app.modules.auth.models import _generate_salt
+
         edm_users = current_app.edm.get_users()
 
         if verbose:
             log.info('Checking %d EDM users against local cache...' % (len(edm_users),))
 
-        stale_users = []
         new_users = []
+        stale_users = []
         with db.session.begin():
             for guid in tqdm.tqdm(edm_users):
                 user = edm_users[guid]
                 version = user.get('version', None)
                 assert version is not None
+
                 user = User.query.filter(User.guid == guid).first()
+
                 if user is None:
-                    username = 'username-%s' % (guid,)
-                    email = '%s@localhost' % (username,)
-                    password = security.gen_salt(128)
+                    email = '%s@localhost' % (guid,)
+                    password = _generate_salt(128)
                     user = User(
                         guid=guid,
-                        username=username,
                         email=email,
                         password=password,
                         version=None,
                         is_active=True,
-                        is_staff=False,
-                        is_admin=False,
                     )
                     db.session.add(user)
                     new_users.append(user)
+
                 if user.version != version:
                     stale_users.append((user, version))
 
@@ -139,12 +138,6 @@ class User(db.Model, TimestampViewed, UserEDMMixin):
         db.Boolean, default=True, nullable=False
     )  # can be migrated from BE field "sharing"
 
-    last_seen = db.Column(db.DateTime, nullable=True)
-    date_created = db.Column(db.DateTime, nullable=True)
-    last_modified = db.Column(
-        db.DateTime, nullable=True
-    )  # can be migrated from BE field "modified"
-
     default_identification_catalogue = db.Column(
         db.GUID, nullable=True
     )  # this may just be a string, however EDM wants to do ID catalogues
@@ -193,7 +186,6 @@ class User(db.Model, TimestampViewed, UserEDMMixin):
         return (
             '<{class_name}('
             'guid={self.guid}, '
-            "username=\"{self.username}\", "
             "email=\"{self.email}\", "
             'is_internal={self.is_internal}, '
             'is_admin={self.is_admin}, '
@@ -216,15 +208,10 @@ class User(db.Model, TimestampViewed, UserEDMMixin):
         return suggested_password
 
     @classmethod
-    def find(cls, username=None, email=None, password=None):
-        assert (
-            username is None or email is None
-        ), 'Must specify only ONE (username or email) for User lookup'
+    def find(cls, email=None, password=None):
+        # Look-up via email
 
-        # Look-up via username or email
-        if username is not None:
-            user = User.query.filter_by(username=username).first()
-        elif email is not None:
+        if email is not None:
             user = User.query.filter_by(email=email).first()
         else:
             user = None
@@ -271,6 +258,9 @@ class User(db.Model, TimestampViewed, UserEDMMixin):
             filename = 'images/placeholder_profile_%d.png' % (placeholder_guid,)
             return url_for('static', filename=filename)
         return url_for('frontend.asset', code=asset.code)
+
+    def get_id(self):
+        return self.guid
 
     def has_static_role(self, role):
         return (self.static_roles & role.mask) != 0

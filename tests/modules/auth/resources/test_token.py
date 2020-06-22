@@ -1,6 +1,4 @@
 # -*- coding: utf-8 -*-
-from base64 import b64encode
-
 import pytest
 
 
@@ -11,9 +9,9 @@ def test_regular_user_can_retrieve_token(
     flask_app_client, db, regular_user, regular_user_oauth2_client, scope
 ):
     data = {
-        'username': regular_user.username,
-        'password': 'regular_user_password',
-        'client_guid': regular_user_oauth2_client.guid,
+        'username': regular_user.email,
+        'password': regular_user.password_secret,
+        'client_id': regular_user_oauth2_client.guid,
         'client_secret': regular_user_oauth2_client.secret,
         'grant_type': 'password',
     }
@@ -21,7 +19,7 @@ def test_regular_user_can_retrieve_token(
         data['scope'] = scope
 
     response = flask_app_client.post(
-        '/auth/oauth2/token', content_type='application/x-www-form-urlencoded', data=data
+        '/api/v1/auth/tokens', content_type='application/x-www-form-urlencoded', data=data
     )
 
     assert response.status_code == 200
@@ -49,10 +47,10 @@ def test_regular_user_cant_retrieve_token_without_credentials(
     flask_app_client, regular_user,
 ):
     response = flask_app_client.post(
-        '/auth/oauth2/token',
+        '/api/v1/auth/tokens',
         content_type='application/x-www-form-urlencoded',
         data={
-            'username': regular_user.username,
+            'email': regular_user.email,
             'password': 'regular_user_password',
             'grant_type': 'password',
         },
@@ -65,13 +63,13 @@ def test_regular_user_cant_retrieve_token_with_invalid_credentials(
     flask_app_client, regular_user,
 ):
     response = flask_app_client.post(
-        '/auth/oauth2/token',
+        '/api/v1/auth/tokens',
         content_type='application/x-www-form-urlencoded',
         data={
-            'username': regular_user.username,
+            'username': regular_user.email,
             'password': 'wrong_password',
-            'client_guid': 'wrong_client_guid',
-            'client_secret': 'wrong_client_secret',
+            'client_id': '11111111-1111-1111-1111-111111111111',
+            'client_secret': 'wrong_secret',
             'grant_type': 'password',
         },
     )
@@ -81,7 +79,7 @@ def test_regular_user_cant_retrieve_token_with_invalid_credentials(
 
 def test_regular_user_cant_retrieve_token_without_any_data(flask_app_client,):
     response = flask_app_client.post(
-        '/auth/oauth2/token', content_type='application/x-www-form-urlencoded', data={},
+        '/api/v1/auth/tokens', content_type='application/x-www-form-urlencoded', data={},
     )
 
     assert response.status_code == 400
@@ -91,11 +89,11 @@ def test_regular_user_can_refresh_token(
     flask_app_client, db, regular_user_oauth2_token,
 ):
     refresh_token_response = flask_app_client.post(
-        '/auth/oauth2/token',
+        '/api/v1/auth/tokens',
         content_type='application/x-www-form-urlencoded',
         data={
             'refresh_token': regular_user_oauth2_token.refresh_token,
-            'client_guid': regular_user_oauth2_token.client.guid,
+            'client_id': regular_user_oauth2_token.client.guid,
             'client_secret': regular_user_oauth2_token.client.secret,
             'grant_type': 'refresh_token',
         },
@@ -123,12 +121,12 @@ def test_regular_user_cant_refresh_token_with_invalid_refresh_token(
     flask_app_client, regular_user_oauth2_token,
 ):
     refresh_token_response = flask_app_client.post(
-        '/auth/oauth2/token',
+        '/api/v1/auth/tokens',
         content_type='application/x-www-form-urlencoded',
         data={
             'refresh_token': 'wrong_refresh_token',
-            'client_guid': regular_user_oauth2_token.client.guid,
-            'client_secret': regular_user_oauth2_token.client.secret,
+            'guid': regular_user_oauth2_token.client.guid,
+            'secret': regular_user_oauth2_token.client.secret,
             'grant_type': 'refresh_token',
         },
     )
@@ -138,7 +136,7 @@ def test_regular_user_cant_refresh_token_with_invalid_refresh_token(
 
 def test_user_cant_refresh_token_without_any_data(flask_app_client,):
     refresh_token_response = flask_app_client.post(
-        '/auth/oauth2/token', content_type='application/x-www-form-urlencoded', data={},
+        '/api/v1/auth/tokens', content_type='application/x-www-form-urlencoded', data={},
     )
 
     assert refresh_token_response.status_code == 400
@@ -149,23 +147,14 @@ def test_regular_user_can_revoke_token(
 ):
     data = {
         'token': regular_user_oauth2_token.refresh_token,
-        'client_guid': regular_user_oauth2_token.client.guid,
+        'client_id': regular_user_oauth2_token.client.guid,
         'client_secret': regular_user_oauth2_token.client.secret,
     }
     revoke_token_response = flask_app_client.post(
-        '/auth/oauth2/revoke',
+        '/api/v1/auth/revoke',
         content_type='application/x-www-form-urlencoded',
         headers={
-            'Authorization': 'Basic %s'
-            % b64encode(
-                (
-                    '%s:%s'
-                    % (
-                        regular_user_oauth2_token.client.guid,
-                        regular_user_oauth2_token.client.secret,
-                    )
-                ).encode('utf-8')
-            ),
+            'Authorization': 'Bearer %s' % (regular_user_oauth2_token.access_token,)
         },
         data=data,
     )

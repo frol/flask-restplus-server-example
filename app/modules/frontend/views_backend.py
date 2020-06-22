@@ -19,13 +19,16 @@ from app.extensions import db
 from app.modules.users.models import User
 from app.modules.assets.models import Asset
 
-from .views import (
-    HOUSTON_STATIC_ROOT,
-    _render_template,
+from app.modules.auth.views import (
     _url_for,
     _is_safe_url,
+)
+
+from .views import (
+    HOUSTON_STATIC_ROOT,
     create_session_oauth2_token,
     delete_session_oauth2_token,
+    _render_template,
 )
 
 

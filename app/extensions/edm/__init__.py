@@ -238,16 +238,16 @@ class EDMManager(EDMManagerEndpointMixin, EDMManagerUserMixin):
         for target in self.uris:
             auth = self.auths[target]
 
-            username = auth.get('username', auth.get('user', None))
+            email = auth.get('email', auth.get('user', None))
             password = auth.get('password', auth.get('pass', None))
 
-            message = 'EDM Authentication for %s unspecified (username)' % (target,)
-            assert username is not None, message
+            message = 'EDM Authentication for %s unspecified (email)' % (target,)
+            assert email is not None, message
             message = 'EDM Authentication for %s unspecified (password)' % (target,)
             assert password is not None, message
 
             self.sessions[target] = requests.Session()
-            self._get('session.login', username, password, target=target)
+            self._get('session.login', email, password, target=target)
 
     def _ensure_initialed(self):
         if not self.initialized:

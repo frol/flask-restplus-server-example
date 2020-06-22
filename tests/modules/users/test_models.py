@@ -24,7 +24,7 @@ def test_User_auth(user_instance):
             (
                 models.User.StaticRoles.INTERNAL.mask
                 | models.User.StaticRoles.ADMIN.mask
-                | models.User.StaticRoles.REGULAR_USER.mask
+                | models.User.StaticRoles.STAFF.mask
                 | models.User.StaticRoles.ACTIVE.mask
             ),
         )
@@ -56,9 +56,9 @@ def test_User_static_roles_setting(
         user_instance.unset_static_role(user_instance.StaticRoles.ADMIN)
 
     if is_staff:
-        user_instance.set_static_role(user_instance.StaticRoles.REGULAR_USER)
+        user_instance.set_static_role(user_instance.StaticRoles.STAFF)
     else:
-        user_instance.unset_static_role(user_instance.StaticRoles.REGULAR_USER)
+        user_instance.unset_static_role(user_instance.StaticRoles.STAFF)
 
     if is_active:
         user_instance.set_static_role(user_instance.StaticRoles.ACTIVE)
@@ -69,9 +69,7 @@ def test_User_static_roles_setting(
         user_instance.has_static_role(user_instance.StaticRoles.INTERNAL) is is_internal
     )
     assert user_instance.has_static_role(user_instance.StaticRoles.ADMIN) is is_admin
-    assert (
-        user_instance.has_static_role(user_instance.StaticRoles.REGULAR_USER) is is_staff
-    )
+    assert user_instance.has_static_role(user_instance.StaticRoles.STAFF) is is_staff
     assert user_instance.has_static_role(user_instance.StaticRoles.ACTIVE) is is_active
     assert user_instance.is_internal is is_internal
     assert user_instance.is_admin is is_admin
@@ -90,28 +88,21 @@ def test_User_check_owner(user_instance):
 def test_User_find_with_password(
     patch_User_password_scheme, db
 ):  # pylint: disable=unused-argument
-    def create_user(username, password):
-        user = models.User(
-            username=username,
-            password=password,
-            first_name='any',
-            middle_name='any',
-            last_name='any',
-            email='%s@email.com' % username,
-        )
+    def create_user(email, password):
+        user = models.User(email=email, password=password, full_name='any any any',)
         return user
 
-    user1 = create_user('user1', 'user1password')
-    user2 = create_user('user2', 'user2password')
+    user1 = create_user('user1@localhost', 'user1password')
+    user2 = create_user('user2@localhost', 'user2password')
     with db.session.begin():
         db.session.add(user1)
         db.session.add(user2)
 
-    assert models.User.find_with_password('user1', 'user1password') == user1
-    assert models.User.find_with_password('user1', 'wrong-user1password') is None
-    assert models.User.find_with_password('user2', 'user1password') is None
-    assert models.User.find_with_password('user2', 'user2password') == user2
-    assert models.User.find_with_password('nouser', 'userpassword') is None
+    assert models.User.find('user1@localhost', 'user1password') == user1
+    assert models.User.find('user1@localhost', 'wrong-user1password') is None
+    assert models.User.find('user2@localhost', 'user1password') is None
+    assert models.User.find('user2@localhost', 'user2password') == user2
+    assert models.User.find('nouser@localhost', 'userpassword') is None
 
     with db.session.begin():
         db.session.delete(user1)

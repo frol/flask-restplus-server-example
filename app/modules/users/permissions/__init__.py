@@ -21,13 +21,13 @@ class PermissionExtendedQuery(BaseQuery):
     >>> DataTransformation.query.get_or_403(id)
     """
 
-    def __init__(self, permisssion, *args, **kwargs):
+    def __init__(self, permission, *args, **kwargs):
         super(PermissionExtendedQuery, self).__init__(*args, **kwargs)
-        self.permisssion = permisssion
+        self.permission = permission
 
     def get_or_403(self, ident):
         obj = self.get_or_404(ident)
-        with self.permisssion(obj=obj):
+        with self.permission(obj=obj):
             return obj
 
 
@@ -124,6 +124,18 @@ class AdminRolePermission(PasswordRequiredPermissionMixin, RolePermission):
         )
 
 
+class StaffRolePermission(PasswordRequiredPermissionMixin, RolePermission):
+    """
+    Admin role is required.
+    """
+
+    def rule(self):
+        return rules.InternalRoleRule() | (
+            (rules.AdminRoleRule() | rules.StaffRoleRule())
+            & super(StaffRolePermission, self).rule()
+        )
+
+
 class InternalRolePermission(RolePermission):
     """
     Internal role is required.
@@ -176,7 +188,6 @@ class OwnerRolePermission(PasswordRequiredPermissionMixin, RolePermission):
         return rules.InternalRoleRule() | (
             (
                 rules.AdminRoleRule()
-                | rules.PrivilegedFamilyListRoleRule()
                 | rules.OwnerRoleRule(obj=self._obj)
                 | rules.SupervisorRoleRule(obj=self._obj)
             )
@@ -204,7 +215,6 @@ class OwnerModifyRolePermission(PasswordRequiredPermissionMixin, RolePermission)
         return rules.InternalRoleRule() | (
             (
                 rules.AdminRoleRule()
-                | rules.PrivilegedFamilyModifyRoleRule()
                 | rules.OwnerRoleRule(obj=self._obj)
                 | rules.SupervisorRoleRule(obj=self._obj)
             )

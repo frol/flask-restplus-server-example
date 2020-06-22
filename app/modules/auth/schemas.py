@@ -6,7 +6,7 @@ Auth schemas
 """
 
 from flask_marshmallow import base_fields
-from flask_restplus_patched import ModelSchema
+from flask_restplus_patched import ModelSchema, Schema
 
 from .models import OAuth2Client, Code
 
@@ -74,3 +74,7 @@ class DetailedCodeSchema(BaseCodeSchema):
             Code.created.key,
             Code.updated.key,
         )
+
+
+class ReCaptchaPublicServerKeySchema(Schema):
+    recaptcha_public_key = base_fields.String(required=True)

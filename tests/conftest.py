@@ -34,9 +34,9 @@ def temp_db_instance_helper(db):
 
         mapper = instance.__class__.__mapper__
         assert len(mapper.primary_key) == 1
-        instance.__class__.query.filter(
-            mapper.primary_key[0] == mapper.primary_key_from_instance(instance)[0]
-        ).delete()
+        primary_key = mapper.primary_key[0]
+        kwargs = {primary_key.name: mapper.primary_key_from_instance(instance)[0]}
+        instance.__class__.query.filter_by(**kwargs).delete()
 
     return temp_db_instance_manager
 
@@ -51,7 +51,7 @@ def flask_app_client(flask_app):
 @pytest.yield_fixture(scope='session')
 def readonly_user(temp_db_instance_helper):
     for _ in temp_db_instance_helper(
-        utils.generate_user_instance(username='readonly_user')
+        utils.generate_user_instance(email='readonly@localhost')
     ):
         yield _
 
@@ -59,7 +59,17 @@ def readonly_user(temp_db_instance_helper):
 @pytest.yield_fixture(scope='session')
 def admin_user(temp_db_instance_helper):
     for _ in temp_db_instance_helper(
-        utils.generate_user_instance(username='admin_user', is_admin=True)
+        utils.generate_user_instance(
+            email='admin@localhost', is_active=True, is_admin=True
+        )
+    ):
+        yield _
+
+
+@pytest.yield_fixture(scope='session')
+def regular_user(temp_db_instance_helper):
+    for _ in temp_db_instance_helper(
+        utils.generate_user_instance(email='test@localhost', is_active=True,)
     ):
         yield _
 
@@ -68,7 +78,7 @@ def admin_user(temp_db_instance_helper):
 def internal_user(temp_db_instance_helper):
     for _ in temp_db_instance_helper(
         utils.generate_user_instance(
-            username='internal_user',
+            email='internal@localhost',
             is_staff=False,
             is_admin=False,
             is_active=True,

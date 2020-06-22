@@ -66,7 +66,7 @@ class BaseConfig(object):
             'type': 'oauth2',
             'flow': 'password',
             'scopes': {},
-            'tokenUrl': '/auth/oauth2/token',
+            'tokenUrl': '/api/v1/auth/tokens',
         },
     }
 

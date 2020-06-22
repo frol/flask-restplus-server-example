@@ -7,18 +7,17 @@ Auth resources
 
 import logging
 
+from flask import current_app
 from flask_login import current_user
 from flask_restplus_patched import Resource
 from flask_restplus._http import HTTPStatus
-from werkzeug import security
 
+from app.extensions import oauth2
 from app.extensions.api import Namespace, api_v1
 from app.extensions.api.parameters import PaginationParameters
 
 from . import schemas, parameters
 from .models import db, OAuth2Client
-
-import uuid
 
 log = logging.getLogger(__name__)
 api = Namespace('auth', description='Authentication')
@@ -29,17 +28,12 @@ def _generate_new_client(args):
         db.session, default_error_message='Failed to create a new OAuth2 client.'
     )
     with context:
-        new_oauth2_client = OAuth2Client(
-            user_guid=current_user.guid,
-            client_guid=uuid.uuid4(),
-            client_secret=security.gen_salt(64),
-            **args
-        )
+        new_oauth2_client = OAuth2Client(user_guid=current_user.guid, **args)
         db.session.add(new_oauth2_client)
     return new_oauth2_client
 
 
-@api.route('/clients/')
+@api.route('/clients')
 @api.login_required(oauth_scopes=['auth:read'])
 class OAuth2Clients(Resource):
     """
@@ -48,7 +42,6 @@ class OAuth2Clients(Resource):
 
     # @api.parameters(parameters.ListOAuth2ClientsParameters())
     @api.parameters(PaginationParameters())
-    # @api.response(schemas.BaseOAuth2ClientSchema(many=True))
     @api.response(schemas.DetailedOAuth2ClientSchema(many=True))
     def get(self, args):
         """
@@ -85,8 +78,63 @@ class OAuth2Clients(Resource):
         """
         Create a new OAuth2 Client.
 
-        Essentially, OAuth2 Client is a ``client_guid`` and ``client_secret``
+        Essentially, OAuth2 Client is a ``guid`` and ``secret``
         pair associated with a user.
         """
         new_oauth2_client = _generate_new_client(args)
         return new_oauth2_client
+
+
+@api.route('/tokens')
+# @api.login_required(oauth_scopes=['auth:read'], locations=('headers', 'session', 'form', ))
+class OAuth2Tokens(Resource):
+    """
+    Manipulations with OAuth2 clients.
+    """
+
+    @oauth2.token_handler
+    def post(self):
+        """
+        This endpoint is for exchanging/refreshing an access token.
+
+        Returns:
+            response (dict): a dictionary or None as the extra credentials for
+            creating the token response.
+        """
+        return None
+
+
+@api.route('/revoke')
+@api.login_required(oauth_scopes=['auth:read'])
+class OAuth2Revoke(Resource):
+    """
+    Manipulations with OAuth2 clients.
+    """
+
+    # @api.login_required(oauth_scopes=['auth:write'])
+    @oauth2.revoke_handler
+    def post(self):
+        """
+        This endpoint allows a user to revoke their access token.
+        """
+        return None
+
+
+@api.route('/recaptcha')
+class ReCaptchaPublicServerKey(Resource):
+    """
+    Use signup form helper for recaptcha.
+    """
+
+    @api.response(schemas.ReCaptchaPublicServerKeySchema())
+    def get(self):
+        """
+        Get recaptcha form keys.
+
+        This endpoint must be used in order to get a server reCAPTCHA public key which
+        must be used to receive a reCAPTCHA secret key for POST /<prefix>/users/ form.
+        """
+        response = {
+            'recaptcha_public_key': current_app.config.get('RECAPTCHA_PUBLIC_KEY', None),
+        }
+        return response

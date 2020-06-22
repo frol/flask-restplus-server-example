@@ -19,5 +19,4 @@ def init_app(app, **kwargs):
     from . import models, views, resources  # pylint: disable=unused-import  # NOQA
 
     # Mount authentication routes
-    app.register_blueprint(views.auth_blueprint)
     api_v1.add_namespace(resources.api)
