@@ -9,21 +9,13 @@ More details are available here:
 * http://flask-oauthlib.readthedocs.org/en/latest/oauth2.html
 * http://lepture.com/en/2013/create-oauth-server
 """
-import flask
-from flask import request, render_template, url_for, flash, session, current_app
+from flask import render_template, session, current_app
 from flask_login import current_user
 import logging
-from urllib.parse import urlparse, urljoin
-
-from app.extensions import login_manager, oauth2
-
-from app.modules.users.models import User
 
 import datetime
 import pytz
 import os
-
-import uuid
 
 log = logging.getLogger(__name__)
 
@@ -53,60 +45,24 @@ def _render_template(template, **kwargs):
     return render_template(template, **config)
 
 
-def _url_for(value, *args, **kwargs):
-    kwargs['_external'] = 'https'
-    kwargs['_scheme'] = 'https'
-    return url_for(value, *args, **kwargs)
-
-
-def _is_safe_url(target):
-    ref_url = urlparse(request.host_url)
-    test_url = urlparse(urljoin(request.host_url, target))
-    return test_url.scheme in ('http', 'https') and ref_url.netloc == test_url.netloc
-
-
-@login_manager.request_loader
-def load_user_from_request(request):
-    """
-    Load user from OAuth2 Authentication header.
-    """
-    user = None
-    if hasattr(request, 'oauth'):
-        user = request.oauth.user
-    else:
-        is_valid, oauth = oauth2.verify_request(scopes=[])
-        if is_valid:
-            user = oauth.user
-    return user
-
-
-@login_manager.user_loader
-def load_user(username):
-    user = User.find(username=username)
-    return user
-
-
-@login_manager.unauthorized_handler
-def unauthorized():
-    flash('You tried to load an unauthorized page.', 'danger')
-    return flask.redirect(_url_for('frontend.home'))
-
-
-def create_session_oauth2_token(cleanup_tokens=False, check_renewal=False):
+def create_session_oauth2_token(
+    cleanup_tokens=False, check_renewal=False, user=None, update_session=True
+):
     from app.extensions import db
     from app.modules.auth.models import OAuth2Client, OAuth2Token
     from app.extensions.api import api_v1
-    from werkzeug import security
     import datetime
 
-    if not current_user.is_authenticated:
-        return None
+    if user is None:
+        user = current_user
+        if not user.is_authenticated:
+            return None
 
     default_scopes = list(api_v1.authorizations['oauth2_password']['scopes'].keys())
 
     # Retrieve Oauth2 client for user and/or clean-up multiple clients
     session_oauth2_clients = OAuth2Client.query.filter_by(
-        user=current_user, level=OAuth2Client.ClientLevels.session
+        user=user, level=OAuth2Client.ClientLevels.session
     ).all()
     session_oauth2_client = None
     if len(session_oauth2_clients) == 1:
@@ -120,10 +76,8 @@ def create_session_oauth2_token(cleanup_tokens=False, check_renewal=False):
 
     if session_oauth2_client is None:
         session_oauth2_client = OAuth2Client(
-            guid=uuid.uuid4(),
-            secret=security.gen_salt(64),
             level=OAuth2Client.ClientLevels.session,
-            user=current_user,
+            user=user,
             default_scopes=default_scopes,
         )
         with db.session.begin():
@@ -136,7 +90,7 @@ def create_session_oauth2_token(cleanup_tokens=False, check_renewal=False):
     ).all()
     log.info(
         'User %s has %d confidential Oauth2 bearer tokens'
-        % (current_user.username, len(session_oauth2_bearer_tokens),)
+        % (user.email, len(session_oauth2_bearer_tokens),)
     )
     if cleanup_tokens:
         for session_oauth2_bearer_token_ in session_oauth2_bearer_tokens:
@@ -148,9 +102,8 @@ def create_session_oauth2_token(cleanup_tokens=False, check_renewal=False):
     # Create a Oauth2 session bearer token with all scopes for this session
     session_oauth2_bearer_token = OAuth2Token(
         client=session_oauth2_client,
-        user=current_user,
+        user=user,
         token_type='Bearer',
-        access_token=security.gen_salt(128),
         scopes=default_scopes,
         expires=expires,
     )
@@ -158,14 +111,21 @@ def create_session_oauth2_token(cleanup_tokens=False, check_renewal=False):
         db.session.add(session_oauth2_bearer_token)
 
     # Add the access token to the session
-    session_oauth2_access_token = session_oauth2_bearer_token.access_token
-    session['access_token'] = session_oauth2_access_token
+
+    if update_session:
+        session_oauth2_access_token = session_oauth2_bearer_token.access_token
+        session['access_token'] = session_oauth2_access_token
+
+    return session_oauth2_bearer_token
 
 
-def check_session_oauth2_token(autorenew=True):
+def check_session_oauth2_token(autorenew=True, user=None):
     from app.modules.auth.models import OAuth2Token
 
-    if not current_user.is_authenticated:
+    if user is None:
+        user = current_user
+
+    if not user.is_authenticated:
         return False
 
     session_oauth2_access_token = session.get('access_token', None)
@@ -192,8 +152,11 @@ def check_session_oauth2_token(autorenew=True):
     return None
 
 
-def delete_session_oauth2_token():
+def delete_session_oauth2_token(user=None):
     from app.modules.auth.models import OAuth2Token
+
+    if user is None:
+        user = current_user
 
     session_oauth2_access_token = session.get('access_token', None)
     if session_oauth2_access_token is not None:
@@ -202,7 +165,7 @@ def delete_session_oauth2_token():
         )
         log.info(
             'Deleting bearer token %r for user %r'
-            % (session_oauth2_bearer_token, current_user.username),
+            % (session_oauth2_bearer_token, user.email),
         )
         if session_oauth2_bearer_token is not None:
             session_oauth2_bearer_token.delete()

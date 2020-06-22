@@ -6,15 +6,9 @@ Application Users management related tasks for Invoke.
 from ._utils import app_context_task
 
 
-@app_context_task(help={'username': 'qwe'})
+@app_context_task(help={'email': 'temp@localhost'})
 def create_user(
-    context,
-    username,
-    email,
-    is_internal=False,
-    is_admin=False,
-    is_staff=False,
-    is_active=True,
+    context, email, is_internal=False, is_admin=False, is_staff=False, is_active=True,
 ):
     """
     Create a new user.
@@ -24,7 +18,6 @@ def create_user(
     password = input('Enter password: ')
 
     new_user = User(
-        username=username,
         password=password,
         email=email,
         is_internal=is_internal,
@@ -40,18 +33,16 @@ def create_user(
 
 
 @app_context_task
-def create_oauth2_client(
-    context, username, client_guid, client_secret, default_scopes=None
-):
+def create_oauth2_client(context, email, guid, secret, default_scopes=None):
     """
-    Create a new OAuth2 Client associated with a given user (username).
+    Create a new OAuth2 Client associated with a given user (email).
     """
     from app.modules.users.models import User
     from app.modules.auth.models import OAuth2Client
 
-    user = User.query.filter(User.username == username).first()
+    user = User.query.filter(User.email == email).first()
     if not user:
-        raise Exception("User with username '%s' does not exist." % username)
+        raise Exception("User with email '%s' does not exist." % email)
 
     if default_scopes is None:
         from app.extensions.api import api_v1
@@ -59,10 +50,7 @@ def create_oauth2_client(
         default_scopes = list(api_v1.authorizations['oauth2_password']['scopes'].keys())
 
     oauth2_client = OAuth2Client(
-        client_guid=client_guid,
-        client_secret=client_secret,
-        user=user,
-        default_scopes=default_scopes,
+        guid=guid, secret=secret, user=user, default_scopes=default_scopes,
     )
 
     from app.extensions import db

@@ -10,69 +10,50 @@ More details are available here:
 * http://lepture.com/en/2013/create-oauth-server
 """
 
-from flask import Blueprint, request, render_template
-from flask_login import current_user
-from flask_restplus._http import HTTPStatus
+from urllib.parse import urlparse, urljoin
 
-from app.extensions import api, oauth2
+import flask
+from flask import request, url_for, flash
 
-from .models import OAuth2Client
+from app.extensions import login_manager, oauth2
 
-
-auth_blueprint = Blueprint(
-    'auth', __name__, url_prefix='/auth'
-)  # pylint: disable=invalid-name
+from app.modules.users.models import User
 
 
-@auth_blueprint.route('/oauth2/token', methods=['POST'])
-@oauth2.token_handler
-def access_token(*args, **kwargs):
-    # pylint: disable=unused-argument
+def _url_for(value, *args, **kwargs):
+    kwargs['_external'] = 'https'
+    kwargs['_scheme'] = 'https'
+    return url_for(value, *args, **kwargs)
+
+
+def _is_safe_url(target):
+    ref_url = urlparse(request.host_url)
+    test_url = urlparse(urljoin(request.host_url, target))
+    return test_url.scheme in ('http', 'https') and ref_url.netloc == test_url.netloc
+
+
+@login_manager.request_loader
+def load_user_from_request(request):
     """
-    This endpoint is for exchanging/refreshing an access token.
-
-    Returns:
-        response (dict): a dictionary or None as the extra credentials for
-        creating the token response.
+    Load user from OAuth2 Authentication header.
     """
-    return None
+    user = None
+    if hasattr(request, 'oauth'):
+        user = request.oauth.user
+    else:
+        is_valid, oauth = oauth2.verify_request(scopes=[])
+        if is_valid:
+            user = oauth.user
+    return user
 
 
-@auth_blueprint.route('/oauth2/revoke', methods=['POST'])
-@oauth2.revoke_handler
-def revoke_token():
-    """
-    This endpoint allows a user to revoke their access token.
-    """
-    pass
+@login_manager.user_loader
+def load_user(email):
+    user = User.find(email=email)
+    return user
 
 
-# @auth_blueprint.route('/oauth2/authorize', methods=['GET', 'POST'])
-# @oauth2.authorize_handler
-# def authorize(*args, **kwargs):
-#     # pylint: disable=unused-argument
-#     """
-#     This endpoint asks user if he grants access to his data to the requesting
-#     application.
-
-#     REF: https://flask-oauthlib.readthedocs.io/en/latest/oauth2.html
-#     """
-#     # TODO: improve implementation. This implementation is broken because we
-#     # don't use cookies, so there is no session which client could carry on.
-#     # OAuth2 server should probably be deployed on a separate domain, so we
-#     # can implement a login page and store cookies with a session id.
-#     # ALTERNATIVELY, authorize page can be implemented as SPA (single page
-#     # application)
-#     if not current_user.is_authenticated:
-#         return api.abort(code=HTTPStatus.UNAUTHORIZED)
-
-#     if request.method == 'GET':
-#         client_guid = kwargs.get('client_guid')
-#         oauth2_client = OAuth2Client.query.get_or_404(client_guid=client_guid)
-#         kwargs['client'] = oauth2_client
-#         kwargs['user'] = current_user
-#         # TODO: improve template design
-#         return render_template('authorize.html', **kwargs)
-
-#     confirm = request.form.get('confirm', 'no')
-#     return confirm == 'yes'
+@login_manager.unauthorized_handler
+def unauthorized():
+    flash('You tried to load an unauthorized page.', 'danger')
+    return flask.redirect(_url_for('frontend.home'))

@@ -6,7 +6,7 @@ User schemas
 """
 
 from flask_marshmallow import base_fields
-from flask_restplus_patched import Schema, ModelSchema
+from flask_restplus_patched import ModelSchema
 
 from .models import User
 
@@ -23,12 +23,6 @@ class BaseUserSchema(ModelSchema):
             User.guid.key,
             User.email.key,
             User.full_name.key,
-            User.affiliation.key,
-            User.location.key,
-            User.profile_asset_guid.key,
-            User.is_active.fget.__name__,
-            User.is_staff.fget.__name__,
-            User.is_admin.fget.__name__,
         )
         dump_only = (User.guid.key,)
 
@@ -46,15 +40,25 @@ class DetailedUserSchema(BaseUserSchema):
 
     class Meta(BaseUserSchema.Meta):
         fields = BaseUserSchema.Meta.fields + (
-            User.last_seen.key,
-            User.date_created.key,
+            User.created.key,
+            User.updated.key,
+            User.viewed.key,
+            User.is_active.fget.__name__,
+            User.is_staff.fget.__name__,
+            User.is_admin.fget.__name__,
+            User.profile_asset_guid.key,
+            User.affiliation.key,
+            User.location.key,
             User.forum_id.key,
             User.website.key,
         )
 
+
 class PersonalUserSchema(DetailedUserSchema):
-    """ Personal user schema exposes all fields needed to render a user profile
-    that can be edited by the currently logged in user. """
+    """
+    Personal user schema exposes all fields needed to render a user profile
+    that can be edited by the currently logged in user.
+    """
 
     class Meta(DetailedUserSchema.Meta):
         fields = DetailedUserSchema.Meta.fields + (
@@ -67,6 +71,3 @@ class PersonalUserSchema(DetailedUserSchema):
             User.use_usa_date_format.key,
             User.accepted_user_agreement.key,
         )
-
-class UserSignupFormSchema(Schema):
-    recaptcha_server_key = base_fields.String(required=True)

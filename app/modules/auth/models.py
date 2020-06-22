@@ -15,6 +15,7 @@ import enum
 from sqlalchemy import or_
 from sqlalchemy_utils import Timestamp
 from sqlalchemy_utils.types import ScalarListType
+from werkzeug import security
 
 from app.extensions import db
 from app.modules.users.models import User
@@ -85,6 +86,18 @@ CODE_SETTINGS = {
 }
 
 
+def _generate_salt(length):
+    return security.gen_salt(length)
+
+
+def _generate_salt_64(*args, **kwargs):
+    return _generate_salt(64)
+
+
+def _generate_salt_128(*args, **kwargs):
+    return _generate_salt(128)
+
+
 class OAuth2Client(db.Model):
     """
     Model that binds OAuth2 Client ID and Secret to a specific User.
@@ -93,7 +106,7 @@ class OAuth2Client(db.Model):
     __tablename__ = 'oauth2_client'
 
     guid = db.Column(db.GUID, default=uuid.uuid4, primary_key=True)
-    secret = db.Column(db.String(length=64), nullable=False)
+    secret = db.Column(db.String(length=64), default=_generate_salt_64, nullable=False)
 
     user_guid = db.Column(
         db.ForeignKey('user.guid', ondelete='CASCADE'), index=True, nullable=False
@@ -116,11 +129,20 @@ class OAuth2Client(db.Model):
             return redirect_uris[0]
         return None
 
+    @property
+    def client_id(self):
+        return self.guid
+
+    @property
+    def client_secret(self):
+        return self.secret
+
     @classmethod
-    def find(cls, client_guid):
-        if not client_guid:
+    def find(cls, guid):
+        log.debug('OAuth2Client.find(): %r' % (guid,))
+        if not guid:
             return None
-        return cls.query.get(client_guid)
+        return cls.query.get(guid)
 
     def validate_scopes(self, scopes):
         # The only reason for this override is that Swagger UI has a bug which leads to that
@@ -165,8 +187,13 @@ class OAuth2Grant(db.Model):
         with db.session.begin():
             db.session.delete(self)
 
+    @property
+    def client_id(self):
+        return self.client_guid
+
     @classmethod
     def find(cls, client_guid, code):
+        log.debug('OAuth2Grant.find(): %r' % (client_guid,))
         return cls.query.filter_by(client_guid=client_guid, code=code).first()
 
     @property
@@ -203,18 +230,34 @@ class OAuth2Token(db.Model):
 
     token_type = db.Column(db.Enum(TokenTypes), nullable=False)
 
-    access_token = db.Column(db.String(length=128), unique=True, nullable=False)
-    refresh_token = db.Column(db.String(length=128), unique=True, nullable=True)
+    access_token = db.Column(
+        db.String(length=128), default=_generate_salt_128, unique=True, nullable=False
+    )
+    refresh_token = db.Column(
+        db.String(length=128), default=_generate_salt_128, unique=True, nullable=True
+    )
     expires = db.Column(db.DateTime, nullable=False)
     scopes = db.Column(ScalarListType(separator=' '), nullable=False)
 
+    @property
+    def client_id(self):
+        return self.client_guid
+
     @classmethod
     def find(cls, access_token=None, refresh_token=None):
+        log.debug('OAuth2Token.find(): %r' % (access_token,))
+        log.debug('OAuth2Token.find(): %r' % (refresh_token,))
+        response = None
+
         if access_token:
-            return cls.query.filter_by(access_token=access_token).first()
+            response = cls.query.filter_by(access_token=access_token).first()
+
         if refresh_token:
-            return cls.query.filter_by(refresh_token=refresh_token).first()
-        return None
+            response = cls.query.filter_by(refresh_token=refresh_token).first()
+
+        log.debug('OAuth2Token.find(): %r' % (response,))
+
+        return response
 
     def delete(self):
         with db.session.begin():

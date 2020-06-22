@@ -12,6 +12,10 @@ from flask import Response
 from flask.testing import FlaskClient
 from werkzeug.utils import cached_property
 
+from app.modules.auth.models import _generate_salt
+
+import uuid
+
 
 class AutoAuthFlaskClient(FlaskClient):
     """
@@ -43,10 +47,7 @@ class AutoAuthFlaskClient(FlaskClient):
             from app.modules.auth.models import OAuth2Client, OAuth2Token
 
             oauth2_client = OAuth2Client(
-                client_guid='OAUTH2_%s' % self._user.username,
-                client_secret='SECRET',
-                user=self._user,
-                default_scopes=[],
+                secret='SECRET', user=self._user, default_scopes=[],
             )
 
             oauth2_bearer_token = OAuth2Token(
@@ -97,12 +98,9 @@ class JSONResponse(Response):
 
 def generate_user_instance(
     user_guid=None,
-    username='username',
-    password=None,
     email=None,
-    first_name='First Name',
-    middle_name='Middle Name',
-    last_name='Last Name',
+    password=None,
+    full_name='First Middle Last',
     created=None,
     updated=None,
     is_active=True,
@@ -117,16 +115,20 @@ def generate_user_instance(
     # pylint: disable=too-many-arguments
     from app.modules.users.models import User
 
+    if user_guid is None:
+        user_guid = uuid.uuid4()
+
+    if email is None:
+        email = '%s@localhost' % (email,)
+
     if password is None:
-        password = '%s_password' % username
+        password = _generate_salt(128)
+
     user_instance = User(
         guid=user_guid,
-        username=username,
-        first_name=first_name,
-        middle_name=middle_name,
-        last_name=last_name,
+        full_name=full_name,
         password=password,
-        email=email or '%s@email.com' % username,
+        email=email,
         created=created or datetime.now(),
         updated=updated or datetime.now(),
         is_active=is_active,

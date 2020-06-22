@@ -3,8 +3,6 @@ import datetime
 import pytest
 import pytz
 
-import uuid
-
 
 @pytest.yield_fixture()
 def regular_user_oauth2_client(regular_user, temp_db_instance_helper):
@@ -14,8 +12,7 @@ def regular_user_oauth2_client(regular_user, temp_db_instance_helper):
     for _ in temp_db_instance_helper(
         OAuth2Client(
             user=regular_user,
-            client_guid=uuid.uuid4(),
-            client_secret='regular_user_secret',
+            secret='regular_user_secret',
             redirect_uris=[],
             default_scopes=['auth:read', 'auth:write'],
         )

@@ -44,18 +44,18 @@ class OAuth2RequestValidator(provider.OAuth2RequestValidator):
         super(OAuth2RequestValidator, self).__init__(
             usergetter=self._usergetter,
             clientgetter=self._client_class.find,
-            tokengetter=self._token_class.find,
             grantgetter=self._grant_class.find,
-            tokensetter=self._tokensetter,
             grantsetter=self._grantsetter,
+            tokengetter=self._token_class.find,
+            tokensetter=self._tokensetter,
         )
 
-    def _usergetter(self, username, password, client, request):
+    def _usergetter(self, email, password, client, request):
         # pylint: disable=method-hidden,unused-argument
         # Avoid circular dependencies
         from app.modules.users.models import User
 
-        return User.find(username=username, password=password)
+        return User.find(email=email, password=password)
 
     def _tokensetter(self, token, request, *args, **kwargs):
         # pylint: disable=method-hidden,unused-argument
@@ -152,7 +152,10 @@ class OAuth2Provider(provider.OAuth2Provider):
             @functools.wraps(origin_decorated_func)
             def wrapper(*args, **kwargs):
                 # pylint: disable=missing-docstring
+
                 access_token = None
+
+                log.info('Using locations = %r' % (locations,))
 
                 if 'headers' not in locations:
                     # Invalidate authorization if developer specifically
@@ -163,23 +166,45 @@ class OAuth2Provider(provider.OAuth2Provider):
                     if 'Authorization' in request.headers:
                         log.info('Found HEADER access_token')
                         access_token = request.headers['Authorization']
+
                 if access_token is None and 'session' in locations:
                     if 'access_token' in session:
                         log.info('Found SESSION access_token')
                         access_token = session['access_token']
+
                 if access_token is None and 'form' in locations:
                     if 'access_token' in request.form:
                         log.info('Found FORM access_token')
                         access_token = request.form['access_token']
 
+                    # if 'username' in request.form and 'password' in request.form:
+                    #     from app.modules.users.models import User
+                    #     from app.modules.frontend.views import create_session_oauth2_token
+
+                    #     log.info('Found FORM email and password')
+                    #     email = request.form['username']
+                    #     password = request.form['password']
+                    #     grant_type = request.form['grant_type']
+                    #     assert grant_type == 'password'
+
+                    #     user = User.find(email=email, password=password)
+                    #     log.info(user)
+                    #     token = create_session_oauth2_token(user=user, update_session=False)
+                    #     log.info(token)
+                    #     access_token = 'Bearer %s' % (token.access_token, )
+
                 # If we have an access token from a different place, try to use it instead
                 if access_token is not None:
                     # Take last value if space separated (e.g. "Bearer XXX")
-                    access_token = access_token.strip().split(' ')[-1].strip()
-                    access_token = access_token
+                    access_token = access_token.strip()
+                    access_token = access_token.split(' ')
+                    access_token = access_token[-1].strip()
+
                     authorization_value = 'Bearer {access_token}'.format(
-                        access_token=access_token
+                        access_token=access_token,
                     )
+                    log.info(authorization_value)
+
                     request.authorization = authorization_value
 
                 return origin_decorated_func(*args, **kwargs)
