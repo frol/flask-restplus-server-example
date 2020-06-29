@@ -7,6 +7,7 @@ import enum
 import logging
 
 from flask import url_for, current_app
+import sqlalchemy
 from sqlalchemy_utils import types as column_types
 
 from flask_login import current_user
@@ -30,16 +31,38 @@ PST = pytz.timezone('US/Pacific')
 class UserEDMMixin(EDMObjectMixin):
 
     # fmt: off
+    # The EDM attribute for the version, if reported
+    EDM_VERSION_ATTRIBUTE = 'version'
+
+    #
+    EDM_LOG_ATTRIBUTES = [
+        'emailAddress',
+    ]
+
     EDM_ATTRIBUTE_MAPPING = {
+        # Ignorerd
+        'id'                    : None,
+        'lastLogin'             : None,
+        'username'              : None,
+
+        # Attributes
         'acceptedUserAgreement' : 'accepted_user_agreement',
+        'affiliation'           : 'affiliation',
+        'emailAddress'          : 'email',
         'fullName'              : 'full_name',
+        'receiveEmails'         : 'receive_notification_emails',
+        'sharing'               : 'shares_data',
         'userURL'               : 'website',
-        'profileAsset.url'      : '_process_edm_profile_url',
+        'version'               : 'version',
+
+        # Functions
+        'organizations'         : '_process_edm_user_organization',
+        'profileImageUrl'       : '_process_edm_user_profile_url',
     }
     # fmt: on
 
     @classmethod
-    def edm_sync_users(cls, verbose=True):
+    def edm_sync_users(cls, verbose=True, refresh=False):
         from app.modules.auth.models import _generate_salt
 
         edm_users = current_app.edm.get_users()
@@ -70,7 +93,7 @@ class UserEDMMixin(EDMObjectMixin):
                     db.session.add(user)
                     new_users.append(user)
 
-                if user.version != version:
+                if user.version != version or refresh:
                     stale_users.append((user, version))
 
         if verbose:
@@ -79,21 +102,33 @@ class UserEDMMixin(EDMObjectMixin):
         if verbose:
             log.info('Updating %d stale users using EDM...' % (len(stale_users),))
 
+        updated_users = []
+        failed_users = []
         for user, version in tqdm.tqdm(stale_users):
-            user.edm_sync(version)
+            try:
+                user.edm_sync(version)
+                updated_users.append(user)
+            except sqlalchemy.exc.IntegrityError:
+                log.error('Error updating user %r' % (user,))
+                failed_users.append(user)
 
-        return edm_users, new_users, stale_users
+        return edm_users, new_users, updated_users, failed_users
 
     def edm_sync(self, version):
-        data = current_app.edm.get_user_data(self.guid)
+        response = current_app.edm.get_user_data(self.guid)
 
-        assert uuid.UUID(data.uuid) == self.guid
-        assert data.class_ in ['org.ecocean.User']
+        assert response.success
+        data = response.result
+
+        assert uuid.UUID(data.id) == self.guid
 
         self._process_edm_data(data, version)
 
-    def _process_edm_profile_url(self, url):
+    def _process_edm_user_profile_url(self, url):
         log.warning('User._process_edm_profile_url() not implemented yet')
+
+    def _process_edm_user_organization(self, org):
+        log.warning('User._process_edm_user_organization() not implemented yet')
 
 
 class User(db.Model, TimestampViewed, UserEDMMixin):

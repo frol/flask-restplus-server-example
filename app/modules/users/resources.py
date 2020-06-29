@@ -240,17 +240,20 @@ class UserEDMSync(Resource):
     """
 
     # @api.response(schemas.DetailedUserSchema())
-    def get(self):
+    def get(self, refresh=False):
         """
         Get current user details.
         """
-        edm_users, new_users, stale_users = User.edm_sync_users()
+        edm_users, new_users, updated_users, failed_users = User.edm_sync_users(
+            refresh=refresh
+        )
 
         response = {
             'local': User.query.count(),
             'remote': len(edm_users),
             'added': len(new_users),
-            'updated': len(stale_users),
+            'updated': len(updated_users),
+            'failed': len(failed_users),
         }
 
         return response

@@ -11,6 +11,7 @@ from flask_login import current_user  # NOQA
 from app.extensions import db
 import requests
 from collections import namedtuple
+import utool as ut
 import types
 import json
 
@@ -238,7 +239,7 @@ class EDMManager(EDMManagerEndpointMixin, EDMManagerUserMixin):
         for target in self.uris:
             auth = self.auths[target]
 
-            email = auth.get('email', auth.get('user', None))
+            email = auth.get('username', auth.get('email', None))
             password = auth.get('password', auth.get('pass', None))
 
             message = 'EDM Authentication for %s unspecified (email)' % (target,)
@@ -251,9 +252,12 @@ class EDMManager(EDMManagerEndpointMixin, EDMManagerUserMixin):
 
     def _ensure_initialed(self):
         if not self.initialized:
+            log.info('Initializing EDM')
             self.initialized = True
             self._parse_config_edm_uris(self.app)
             self._init_sessions(self.app)
+            log.info('\t%s' % (ut.repr3(self.uris)))
+            log.info('EDM Manager is ready')
 
     def _get(
         self,
@@ -316,27 +320,56 @@ class EDMObjectMixin(object):
 
         return self._process_edm_attribute(data_, edm_attribute_)
 
-    def _process_edm_data(self, data, version):
+    def _process_edm_data(self, data, claimed_version):
         with db.session.begin():
+            unmapped_attributes = list(
+                set(sorted(data._fields)) - set(self.EDM_ATTRIBUTE_MAPPING)
+            )
+            if len(unmapped_attributes) > 0:
+                log.warning('Unmapped attributes: %r' % (unmapped_attributes,))
+
+            found_version = None
             for edm_attribute in self.EDM_ATTRIBUTE_MAPPING:
                 try:
                     edm_value = self._process_edm_attribute(data, edm_attribute)
 
-                    attribute = self.EDM_ATTRIBUTE_MAPPING.get(edm_attribute, None)
-                    assert attribute is not None
+                    attribute = self.EDM_ATTRIBUTE_MAPPING[edm_attribute]
+                    if attribute is None:
+                        log.warning(
+                            'Ignoring mapping for EDM attribute %r' % (edm_attribute,)
+                        )
+                        continue
+
+                    if edm_attribute in self.EDM_LOG_ATTRIBUTES:
+                        log.info(
+                            'Logging requested edm_attribute %r = %r'
+                            % (edm_attribute, edm_value,)
+                        )
+
                     assert hasattr(self, attribute), 'User attribute not found'
-
                     attribute_ = getattr(self, attribute)
-
                     if isinstance(attribute_, (types.MethodType,)):
                         attribute_(edm_value)
                     else:
                         setattr(self, attribute, edm_value)
+                        if edm_attribute == self.EDM_VERSION_ATTRIBUTE:
+                            found_version = edm_value
                 except AttributeError:
                     log.warning('Could not find EDM attribute %r' % (edm_attribute,))
+                except KeyError:
+                    log.warning('Could not find EDM attribute %r' % (edm_attribute,))
 
-            self.version = version
+            if found_version is None:
+                self.version = claimed_version
+            else:
+                self.version = found_version
+
             db.session.merge(self)
+
+        if found_version is None:
+            log.info('Updating to claimed version %r' % (claimed_version,))
+        else:
+            log.info('Updating to found version %r' % (found_version,))
 
 
 def init_app(app, **kwargs):
