@@ -14,8 +14,6 @@ from flask import Blueprint, request, flash, send_file
 from flask_login import login_user, logout_user, login_required
 import logging
 
-from app.extensions import db
-
 from app.modules.users.models import User
 from app.modules.assets.models import Asset
 
@@ -62,30 +60,23 @@ def user_login(email=None, password=None, remember=None, *args, **kwargs):
         password = request.form.get('password', None)
     if remember is None:
         remember = request.form.get('remember', None)
-        # log.info('request.form.remember = %r' % (remember, ))
         remember = remember in ['true', 'on']
 
     user = User.find(email=email, password=password)
 
-    redirect = _url_for('frontend.account')
+    redirect = _url_for('backend.account')
     if user is not None:
-        if False:  # True not in [user.in_beta, user.is_staff, user.is_admin]:
+        if True not in [user.in_alpha, user.in_beta, user.is_staff, user.is_admin]:
             flash(
-                'Your login was correct, but Wildbook is in BETA at the moment and is invite-only.  Please call us at (949) 786-9625 and ask for an invite code.',
+                'Your login was correct, but Wildbook is in BETA at the moment and is invite-only.',
                 'danger',
             )
-            redirect = _url_for('frontend.home')
+            redirect = _url_for('backend.home')
         else:
             status = login_user(user, remember=remember)
 
             if status:
-                # User logged in organically.  No matter the reason, they should no longer be in account recovery
-                user.in_reset = False
-                with db.session.begin():
-                    db.session.merge(user)
-                db.session.refresh(user)
-                assert not user.in_reset
-
+                # User logged in organically.
                 log.info('Logged in User (remember = %s): %r' % (remember, user,))
                 flash('Logged in successfully.', 'success')
                 create_session_oauth2_token()
@@ -98,10 +89,10 @@ def user_login(email=None, password=None, remember=None, *args, **kwargs):
                     'We could not log you in, most likely due to your account being disabled.  Please speak to a staff member.',
                     'danger',
                 )
-                redirect = _url_for('frontend.home')
+                redirect = _url_for('backend.home')
     else:
         flash('Username or password unrecognized.', 'danger')
-        redirect = _url_for('frontend.home')
+        redirect = _url_for('backend.home')
 
     return flask.redirect(redirect)
 
@@ -119,7 +110,7 @@ def user_logout(*args, **kwargs):
 
     flash('You were successfully logged out.', 'warning')
 
-    return flask.redirect(_url_for('frontend.home'))
+    return flask.redirect(_url_for('backend.home'))
 
 
 @backend_blueprint.route('/asset/<code>', methods=['GET'])

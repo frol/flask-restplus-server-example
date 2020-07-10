@@ -243,18 +243,28 @@ class User(db.Model, TimestampViewed, UserEDMMixin):
         return suggested_password
 
     @classmethod
-    def find(cls, email=None, password=None):
+    def find(cls, email=None, password=None, edm_login_fallback=True):
         # Look-up via email
 
         if email is not None:
-            user = User.query.filter_by(email=email).first()
+            user = cls.query.filter(User.email == email).first()
         else:
             user = None
 
         # If a password is specified, do a check
         if user is not None and password is not None:
+            # Check local password first
             if user.password != password:
-                user = None
+                if edm_login_fallback:
+                    # As a fallback, check all EDMs if the user can login
+                    import utool as ut
+
+                    ut.embed()
+                    # target = 'temporary-session'
+                    # current_app.edm.sessions[target] = requests.Session()
+                    # current_app.edm._get('session.login', email, password, target=target)
+                else:
+                    user = None
 
         # Check for invalid
         if not user:
