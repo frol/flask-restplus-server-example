@@ -131,7 +131,7 @@ class EDMManagerUserMixin(object):
         response = self._get('user.data', guid, target=target)
         return response
 
-    def check_user_login(self, user, password):
+    def check_user_login(self, username, password):
         self._ensure_initialed()
 
         success = False
@@ -141,7 +141,7 @@ class EDMManagerUserMixin(object):
             try:
                 response = self._get(
                     'session.login',
-                    user.email,
+                    username,
                     password,
                     target=target,
                     target_session=temporary_session,
@@ -149,7 +149,7 @@ class EDMManagerUserMixin(object):
                 assert response.success
                 assert response.message.key == 'success'
 
-                log.info('User authenticated via EDM (target = %r): %r' % (target, user,))
+                log.info('User authenticated via EDM (target = %r)' % (target,))
                 success = True
                 break
             except Exception:

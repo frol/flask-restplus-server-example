@@ -246,34 +246,54 @@ class User(db.Model, TimestampViewed, UserEDMMixin):
     def find(cls, email=None, password=None, edm_login_fallback=True):
         # Look-up via email
 
-        if email is not None:
-            user = cls.query.filter(User.email == email).first()
-        else:
-            user = None
+        if email is None:
+            return None
 
-        # If a password is specified, do a check
-        if user is not None and password is not None:
-            # Check local password first
-            if user.password != password:
+        email_candidates = [
+            email,
+            '%s@localhost' % (email,),
+        ]
+        for email_candidate in email_candidates:
+
+            user = cls.query.filter(User.email == email_candidate).first()
+
+            if password is None:
+                # If no password was provided to check, return any user account we find
+                if user is not None:
+                    return user
+            else:
+                # Check local Houston password first
+                if user is not None:
+                    # We found the user, check their provided password
+                    if user.password == password:
+                        return user
+
+                # As a fallback, check all EDMs if the user can login
                 if edm_login_fallback:
-                    # As a fallback, check all EDMs if the user can login
-                    if current_app.edm.check_user_login(user, password):
-                        # The user passed the login with an EDM, update local password
-                        user.password = password
-                        with db.session.begin():
-                            db.session.merge(user)
-                        db.session.refresh(user)
-                    else:
-                        user = None
-                else:
-                    user = None
+                    # We want to check the EDM even if we don't have a local user record
+                    if current_app.edm.check_user_login(email_candidate, password):
+                        log.info('User authenticated via EDM: %r' % (email_candidate,))
 
-        # Check for invalid
-        if not user:
-            user = None
+                        if user is not None:
+                            # We authenticated a local user against an EDM (but the local password failed)
+                            if user.password != password:
+                                # The user passed the login with an EDM, update local password
+                                log.warning(
+                                    'Updating user\'s local password: %r' % (user,)
+                                )
+                                user = user.set_password(password)
+                            return user
+                        else:
+                            log.danger(
+                                'The user authenticated via EDM but has no local user record'
+                            )
 
-        # Return User or None
-        return user
+        # If we have gotten here, one of these things happened:
+        #    1) the user wasn't found
+        #    2) the user's password was provided and was incorrect
+        #    3) the user authenticated against the EDM but has no local user record
+
+        return None
 
     @property
     def is_authenticated(self):
@@ -352,6 +372,20 @@ class User(db.Model, TimestampViewed, UserEDMMixin):
         from app.modules.auth.models import CodeTypes
 
         return self.get_codes(CodeTypes.recover, replace=True, replace_ttl=None)
+
+    def set_password(self, password=None):
+        if password is None:
+            # Generate a random password for the user
+            from app.modules.auth.models import _generate_salt
+
+            password = _generate_salt(128)
+
+        self.password = password
+        with db.session.begin():
+            db.session.merge(self)
+        db.session.refresh(self)
+
+        return self
 
     def lockout(self):
         from app.modules.auth.models import OAuth2Client, OAuth2Grant, OAuth2Token, Code
