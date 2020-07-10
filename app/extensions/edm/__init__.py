@@ -136,10 +136,9 @@ class EDMManagerUserMixin(object):
 
         success = False
         for target in self.targets:
+            # Create temporary session
+            temporary_session = requests.Session()
             try:
-                # Create temporary session
-                temporary_session = requests.Session()
-
                 response = self._get(
                     'session.login',
                     user.email,
@@ -150,16 +149,15 @@ class EDMManagerUserMixin(object):
                 assert response.success
                 assert response.message.key == 'success'
 
-                success = True
                 log.info('User authenticated via EDM (target = %r): %r' % (target, user,))
-
-                # Cleanup temporary session
-                temporary_session.cookies.clear_session_cookies()
-                temporary_session.close()
-
+                success = True
                 break
             except Exception:
                 pass
+            finally:
+                # Cleanup temporary session
+                temporary_session.cookies.clear_session_cookies()
+                temporary_session.close()
 
         return success
 
