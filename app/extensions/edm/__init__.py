@@ -135,9 +135,18 @@ class EDMManagerUserMixin(object):
         import utool as ut
 
         ut.embed()
-        # target = 'temporary-session'
-        # current_app.edm.sessions[target] = requests.Session()
-        # current_app.edm._get('session.login', email, password, target=target)
+
+        self._ensure_initialed()
+
+        temporary_session = requests.Session()
+        for target in self.targets:
+            self._get(
+                'session.login',
+                user.email,
+                password,
+                target=target,
+                target_session=temporary_session,
+            )
 
 
 class EDMManagerEncounterMixin(object):
@@ -168,9 +177,9 @@ class EDMManager(EDMManagerEndpointMixin, EDMManagerUserMixin):
         if pre_initialize:
             self._ensure_initialed()
 
-    def _parse_config_edm_uris(self, app):
-        edm_uri_dict = app.config.get('EDM_URIS', None)
-        edm_authentication_dict = app.config.get('EDM_AUTHENTICATIONS', None)
+    def _parse_config_edm_uris(self):
+        edm_uri_dict = self.app.config.get('EDM_URIS', None)
+        edm_authentication_dict = self.app.config.get('EDM_AUTHENTICATIONS', None)
 
         assert edm_uri_dict is not None, 'Must specify EDM_URIS in config'
         message = 'Must specify EDM_AUTHENTICATIONS in the secret config'
@@ -247,7 +256,7 @@ class EDMManager(EDMManagerEndpointMixin, EDMManagerUserMixin):
         self.uris = uris
         self.auths = auths
 
-    def _init_sessions(self, app):
+    def _init_sessions(self):
         self.sessions = {}
         for target in self.uris:
             auth = self.auths[target]
@@ -262,13 +271,14 @@ class EDMManager(EDMManagerEndpointMixin, EDMManagerUserMixin):
 
             self.sessions[target] = requests.Session()
             self._get('session.login', email, password, target=target)
+            log.info('Created authenticated session for EDM target %r' % (target,))
 
     def _ensure_initialed(self):
         if not self.initialized:
             log.info('Initializing EDM')
             self.initialized = True
-            self._parse_config_edm_uris(self.app)
-            self._init_sessions(self.app)
+            self._parse_config_edm_uris()
+            self._init_sessions()
             log.info('\t%s' % (ut.repr3(self.uris)))
             log.info('EDM Manager is ready')
 
@@ -277,6 +287,7 @@ class EDMManager(EDMManagerEndpointMixin, EDMManagerUserMixin):
         tag,
         *args,
         target='default',
+        target_session=None,
         decode_as_object=True,
         decode_as_dict=False,
         verbose=True
@@ -291,7 +302,10 @@ class EDMManager(EDMManagerEndpointMixin, EDMManagerUserMixin):
         if verbose:
             log.info('Sending request to: %r' % (endpoint_encoded,))
 
-        with self.sessions[target] as target_session:
+        if target_session is None:
+            target_session = self.sessions[target]
+
+        with target_session:
             response = target_session.get(endpoint_encoded)
 
         if response.ok:
