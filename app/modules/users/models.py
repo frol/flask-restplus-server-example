@@ -257,12 +257,8 @@ class User(db.Model, TimestampViewed, UserEDMMixin):
             if user.password != password:
                 if edm_login_fallback:
                     # As a fallback, check all EDMs if the user can login
-                    import utool as ut
-
-                    ut.embed()
-                    # target = 'temporary-session'
-                    # current_app.edm.sessions[target] = requests.Session()
-                    # current_app.edm._get('session.login', email, password, target=target)
+                    if not current_app.edm.check_user_login(user, password):
+                        user = None
                 else:
                     user = None
 

@@ -131,6 +131,14 @@ class EDMManagerUserMixin(object):
         response = self._get('user.data', guid, target=target)
         return response
 
+    def check_user_login(self, user, password):
+        import utool as ut
+
+        ut.embed()
+        # target = 'temporary-session'
+        # current_app.edm.sessions[target] = requests.Session()
+        # current_app.edm._get('session.login', email, password, target=target)
+
 
 class EDMManagerEncounterMixin(object):
     def get_encounters(self, target='default'):
@@ -151,7 +159,10 @@ class EDMManager(EDMManagerEndpointMixin, EDMManagerUserMixin):
     def __init__(self, app, pre_initialize=False, *args, **kwargs):
         super(EDMManager, self).__init__(*args, **kwargs)
         self.initialized = False
+
         self.app = app
+        self.targets = set([])
+
         app.edm = self
 
         if pre_initialize:
@@ -228,8 +239,10 @@ class EDMManager(EDMManagerEndpointMixin, EDMManagerUserMixin):
             if key == 0:
                 uris['default'] = edm_uri_dict[key]
                 auths['default'] = edm_authentication_dict[key]
+                self.targets.add('default')
             uris[key] = edm_uri_dict[key]
             auths[key] = edm_authentication_dict[key]
+            self.targets.add(key)
 
         self.uris = uris
         self.auths = auths
