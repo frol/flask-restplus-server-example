@@ -132,21 +132,36 @@ class EDMManagerUserMixin(object):
         return response
 
     def check_user_login(self, user, password):
-        import utool as ut
-
-        ut.embed()
-
         self._ensure_initialed()
 
-        temporary_session = requests.Session()
+        success = False
         for target in self.targets:
-            self._get(
-                'session.login',
-                user.email,
-                password,
-                target=target,
-                target_session=temporary_session,
-            )
+            try:
+                # Create temporary session
+                temporary_session = requests.Session()
+
+                response = self._get(
+                    'session.login',
+                    user.email,
+                    password,
+                    target=target,
+                    target_session=temporary_session,
+                )
+                assert response.success
+                assert response.message.key == 'success'
+
+                success = True
+                log.info('User authenticated via EDM (target = %r): %r' % (target, user,))
+
+                # Cleanup temporary session
+                temporary_session.cookies.clear_session_cookies()
+                temporary_session.close()
+
+                break
+            except Exception:
+                pass
+
+        return success
 
 
 class EDMManagerEncounterMixin(object):

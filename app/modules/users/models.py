@@ -257,7 +257,13 @@ class User(db.Model, TimestampViewed, UserEDMMixin):
             if user.password != password:
                 if edm_login_fallback:
                     # As a fallback, check all EDMs if the user can login
-                    if not current_app.edm.check_user_login(user, password):
+                    if current_app.edm.check_user_login(user, password):
+                        # The user passed the login with an EDM, update local password
+                        user.password = password
+                        with db.session.begin():
+                            db.session.merge(user)
+                        db.session.refresh(user)
+                    else:
                         user = None
                 else:
                     user = None
