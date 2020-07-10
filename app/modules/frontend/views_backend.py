@@ -64,7 +64,7 @@ def user_login(email=None, password=None, remember=None, *args, **kwargs):
 
     user = User.find(email=email, password=password)
 
-    redirect = _url_for('backend.account')
+    redirect = _url_for('backend.home')
     if user is not None:
         if True not in [user.in_alpha, user.in_beta, user.is_staff, user.is_admin]:
             flash(
