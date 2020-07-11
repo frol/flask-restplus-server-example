@@ -62,6 +62,10 @@ def user_login(email=None, password=None, remember=None, *args, **kwargs):
         remember = request.form.get('remember', None)
         remember = remember in ['true', 'on']
 
+    import utool as ut
+
+    ut.embed()
+
     user = User.find(email=email, password=password)
 
     redirect = _url_for('backend.home')

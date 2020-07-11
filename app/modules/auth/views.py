@@ -48,8 +48,8 @@ def load_user_from_request(request):
 
 
 @login_manager.user_loader
-def load_user(email):
-    user = User.find(email=email)
+def load_user(guid):
+    user = User.query.filter(User.guid == guid).first()
     return user
 
 
