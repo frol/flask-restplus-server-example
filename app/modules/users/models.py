@@ -287,6 +287,13 @@ class User(db.Model, TimestampViewed, UserEDMMixin):
                             log.danger(
                                 'The user authenticated via EDM but has no local user record'
                             )
+                            # Try syncing all users from EDM
+                            cls.edm_sync_users()
+                            # If the user was just synced, go grab it (recursively) and return
+                            user = cls.find(
+                                email=email_candidate, edm_login_fallback=False
+                            )
+                            return user
 
         # If we have gotten here, one of these things happened:
         #    1) the user wasn't found
