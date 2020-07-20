@@ -1,4 +1,4 @@
-# encoding: utf-8
+# -*- coding: utf-8 -*-
 # pylint: disable=bad-continuation
 """
 RESTful API Collaborations resources
@@ -7,7 +7,7 @@ RESTful API Collaborations resources
 
 import logging
 
-from flask_login import current_user
+from flask_login import current_user  # NOQA
 from flask_restplus_patched import Resource
 from flask_restplus._http import HTTPStatus
 
@@ -22,7 +22,9 @@ from .models import Collaboration
 
 
 log = logging.getLogger(__name__)  # pylint: disable=invalid-name
-api = Namespace('collaborations', description="Collaborations")  # pylint: disable=invalid-name
+api = Namespace(
+    'collaborations', description='Collaborations'
+)  # pylint: disable=invalid-name
 
 
 @api.route('/')
@@ -52,8 +54,7 @@ class Collaborations(Resource):
         Create a new instance of Collaboration.
         """
         context = api.commit_or_abort(
-            db.session,
-            default_error_message="Failed to create a new Collaboration"
+            db.session, default_error_message='Failed to create a new Collaboration'
         )
         with context:
             collaboration = Collaboration(**args)
@@ -64,8 +65,7 @@ class Collaborations(Resource):
 @api.route('/<uuid:collaboration_guid>')
 @api.login_required(oauth_scopes=['collaborations:read'])
 @api.response(
-    code=HTTPStatus.NOT_FOUND,
-    description="Collaboration not found.",
+    code=HTTPStatus.NOT_FOUND, description='Collaboration not found.',
 )
 @api.resolve_object_by_model(Collaboration, 'collaboration')
 class CollaborationByID(Resource):
@@ -90,11 +90,12 @@ class CollaborationByID(Resource):
         Patch Collaboration details by ID.
         """
         context = api.commit_or_abort(
-            db.session,
-            default_error_message="Failed to update Collaboration details."
+            db.session, default_error_message='Failed to update Collaboration details.'
         )
         with context:
-            parameters.PatchCollaborationDetailsParameters.perform_patch(args, obj=collaboration)
+            parameters.PatchCollaborationDetailsParameters.perform_patch(
+                args, obj=collaboration
+            )
             db.session.merge(collaboration)
         return collaboration
 
@@ -107,8 +108,7 @@ class CollaborationByID(Resource):
         Delete a Collaboration by ID.
         """
         context = api.commit_or_abort(
-            db.session,
-            default_error_message="Failed to delete the Collaboration."
+            db.session, default_error_message='Failed to delete the Collaboration.'
         )
         with context:
             db.session.delete(collaboration)

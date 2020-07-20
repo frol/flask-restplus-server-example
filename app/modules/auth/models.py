@@ -79,10 +79,10 @@ CODE_SETTINGS = {
         'ttl': 7,  # The default code should last 7 days, rounded up to (local midnight time - 1 second) of the day it will expire
         'len': 8,  # The default code should be 8 (hexidecimal) characters long
     },
-    CodeTypes.invite: {'ttl': 14, 'len': 8,},
-    CodeTypes.email: {'ttl': 7, 'len': 64,},
-    CodeTypes.recover: {'ttl': 3, 'len': 64,},
-    CodeTypes.onetime: {'ttl': None, 'len': 8,},  # None will default to 10 minutes
+    CodeTypes.invite: {'ttl': 14, 'len': 8},
+    CodeTypes.email: {'ttl': 7, 'len': 64},
+    CodeTypes.recover: {'ttl': 3, 'len': 64},
+    CodeTypes.onetime: {'ttl': None, 'len': 8},  # None will default to 10 minutes
 }
 
 

@@ -70,9 +70,9 @@ def test_modifying_user_info_by_admin(flask_app_client, admin_user, regular_user
                             'path': '/full_name',
                             'value': 'Modified Full Name',
                         },
-                        {'op': 'replace', 'path': '/is_active', 'value': False,},
-                        {'op': 'replace', 'path': '/is_staff', 'value': False,},
-                        {'op': 'replace', 'path': '/is_admin', 'value': True,},
+                        {'op': 'replace', 'path': '/is_active', 'value': False},
+                        {'op': 'replace', 'path': '/is_staff', 'value': False},
+                        {'op': 'replace', 'path': '/is_admin', 'value': True},
                     ]
                 ),
             )
@@ -127,9 +127,9 @@ def test_modifying_user_info_admin_fields_by_not_admin(
                             'path': '/full_name',
                             'value': 'Modified Full Name',
                         },
-                        {'op': 'replace', 'path': '/is_active', 'value': False,},
-                        {'op': 'replace', 'path': '/is_staff', 'value': False,},
-                        {'op': 'replace', 'path': '/is_admin', 'value': True,},
+                        {'op': 'replace', 'path': '/is_active', 'value': False},
+                        {'op': 'replace', 'path': '/is_staff', 'value': False},
+                        {'op': 'replace', 'path': '/is_admin', 'value': True},
                     ]
                 ),
             )
@@ -159,8 +159,8 @@ def test_modifying_user_info_with_invalid_format_must_fail(
             content_type='application/json',
             data=json.dumps(
                 [
-                    {'op': 'test', 'path': '/full_name', 'value': '',},
-                    {'op': 'replace', 'path': '/website',},
+                    {'op': 'test', 'path': '/full_name', 'value': ''},
+                    {'op': 'replace', 'path': '/website'},
                 ]
             ),
         )
@@ -216,7 +216,7 @@ def test_modifying_user_info_with_conflict_data_must_fail(
                         'path': '/current_password',
                         'value': regular_user.password_secret,
                     },
-                    {'op': 'replace', 'path': '/email', 'value': admin_user.email,},
+                    {'op': 'replace', 'path': '/email', 'value': admin_user.email},
                 ]
             ),
         )

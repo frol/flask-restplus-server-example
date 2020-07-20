@@ -61,7 +61,7 @@ def test_creating_oauth2_client_by_unauthorized_user_must_fail(
     with flask_app_client.login(regular_user, auth_scopes=auth_scopes):
         response = flask_app_client.post(
             '/api/v1/auth/clients',
-            data={'default_scopes': ['users:read', 'users:write', 'invalid'],},
+            data={'default_scopes': ['users:read', 'users:write', 'invalid']},
         )
 
     assert response.status_code == 401

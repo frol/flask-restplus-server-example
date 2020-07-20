@@ -1,4 +1,4 @@
-# encoding: utf-8
+# -*- coding: utf-8 -*-
 # pylint: disable=bad-continuation
 """
 RESTful API Organizations resources
@@ -7,7 +7,7 @@ RESTful API Organizations resources
 
 import logging
 
-from flask_login import current_user
+from flask_login import current_user  # NOQA
 from flask_restplus_patched import Resource
 from flask_restplus._http import HTTPStatus
 
@@ -22,7 +22,9 @@ from .models import Organization
 
 
 log = logging.getLogger(__name__)  # pylint: disable=invalid-name
-api = Namespace('organizations', description="Organizations")  # pylint: disable=invalid-name
+api = Namespace(
+    'organizations', description='Organizations'
+)  # pylint: disable=invalid-name
 
 
 @api.route('/')
@@ -52,8 +54,7 @@ class Organizations(Resource):
         Create a new instance of Organization.
         """
         context = api.commit_or_abort(
-            db.session,
-            default_error_message="Failed to create a new Organization"
+            db.session, default_error_message='Failed to create a new Organization'
         )
         with context:
             organization = Organization(**args)
@@ -64,8 +65,7 @@ class Organizations(Resource):
 @api.route('/<uuid:organization_guid>')
 @api.login_required(oauth_scopes=['organizations:read'])
 @api.response(
-    code=HTTPStatus.NOT_FOUND,
-    description="Organization not found.",
+    code=HTTPStatus.NOT_FOUND, description='Organization not found.',
 )
 @api.resolve_object_by_model(Organization, 'organization')
 class OrganizationByID(Resource):
@@ -90,11 +90,12 @@ class OrganizationByID(Resource):
         Patch Organization details by ID.
         """
         context = api.commit_or_abort(
-            db.session,
-            default_error_message="Failed to update Organization details."
+            db.session, default_error_message='Failed to update Organization details.'
         )
         with context:
-            parameters.PatchOrganizationDetailsParameters.perform_patch(args, obj=organization)
+            parameters.PatchOrganizationDetailsParameters.perform_patch(
+                args, obj=organization
+            )
             db.session.merge(organization)
         return organization
 
@@ -107,8 +108,7 @@ class OrganizationByID(Resource):
         Delete a Organization by ID.
         """
         context = api.commit_or_abort(
-            db.session,
-            default_error_message="Failed to delete the Organization."
+            db.session, default_error_message='Failed to delete the Organization.'
         )
         with context:
             db.session.delete(organization)

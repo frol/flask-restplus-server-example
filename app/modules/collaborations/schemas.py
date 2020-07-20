@@ -1,10 +1,10 @@
-# encoding: utf-8
+# -*- coding: utf-8 -*-
 """
 Serialization schemas for Collaborations resources RESTful API
 ----------------------------------------------------
 """
 
-from flask_marshmallow import base_fields
+# from flask_marshmallow import base_fields
 from flask_restplus_patched import ModelSchema
 
 from .models import Collaboration
@@ -22,9 +22,7 @@ class BaseCollaborationSchema(ModelSchema):
             Collaboration.guid.key,
             Collaboration.title.key,
         )
-        dump_only = (
-            Collaboration.guid.key,
-        )
+        dump_only = (Collaboration.guid.key,)
 
 
 class DetailedCollaborationSchema(BaseCollaborationSchema):

@@ -1,4 +1,4 @@
-# encoding: utf-8
+# -*- coding: utf-8 -*-
 """
 Encounters module
 ============
@@ -13,9 +13,11 @@ def init_app(app, **kwargs):
     Init Encounters module.
     """
     api_v1.add_oauth_scope('encounters:read', 'Provide access to Encounters details')
-    api_v1.add_oauth_scope('encounters:write', 'Provide write access to Encounters details')
+    api_v1.add_oauth_scope(
+        'encounters:write', 'Provide write access to Encounters details'
+    )
 
     # Touch underlying modules
-    from . import models, resources
+    from . import models, resources  # NOQA
 
     api_v1.add_namespace(resources.api)

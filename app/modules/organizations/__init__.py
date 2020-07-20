@@ -1,4 +1,4 @@
-# encoding: utf-8
+# -*- coding: utf-8 -*-
 """
 Organizations module
 ============
@@ -12,10 +12,14 @@ def init_app(app, **kwargs):
     """
     Init Organizations module.
     """
-    api_v1.add_oauth_scope('organizations:read', 'Provide access to Organizations details')
-    api_v1.add_oauth_scope('organizations:write', 'Provide write access to Organizations details')
+    api_v1.add_oauth_scope(
+        'organizations:read', 'Provide access to Organizations details'
+    )
+    api_v1.add_oauth_scope(
+        'organizations:write', 'Provide write access to Organizations details'
+    )
 
     # Touch underlying modules
-    from . import models, resources
+    from . import models, resources  # NOQA
 
     api_v1.add_namespace(resources.api)

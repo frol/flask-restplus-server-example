@@ -27,7 +27,7 @@ class Asset(db.Model, TimestampViewed):
         return (
             '<{class_name}('
             'guid={self.guid}, '
-            "file=\"{self.code}{self.ext}\""
+            'file="{self.code}{self.ext}"'
             ')>'.format(class_name=self.__class__.__name__, self=self)
         )
 

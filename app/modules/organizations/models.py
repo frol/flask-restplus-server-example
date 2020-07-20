@@ -1,4 +1,4 @@
-# encoding: utf-8
+# -*- coding: utf-8 -*-
 """
 Organizations database models
 --------------------
@@ -25,11 +25,8 @@ class Organization(db.Model, Timestamp):
         return (
             '<{class_name}('
             'guid={self.id}, '
-            'title=\'{self.title}\''
-            ')>'.format(
-                class_name=self.__class__.__name__,
-                self=self
-            )
+            "title='{self.title}'"
+            ')>'.format(class_name=self.__class__.__name__, self=self)
         )
 
     @db.validates('title')

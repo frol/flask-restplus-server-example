@@ -32,6 +32,8 @@ def enter(context, install_dependencies=True, upgrade_db=True):
 
     import app
 
+    log = logging.getLogger(__name__)  # NOQA
+
     flask_app = app.create_app()
 
     def shell_context():

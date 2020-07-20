@@ -40,7 +40,7 @@ def git_version():
     return git_revision
 
 
-CLASSIFIERS = '''
+CLASSIFIERS = """
 Development Status :: 3 - Alpha
 Intended Audience :: Developers
 Intended Audience :: System Administrators
@@ -52,7 +52,7 @@ Operating System :: MacOS
 Programming Language :: Python
 Programming Language :: Python :: 3.7
 Topic :: Internet :: WWW/HTTP :: Dynamic Content
-'''
+"""
 NAME = 'Houston'
 MAINTAINER = 'Wild Me, non-profit'
 MAINTAINER_EMAIL = 'dev@wildme.org'
@@ -75,7 +75,7 @@ PACKAGES = ['.']
 
 
 def write_version_py(filename=os.path.join(PROJECT_ROOT, 'app', 'version.py')):
-    cnt = '''
+    cnt = """
 # THIS FILE IS GENERATED FROM SETUP.PY
 version = '%(version)s'
 git_revision = '%(git_revision)s'
@@ -83,7 +83,7 @@ full_version = '%%(version)s.%%(git_revision)s' %% {
     'version': version,
     'git_revision': git_revision,
 }
-'''
+"""
     FULL_VERSION = VERSION
     if os.path.isdir('.git'):
         GIT_REVISION = REVISION

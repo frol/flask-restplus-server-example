@@ -5,7 +5,7 @@ User schemas
 ------------
 """
 
-from flask_marshmallow import base_fields
+# from flask_marshmallow import base_fields
 from flask_restplus_patched import ModelSchema
 
 from .models import User

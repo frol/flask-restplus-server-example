@@ -15,7 +15,7 @@ namespace = Collection(
     consistency, dependencies, dev, env, db, run, users, swagger, boilerplates,
 )
 
-namespace.configure({'app': {'static_root': BaseConfig.STATIC_ROOT,}})
+namespace.configure({'app': {'static_root': BaseConfig.STATIC_ROOT}})
 
 # Ensure database folder
 

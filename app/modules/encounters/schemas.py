@@ -1,10 +1,10 @@
-# encoding: utf-8
+# -*- coding: utf-8 -*-
 """
 Serialization schemas for Encounters resources RESTful API
 ----------------------------------------------------
 """
 
-from flask_marshmallow import base_fields
+# from flask_marshmallow import base_fields
 from flask_restplus_patched import ModelSchema
 
 from .models import Encounter
@@ -22,9 +22,7 @@ class BaseEncounterSchema(ModelSchema):
             Encounter.guid.key,
             Encounter.title.key,
         )
-        dump_only = (
-            Encounter.guid.key,
-        )
+        dump_only = (Encounter.guid.key,)
 
 
 class DetailedEncounterSchema(BaseEncounterSchema):

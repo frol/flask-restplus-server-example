@@ -23,7 +23,7 @@ class Encounter(db.Model, TimestampViewed):
         return (
             '<{class_name}('
             'guid={self.id}, '
-            'title=\'{self.title}\''
+            "title='{self.title}'"
             ')>'.format(class_name=self.__class__.__name__, self=self)
         )
 

@@ -10,7 +10,7 @@ from flask import url_for, current_app
 import sqlalchemy
 from sqlalchemy_utils import types as column_types
 
-from flask_login import current_user
+from flask_login import current_user  # NOQA
 from app.extensions import db, TimestampViewed
 from app.extensions.edm import EDMObjectMixin
 from app.extensions.api.parameters import _get_is_static_role_property
@@ -221,7 +221,7 @@ class User(db.Model, TimestampViewed, UserEDMMixin):
         return (
             '<{class_name}('
             'guid={self.guid}, '
-            "email=\"{self.email}\", "
+            'email="{self.email}", '
             'is_internal={self.is_internal}, '
             'is_admin={self.is_admin}, '
             'is_staff={self.is_staff}, '
@@ -279,7 +279,7 @@ class User(db.Model, TimestampViewed, UserEDMMixin):
                             if user.password != password:
                                 # The user passed the login with an EDM, update local password
                                 log.warning(
-                                    'Updating user\'s local password: %r' % (user,)
+                                    "Updating user's local password: %r" % (user,)
                                 )
                                 user = user.set_password(password)
                             return user

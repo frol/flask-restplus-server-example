@@ -11,7 +11,7 @@ import pytz
 
 from sqlalchemy import or_, and_
 
-from flask import current_app
+from flask import current_app  # NOQA
 from flask_login import current_user
 from flask_restplus_patched import Resource
 from flask_restplus._http import HTTPStatus

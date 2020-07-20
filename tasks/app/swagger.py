@@ -71,7 +71,7 @@ def codegen(context, language, version, dry_run=False, offline=False):
         "          --additional-properties 'packageVersion=%(version)s,projectVersion=%(version)s'"
         '          >&2 ;'
         # tar the generated code and return it.
-        "      tar -c dist\""
+        '      tar -c dist"'
         # Finally, untar library source into current directory.
-        '  | tar -x' % {'language': language, 'version': version,}
+        '  | tar -x' % {'language': language, 'version': version}
     )

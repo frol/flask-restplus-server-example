@@ -8,8 +8,6 @@ from tests import utils
 
 from app.modules.users import models
 
-import uuid
-
 
 @pytest.yield_fixture()
 def patch_User_password_scheme():

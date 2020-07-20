@@ -41,8 +41,8 @@ def create_app(flask_config_name=None, **kwargs):
     else:
         if env_flask_config_name:
             assert env_flask_config_name == flask_config_name, (
-                "FLASK_CONFIG environment variable (\"%s\") and flask_config_name argument "
-                "(\"%s\") are both set and are not the same."
+                'FLASK_CONFIG environment variable ("%s") and flask_config_name argument '
+                '("%s") are both set and are not the same.'
                 % (env_flask_config_name, flask_config_name)
             )
 

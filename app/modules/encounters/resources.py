@@ -1,4 +1,4 @@
-# encoding: utf-8
+# -*- coding: utf-8 -*-
 # pylint: disable=bad-continuation
 """
 RESTful API Encounters resources
@@ -7,7 +7,7 @@ RESTful API Encounters resources
 
 import logging
 
-from flask_login import current_user
+from flask_login import current_user  # NOQA
 from flask_restplus_patched import Resource
 from flask_restplus._http import HTTPStatus
 
@@ -22,7 +22,7 @@ from .models import Encounter
 
 
 log = logging.getLogger(__name__)  # pylint: disable=invalid-name
-api = Namespace('encounters', description="Encounters")  # pylint: disable=invalid-name
+api = Namespace('encounters', description='Encounters')  # pylint: disable=invalid-name
 
 
 @api.route('/')
@@ -52,8 +52,7 @@ class Encounters(Resource):
         Create a new instance of Encounter.
         """
         context = api.commit_or_abort(
-            db.session,
-            default_error_message="Failed to create a new Encounter"
+            db.session, default_error_message='Failed to create a new Encounter'
         )
         with context:
             encounter = Encounter(**args)
@@ -64,8 +63,7 @@ class Encounters(Resource):
 @api.route('/<uuid:encounter_guid>')
 @api.login_required(oauth_scopes=['encounters:read'])
 @api.response(
-    code=HTTPStatus.NOT_FOUND,
-    description="Encounter not found.",
+    code=HTTPStatus.NOT_FOUND, description='Encounter not found.',
 )
 @api.resolve_object_by_model(Encounter, 'encounter')
 class EncounterByID(Resource):
@@ -90,8 +88,7 @@ class EncounterByID(Resource):
         Patch Encounter details by ID.
         """
         context = api.commit_or_abort(
-            db.session,
-            default_error_message="Failed to update Encounter details."
+            db.session, default_error_message='Failed to update Encounter details.'
         )
         with context:
             parameters.PatchEncounterDetailsParameters.perform_patch(args, obj=encounter)
@@ -107,8 +104,7 @@ class EncounterByID(Resource):
         Delete a Encounter by ID.
         """
         context = api.commit_or_abort(
-            db.session,
-            default_error_message="Failed to delete the Encounter."
+            db.session, default_error_message='Failed to delete the Encounter.'
         )
         with context:
             db.session.delete(encounter)

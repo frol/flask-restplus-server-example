@@ -1,10 +1,10 @@
-# encoding: utf-8
+# -*- coding: utf-8 -*-
 """
 Serialization schemas for Organizations resources RESTful API
 ----------------------------------------------------
 """
 
-from flask_marshmallow import base_fields
+# from flask_marshmallow import base_fields
 from flask_restplus_patched import ModelSchema
 
 from .models import Organization
@@ -22,9 +22,7 @@ class BaseOrganizationSchema(ModelSchema):
             Organization.guid.key,
             Organization.title.key,
         )
-        dump_only = (
-            Organization.guid.key,
-        )
+        dump_only = (Organization.guid.key,)
 
 
 class DetailedOrganizationSchema(BaseOrganizationSchema):
