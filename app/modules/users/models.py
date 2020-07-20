@@ -290,9 +290,7 @@ class User(db.Model, TimestampViewed, UserEDMMixin):
                             # Try syncing all users from EDM
                             cls.edm_sync_users()
                             # If the user was just synced, go grab it (recursively) and return
-                            user = cls.find(
-                                email=email_candidate, edm_login_fallback=False
-                            )
+                            user = cls.find(email=email, edm_login_fallback=False)
                             return user
 
         # If we have gotten here, one of these things happened:
