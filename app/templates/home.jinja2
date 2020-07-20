@@ -11,21 +11,24 @@
 {% endblock %}
 
 {% block content %}
-  <div>
-    <a class="navbar-brand" href="{{ url_for('backend.home') }}">
-      <img src="{{ url_for('backend.static', filename='images/icon.png', version=cachebuster) }}" width="50" height="50" alt="">
-      <h1>Houston</h1>
-      <h2>by Wild Me</h2>   
-    </a>
+
+  <div class="container">
+    <div class="row">
+      <div class="col-3"></div>
+
+      <div class="col-6">
+        <img class="mx-auto d-block" alt="Wild Me Houston" src="{{ url_for('backend.static', filename='images/icon.png', version=cachebuster) }}" style="width: 30%; margin-bottom: 25px;">
+
+        {% if current_user.is_authenticated %}
+          {% include "home.logout.jinja2" %}
+        {% else %}
+          {% include "home.login.jinja2" %}
+        {% endif %}
+      </div>
+
+      <div class="col-3"></div>
+    </div>
   </div>
-
-  <div class="system-version">
-    Version {{ version }}
-  </div>
-
-  {% include "home.login.jinja2" %}
-
-  {% include "home.logout.jinja2" %}
 
 {% endblock %}
 

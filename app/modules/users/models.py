@@ -329,7 +329,7 @@ class User(db.Model, TimestampViewed, UserEDMMixin):
             placeholder_guid = (self.guid % 7) + 1
             filename = 'images/placeholder_profile_%d.png' % (placeholder_guid,)
             return url_for('static', filename=filename)
-        return url_for('frontend.asset', code=asset.code)
+        return url_for('backend.asset', code=asset.code)
 
     def get_id(self):
         return self.guid

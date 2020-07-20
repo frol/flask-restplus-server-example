@@ -11,7 +11,7 @@ More details are available here:
 """
 import flask
 from flask import Blueprint, request, flash, send_file
-from flask_login import login_user, logout_user, login_required
+from flask_login import login_user, logout_user, login_required, current_user
 import logging
 
 from app.modules.users.models import User
@@ -45,7 +45,7 @@ def home(*args, **kwargs):
     """
     from app.version import version
 
-    return _render_template('home.jinja2', version=version)
+    return _render_template('home.jinja2', version=version, user=current_user)
 
 
 @backend_blueprint.route('/login', methods=['POST'])
@@ -105,7 +105,10 @@ def user_logout(*args, **kwargs):
     This endpoint is the landing page for the logged-in user
     """
     # Delete the Oauth2 token for this session
+    log.info('Logging out User: %r' % (current_user,))
+
     delete_session_oauth2_token()
+
     logout_user()
 
     flash('You were successfully logged out.', 'warning')

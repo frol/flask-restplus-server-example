@@ -56,4 +56,4 @@ def load_user(guid):
 @login_manager.unauthorized_handler
 def unauthorized():
     flash('You tried to load an unauthorized page.', 'danger')
-    return flask.redirect(_url_for('frontend.home'))
+    return flask.redirect(_url_for('backend.home'))

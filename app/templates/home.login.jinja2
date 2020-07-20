@@ -1,17 +1,25 @@
-<h2 style="margin: 0px; font-weight: bold;">Sign in</h2>
+<div class="card">
+  <div class="card-header">
+    <b>Sign in</b>
+  </div>
 
-<form class="needs-validation" action="{{ url_for('backend.user_login') }}" method="post" novalidate>
-  <label for="email-address">Email Address</label>
-  <input name="email" id="email-address" placeholder="Email address of user" type="email" autofocus="autofocus" autocomplete="username" onfocus="this.select()" required>
-  <br/>
-
-  <label for="password">Password</label>
-  <input name="password" id="password" placeholder="Password of user" type="password" autocomplete="current-password" required>
-  <br/>
-
-  <input name="remember" id="remember-me" type="checkbox">
-  <label for="remember-me">Remember Me</label>
-  <br/>
-
-  <button id="login" type="submit">Sign in</button>
-</form>
+  <div class="card-body">
+    <form class="needs-validation" action="{{ url_for('backend.user_login') }}" method="post" novalidate>
+      <div class="form-group">
+        <label for="homeInputEmail">Email address</label>
+        <input name="email" type="email" class="form-control" id="homeInputEmail" aria-describedby="emailHelp" placeholder="Enter email" autofocus="autofocus" autocomplete="username" onfocus="this.select()" required>
+        <small id="emailHelp" class="form-text text-muted">We'll never share your email with anyone else.</small>
+      </div>
+      <div class="form-group">
+        <label for="homeInputPassword">Password</label>
+        <input name="password" type="password" class="form-control" id="homeInputPassword" placeholder="Password" autocomplete="current-password" required>
+      </div>
+      <div class="form-check">
+        <input type="checkbox" class="form-check-input" id="homeRemember">
+        <label name="remember" class="form-check-label" for="homeRemember">Remember</label>
+      </div>
+      <br/>
+      <button type="submit" class="btn btn-primary">Submit</button>
+    </form>
+  </div>
+</div>
