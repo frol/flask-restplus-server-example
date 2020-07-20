@@ -155,7 +155,7 @@ class OAuth2Provider(provider.OAuth2Provider):
 
                 access_token = None
 
-                log.info('Using locations = %r' % (locations,))
+                log.debug('Using locations = %r' % (locations,))
 
                 if 'headers' not in locations:
                     # Invalidate authorization if developer specifically
@@ -164,33 +164,33 @@ class OAuth2Provider(provider.OAuth2Provider):
 
                 if access_token is None and 'headers' in locations:
                     if 'Authorization' in request.headers:
-                        log.info('Found HEADER access_token')
+                        log.debug('Found HEADER access_token')
                         access_token = request.headers['Authorization']
 
                 if access_token is None and 'session' in locations:
                     if 'access_token' in session:
-                        log.info('Found SESSION access_token')
+                        log.debug('Found SESSION access_token')
                         access_token = session['access_token']
 
                 if access_token is None and 'form' in locations:
                     if 'access_token' in request.form:
-                        log.info('Found FORM access_token')
+                        log.debug('Found FORM access_token')
                         access_token = request.form['access_token']
 
                     # if 'username' in request.form and 'password' in request.form:
                     #     from app.modules.users.models import User
                     #     from app.modules.frontend.views import create_session_oauth2_token
 
-                    #     log.info('Found FORM email and password')
+                    #     log.debug('Found FORM email and password')
                     #     email = request.form['username']
                     #     password = request.form['password']
                     #     grant_type = request.form['grant_type']
                     #     assert grant_type == 'password'
 
                     #     user = User.find(email=email, password=password)
-                    #     log.info(user)
+                    #     log.debug(user)
                     #     token = create_session_oauth2_token(user=user, update_session=False)
-                    #     log.info(token)
+                    #     log.debug(token)
                     #     access_token = 'Bearer %s' % (token.access_token, )
 
                 # If we have an access token from a different place, try to use it instead
@@ -203,7 +203,7 @@ class OAuth2Provider(provider.OAuth2Provider):
                     authorization_value = 'Bearer {access_token}'.format(
                         access_token=access_token,
                     )
-                    log.info(authorization_value)
+                    # log.debug(authorization_value)
 
                     request.authorization = authorization_value
 

@@ -139,7 +139,6 @@ class OAuth2Client(db.Model):
 
     @classmethod
     def find(cls, guid):
-        log.debug('OAuth2Client.find(): %r' % (guid,))
         if not guid:
             return None
         return cls.query.get(guid)
@@ -193,7 +192,6 @@ class OAuth2Grant(db.Model):
 
     @classmethod
     def find(cls, client_guid, code):
-        log.debug('OAuth2Grant.find(): %r' % (client_guid,))
         return cls.query.filter_by(client_guid=client_guid, code=code).first()
 
     @property
@@ -245,8 +243,6 @@ class OAuth2Token(db.Model):
 
     @classmethod
     def find(cls, access_token=None, refresh_token=None):
-        log.debug('OAuth2Token.find(): %r' % (access_token,))
-        log.debug('OAuth2Token.find(): %r' % (refresh_token,))
         response = None
 
         if access_token:
@@ -254,8 +250,6 @@ class OAuth2Token(db.Model):
 
         if refresh_token:
             response = cls.query.filter_by(refresh_token=refresh_token).first()
-
-        log.debug('OAuth2Token.find(): %r' % (response,))
 
         return response
 
