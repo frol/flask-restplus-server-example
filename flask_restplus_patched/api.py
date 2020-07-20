@@ -34,8 +34,14 @@ class Api(OriginalApi):
 
     def make_response(self, data, *args, **kwargs):
         if isinstance(data, requests.models.Response):
-            response = original_flask_make_response(data.content, data.status_code)
-            response.headers.extend(list(data.headers.items()))
+            headers = list(data.headers.items())
+            response = original_flask_make_response(
+                data.content, data.status_code, headers
+            )
+            for key in response.headers.keys():
+                if key not in data.headers:
+                    response.headers.pop(key)
+            assert response.status_code == data.status_code
         else:
             response = super(Api, self).make_response(data, *args, **kwargs)
         return response
