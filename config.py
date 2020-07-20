@@ -80,6 +80,7 @@ class BaseConfig(object):
         'organizations',
         'collaborations',
         'api',
+        'passthroughs',
     )
 
     STATIC_ROOT = os.path.join(PROJECT_ROOT, 'app', 'static')
