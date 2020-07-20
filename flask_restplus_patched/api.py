@@ -2,10 +2,13 @@
 from flask import jsonify
 from flask_restplus import Api as OriginalApi
 from flask_restplus._http import HTTPStatus
+from flask import make_response as original_flask_make_response
 from werkzeug import cached_property
 
 from .namespace import Namespace
 from .swagger import Swagger
+
+import requests
 
 
 class Api(OriginalApi):
@@ -28,6 +31,14 @@ class Api(OriginalApi):
         _namespace = Namespace(*args, **kwargs)
         self.add_namespace(_namespace)
         return _namespace
+
+    def make_response(self, data, *args, **kwargs):
+        if isinstance(data, requests.models.Response):
+            response = original_flask_make_response(data.content, data.status_code)
+            response.headers.extend(list(data.headers.items()))
+        else:
+            response = super(Api, self).make_response(data, *args, **kwargs)
+        return response
 
 
 # Return validation errors as JSON

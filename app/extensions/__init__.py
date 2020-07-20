@@ -56,7 +56,7 @@ oauth2 = OAuth2Provider()
 
 from .email import mail  # NOQA
 
-from flask_minify import minify  # NOQA
+# from flask_minify import minify  # NOQA
 
 from . import edm  # NOQA
 
@@ -161,7 +161,7 @@ def init_app(app):
     for extension in extensions:
         extension.init_app(app)
 
-    minify(app=app)
+    # minify(app=app)
 
     paranoid = Paranoid(app)
     paranoid.redirect_view = '/'

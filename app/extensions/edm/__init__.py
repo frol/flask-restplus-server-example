@@ -76,7 +76,6 @@ class EDMManagerEndpointMixin(object):
     # fmt: on
 
     def _endpoint_fmtstr(self, tag, target='default'):
-        endpoint_url = self.uris[target]
         endpoint_tag_fmtstr = self._endpoint_tag_fmtstr(tag)
         assert endpoint_tag_fmtstr is not None, 'The endpoint tag was not recognized'
 
@@ -84,7 +83,7 @@ class EDMManagerEndpointMixin(object):
             endpoint_tag_fmtstr = endpoint_tag_fmtstr[2:]
             endpoint_tag_fmtstr = '%s/%s' % (self.ENDPOINT_PREFIX, endpoint_tag_fmtstr,)
 
-        endpoint_url_ = endpoint_url.strip('/')
+        endpoint_url_ = self.get_target_endpoint_url(target)
         endpoint_fmtstr = '%s/%s' % (endpoint_url_, endpoint_tag_fmtstr,)
         return endpoint_fmtstr
 
@@ -132,7 +131,7 @@ class EDMManagerUserMixin(object):
         return response
 
     def check_user_login(self, username, password):
-        self._ensure_initialed()
+        self.ensure_initialed()
 
         success = False
         for target in self.targets:
@@ -188,7 +187,7 @@ class EDMManager(EDMManagerEndpointMixin, EDMManagerUserMixin):
         app.edm = self
 
         if pre_initialize:
-            self._ensure_initialed()
+            self.ensure_initialed()
 
     def _parse_config_edm_uris(self):
         edm_uri_dict = self.app.config.get('EDM_URIS', None)
@@ -286,7 +285,7 @@ class EDMManager(EDMManagerEndpointMixin, EDMManagerUserMixin):
             self._get('session.login', email, password, target=target)
             log.info('Created authenticated session for EDM target %r' % (target,))
 
-    def _ensure_initialed(self):
+    def ensure_initialed(self):
         if not self.initialized:
             log.info('Initializing EDM')
             self.initialized = True
@@ -295,20 +294,33 @@ class EDMManager(EDMManagerEndpointMixin, EDMManagerUserMixin):
             log.info('\t%s' % (ut.repr3(self.uris)))
             log.info('EDM Manager is ready')
 
+    def get_target_endpoint_url(self, target='default'):
+        endpoint_url = self.uris[target]
+        endpoint_url_ = endpoint_url.strip('/')
+        return endpoint_url_
+
     def _get(
         self,
         tag,
         *args,
+        endpoint=None,
         target='default',
         target_session=None,
+        _pre_request_func=None,
         decode_as_object=True,
         decode_as_dict=False,
+        passthrough_kwargs={},
         verbose=True
     ):
-        self._ensure_initialed()
+        self.ensure_initialed()
 
-        endpoint_fmtstr = self._endpoint_fmtstr(tag, target=target)
-        endpoint = endpoint_fmtstr % args
+        if endpoint is None:
+            assert tag is not None
+            endpoint_fmtstr = self._endpoint_fmtstr(tag, target=target)
+            endpoint = endpoint_fmtstr % args
+
+        if tag is None:
+            assert endpoint is not None
 
         endpoint_encoded = requests.utils.quote(endpoint, safe='/?:=')
 
@@ -319,7 +331,9 @@ class EDMManager(EDMManagerEndpointMixin, EDMManagerUserMixin):
             target_session = self.sessions[target]
 
         with target_session:
-            response = target_session.get(endpoint_encoded)
+            if _pre_request_func is not None:
+                target_session = _pre_request_func(target_session)
+            response = target_session.get(endpoint_encoded, **passthrough_kwargs)
 
         if response.ok:
             if decode_as_object and decode_as_dict:
@@ -334,6 +348,10 @@ class EDMManager(EDMManagerEndpointMixin, EDMManagerUserMixin):
             if decode_as_dict:
                 response = response.json()
 
+        return response
+
+    def get_passthrough(self, *args, **kwargs):
+        response = self._get(*args, **kwargs)
         return response
 
 
