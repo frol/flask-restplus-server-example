@@ -41,20 +41,19 @@
 
     <!-- Windows 8.1 + IE11 and above -->
     <meta name="msapplication-config" content="{{ url_for('backend.static', filename='favicon/browserconfig.xml', version=cachebuster) }}">
+    {% endblock %}
+
+    {% block style %}{% endblock %}
 
     <!-- CSS Styling -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
 
     <link rel="stylesheet" href="{{ url_for('backend.static', filename='css/style.css', version=cachebuster) }}">
-
-    {% endblock %}
-
-    {% block style %}{% endblock %}
   </head>
   
   <body>
     <nav class="navbar fixed-top navbar-expand-lg navbar-light bg-light">
-      <a class="navbar-brand" href="#">
+      <a class="navbar-brand" href="{{ url_for('backend.home') }}">
         Houston
       </a>
       <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
@@ -84,20 +83,6 @@
 
     <div id="footer">
       {% block footer %}{% endblock %}
-
-      <div class="fixed-bottom">
-        <div class="row">
-          <div class="col-3">
-          </div>
-          <div class="col-6"></div>
-          <div class="col-3">
-            <nav class="nav nav-pills flex-column flex-sm-row" style="margin: 10px;">
-              <a class="flex-sm-fill text-sm-center nav-link active" href="#">Version {{ version }}</a>
-            </nav>
-          </div>
-        </div>
-      </div>
-
     </div>
  
   </body>
