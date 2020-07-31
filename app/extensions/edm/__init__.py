@@ -299,8 +299,9 @@ class EDMManager(EDMManagerEndpointMixin, EDMManagerUserMixin):
         endpoint_url_ = endpoint_url.strip('/')
         return endpoint_url_
 
-    def _get(
+    def _request(
         self,
+        method,
         tag,
         *args,
         endpoint=None,
@@ -313,6 +314,9 @@ class EDMManager(EDMManagerEndpointMixin, EDMManagerUserMixin):
         verbose=True
     ):
         self.ensure_initialed()
+
+        method = method.lower()
+        assert method in ['get', 'post', 'delete', 'put']
 
         if endpoint is None:
             assert tag is not None
@@ -333,7 +337,11 @@ class EDMManager(EDMManagerEndpointMixin, EDMManagerUserMixin):
         with target_session:
             if _pre_request_func is not None:
                 target_session = _pre_request_func(target_session)
-            response = target_session.get(endpoint_encoded, **passthrough_kwargs)
+
+            request_func = getattr(target_session, method, None)
+            assert request_func is not None
+
+            response = request_func(endpoint_encoded, **passthrough_kwargs)
 
         if response.ok:
             if decode_as_object and decode_as_dict:
@@ -349,6 +357,9 @@ class EDMManager(EDMManagerEndpointMixin, EDMManagerUserMixin):
                 response = response.json()
 
         return response
+
+    def _get(self, *args, **kwargs):
+        self._request('get', *args, **kwargs)
 
     def get_passthrough(self, *args, **kwargs):
         response = self._get(*args, **kwargs)
