@@ -8,7 +8,7 @@ Auth resources
 import logging
 
 from flask import current_app
-from flask_login import current_user
+from flask_login import current_user, login_user, logout_user
 from flask_restplus_patched import Resource
 from flask_restplus._http import HTTPStatus
 
@@ -18,6 +18,13 @@ from app.extensions.api.parameters import PaginationParameters
 
 from . import schemas, parameters
 from .models import db, OAuth2Client
+
+from app.modules.users.models import User
+
+from app.extensions.frontend.views import (
+    create_session_oauth2_token,
+    delete_session_oauth2_token,
+)
 
 log = logging.getLogger(__name__)
 api = Namespace('auth', description='Authentication')
@@ -31,6 +38,55 @@ def _generate_new_client(args):
         new_oauth2_client = OAuth2Client(user_guid=current_user.guid, **args)
         db.session.add(new_oauth2_client)
     return new_oauth2_client
+
+
+@api.route('/sessions')
+class OAuth2Sessions(Resource):
+    """
+    Login with Session.
+    """
+
+    @api.login_required(oauth_scopes=['auth:write'])
+    @api.parameters(parameters.CreateOAuth2SessionParameters())
+    @api.response(code=HTTPStatus.FORBIDDEN)
+    @api.response(code=HTTPStatus.CONFLICT)
+    @api.doc(id='create_oauth_session')
+    def post(self, args):
+        """
+        Create a new OAuth2 Client.
+
+        Essentially, OAuth2 Client is a ``guid`` and ``secret``
+        pair associated with a user.
+        """
+        email = args['email']
+        password = args['password']
+
+        user = User.find(email=email, password=password)
+
+        if user is not None:
+            if True not in [user.in_alpha, user.in_beta, user.is_staff, user.is_admin]:
+                message = 'Account Not Authorized'
+            else:
+                status = login_user(user, remember=False)
+
+                if status:
+                    log.info('Logged in User via API: %r' % (user,))
+                    create_session_oauth2_token()
+                    message = 'Session Created'
+                else:
+                    message = 'Account Disabled'
+        else:
+            message = 'Account Not Found'
+
+        return message
+
+    @api.login_required(oauth_scopes=['auth:read'])
+    def delete(self):
+        log.info('Logging out User via API: %r' % (current_user,))
+        delete_session_oauth2_token()
+        logout_user()
+        message = 'Session Deleted'
+        return message
 
 
 @api.route('/clients')

@@ -94,6 +94,10 @@ def create_session_oauth2_token(
     )
     if cleanup_tokens:
         for session_oauth2_bearer_token_ in session_oauth2_bearer_tokens:
+            log.info(
+                'Cleaning up User %s Oauth2 bearer token: %r'
+                % (user.email, len(session_oauth2_bearer_tokens),)
+            )
             session_oauth2_bearer_token_.delete()
 
     # IMPORTANT: WE NEED THIS TO BE IN UTC FOR OAUTH2

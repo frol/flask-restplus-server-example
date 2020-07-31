@@ -22,6 +22,11 @@ class ListOAuth2ClientsParameters(PaginationParameters):
             raise ValidationError('It is only allowed to query your own OAuth2 clients.')
 
 
+class CreateOAuth2SessionParameters(PostFormParameters):
+    email = base_fields.Email(description='Example: root@gmail.com', required=True)
+    password = base_fields.String(description='No rules yet', required=False)
+
+
 class CreateOAuth2ClientParameters(PostFormParameters):
     redirect_uris = base_fields.List(base_fields.String, required=False)
     default_scopes = base_fields.List(base_fields.String, required=True)
