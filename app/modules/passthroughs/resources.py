@@ -13,6 +13,8 @@ from app.extensions.api import Namespace
 
 from werkzeug.exceptions import BadRequest
 
+import json
+
 
 log = logging.getLogger(__name__)  # pylint: disable=invalid-name
 edm_pass = Namespace(
@@ -55,6 +57,19 @@ def _request_passthrough(target, path, request_func, passthrough_kwargs):
     endpoint_url_ = current_app.edm.get_target_endpoint_url(target)
     endpoint = '%s/%s' % (endpoint_url_, path,)
 
+    headers = passthrough_kwargs.get('headers', {})
+    allowed_header_key_list = [
+        'Accept',
+        # 'Content-Type',
+        'User-Agent',
+    ]
+    for header_key in allowed_header_key_list:
+        header_value = request.headers.get(header_key, None)
+        header_existing = headers.get(header_key, None)
+        if header_value is not None and header_existing is None:
+            headers[header_key] = header_value
+    passthrough_kwargs['headers'] = headers
+
     response = request_func(
         None,
         endpoint=endpoint,
@@ -92,11 +107,18 @@ class EDMPassthroughs(Resource):
         data = {}
         data.update(request.args)
         data.update(request.form)
-
-        files = request.files
+        try:
+            data_ = json.loads(request.data)
+            data.update(data_)
+        except Exception:
+            pass
 
         request_func = current_app.edm.post_passthrough
-        passthrough_kwargs = {'data': data, 'files': files}
+        passthrough_kwargs = {'json': json.dumps(data)}
+
+        files = request.files
+        if len(files) > 0:
+            passthrough_kwargs['files'] = files
 
         response = _request_passthrough(target, path, request_func, passthrough_kwargs)
 

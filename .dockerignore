@@ -24,3 +24,5 @@ virtualenv/
 
 __pycache__/
 *.pyc
+
+cookie.jar

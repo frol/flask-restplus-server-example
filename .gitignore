@@ -71,3 +71,5 @@ app/static/bower/
 app/static/package-lock.json
 
 pip-wheel-metadata/
+
+cookie.jar
