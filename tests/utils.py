@@ -31,9 +31,10 @@ class AutoAuthFlaskClient(FlaskClient):
     @contextmanager
     def login(self, user, auth_scopes=None):
         """
-        Example:
-            >>> with flask_app_client.login(user, auth_scopes=['users:read']):
-            ...     flask_app_client.get('/api/v1/users/')
+        Here is an example of how to use the login context
+
+        with flask_app_client.login(user, auth_scopes=['users:read']):
+            flask_app_client.get('/api/v1/users/')
         """
         self._user = user
         self._auth_scopes = auth_scopes or []
