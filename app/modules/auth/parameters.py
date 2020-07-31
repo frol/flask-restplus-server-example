@@ -24,7 +24,7 @@ class ListOAuth2ClientsParameters(PaginationParameters):
 
 class CreateOAuth2SessionParameters(PostFormParameters):
     email = base_fields.Email(description='Example: root@gmail.com', required=True)
-    password = base_fields.String(description='No rules yet', required=False)
+    password = base_fields.String(description='No rules yet', required=True)
 
 
 class CreateOAuth2ClientParameters(PostFormParameters):

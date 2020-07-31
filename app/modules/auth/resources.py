@@ -19,6 +19,8 @@ from app.extensions.api.parameters import PaginationParameters
 from . import schemas, parameters
 from .models import db, OAuth2Client
 
+from werkzeug.exceptions import Unauthorized
+
 from app.modules.users.models import User
 
 from app.modules.frontend.views import (
@@ -47,15 +49,11 @@ class OAuth2Sessions(Resource):
     """
 
     @api.parameters(parameters.CreateOAuth2SessionParameters())
-    @api.response(code=HTTPStatus.FORBIDDEN)
-    @api.response(code=HTTPStatus.CONFLICT)
+    @api.response(code=HTTPStatus.UNAUTHORIZED)
     @api.doc(id='create_oauth_session')
     def post(self, args):
         """
-        Create a new OAuth2 Client.
-
-        Essentially, OAuth2 Client is a ``guid`` and ``secret``
-        pair associated with a user.
+        Log-in via a new OAuth2 Session.
         """
         email = args['email']
         password = args['password']
@@ -64,27 +62,34 @@ class OAuth2Sessions(Resource):
 
         if user is not None:
             if True not in [user.in_alpha, user.in_beta, user.is_staff, user.is_admin]:
-                message = 'Account Not Authorized'
+                raise Unauthorized('Account Not Authorized')
             else:
                 status = login_user(user, remember=False)
 
                 if status:
                     log.info('Logged in User via API: %r' % (user,))
                     create_session_oauth2_token()
-                    message = 'Session Created'
                 else:
-                    message = 'Account Disabled'
+                    raise Unauthorized('Account Disabled')
         else:
-            message = 'Account Not Found'
+            raise Unauthorized('Account Not Found')
+
+        message = 'Session Created'
 
         return message
 
     @api.login_required(oauth_scopes=['auth:write'])
     def delete(self):
+        """
+        Log-out the active OAuth2 Session.
+        """
         log.info('Logging out User via API: %r' % (current_user,))
+
         delete_session_oauth2_token()
         logout_user()
+
         message = 'Session Deleted'
+
         return message
 
 
