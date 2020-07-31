@@ -55,7 +55,7 @@ def _request_passthrough(target, path, request_func, passthrough_kwargs):
     endpoint_url_ = current_app.edm.get_target_endpoint_url(target)
     endpoint = '%s/%s' % (endpoint_url_, path,)
 
-    response = current_app.edm.get_passthrough(
+    response = request_func(
         None,
         endpoint=endpoint,
         target=target,
