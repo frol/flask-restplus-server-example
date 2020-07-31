@@ -359,7 +359,7 @@ class EDMManager(EDMManagerEndpointMixin, EDMManagerUserMixin):
         return response
 
     def _get(self, *args, **kwargs):
-        self._request('get', *args, **kwargs)
+        return self._request('get', *args, **kwargs)
 
     def get_passthrough(self, *args, **kwargs):
         response = self._get(*args, **kwargs)
