@@ -19,8 +19,6 @@ from app.extensions.api.parameters import PaginationParameters
 from . import schemas, parameters
 from .models import db, OAuth2Client
 
-from werkzeug.exceptions import Unauthorized
-
 from app.modules.users.models import User
 
 from app.modules.frontend.views import (
@@ -60,9 +58,10 @@ class OAuth2Sessions(Resource):
 
         user = User.find(email=email, password=password)
 
+        failure = None
         if user is not None:
             if True not in [user.in_alpha, user.in_beta, user.is_staff, user.is_admin]:
-                raise Unauthorized('Account Not Authorized')
+                failure = 'Account Not Authorized'
             else:
                 status = login_user(user, remember=False)
 
@@ -70,13 +69,24 @@ class OAuth2Sessions(Resource):
                     log.info('Logged in User via API: %r' % (user,))
                     create_session_oauth2_token()
                 else:
-                    raise Unauthorized('Account Disabled')
+                    failure = 'Account Disabled'
         else:
-            raise Unauthorized('Account Not Found')
+            failure = 'Account Not Found'
 
-        message = 'Session Created'
+        if failure is None:
+            response = {
+                'success': True,
+                'message': 'Session Created',
+            }
+            code = HTTPStatus.OK
+        else:
+            response = {
+                'success': False,
+                'message': failure,
+            }
+            code = HTTPStatus.UNAUTHORIZED
 
-        return message
+        return response, code
 
     @api.login_required(oauth_scopes=['auth:write'])
     def delete(self):
@@ -88,9 +98,12 @@ class OAuth2Sessions(Resource):
         delete_session_oauth2_token()
         logout_user()
 
-        message = 'Session Deleted'
+        response = {
+            'success': True,
+            'message': 'Session Deleted',
+        }
 
-        return message
+        return response
 
 
 @api.route('/clients')
