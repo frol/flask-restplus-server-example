@@ -21,7 +21,7 @@ from .models import db, OAuth2Client
 
 from app.modules.users.models import User
 
-from app.extensions.frontend.views import (
+from app.modules.frontend.views import (
     create_session_oauth2_token,
     delete_session_oauth2_token,
 )
