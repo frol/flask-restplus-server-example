@@ -89,12 +89,14 @@ class EDMPassthroughs(Resource):
         """
         List the possible EDM passthrough targets.
         """
-        params = {}
-        params.update(request.args)
-        params.update(request.form)
+        data = {}
+        data.update(request.args)
+        data.update(request.form)
+
+        files = request.files
 
         request_func = current_app.edm.post_passthrough
-        passthrough_kwargs = {'data': params, 'files': request.files}
+        passthrough_kwargs = {'data': data, 'files': files}
 
         response = _request_passthrough(target, path, request_func, passthrough_kwargs)
 
