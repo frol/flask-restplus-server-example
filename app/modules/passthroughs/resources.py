@@ -60,7 +60,7 @@ def _request_passthrough(target, path, request_func, passthrough_kwargs):
     headers = passthrough_kwargs.get('headers', {})
     allowed_header_key_list = [
         'Accept',
-        # 'Content-Type',
+        'Content-Type',
         'User-Agent',
     ]
     for header_key in allowed_header_key_list:
@@ -114,7 +114,7 @@ class EDMPassthroughs(Resource):
             pass
 
         request_func = current_app.edm.post_passthrough
-        passthrough_kwargs = {'json': json.dumps(data)}
+        passthrough_kwargs = {'json': data}
 
         files = request.files
         if len(files) > 0:
