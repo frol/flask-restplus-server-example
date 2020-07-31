@@ -30,7 +30,7 @@ def serve_frontent_static_assets(path=None, *args, **kwargs):
     This endpoint offers the home page html
     """
     if not current_app.debug:
-        log.warninig('Front-end files are recommended to be served by NGINX')
+        log.warning('Front-end files are recommended to be served by NGINX')
 
     if path is None:
         path = 'index.html'

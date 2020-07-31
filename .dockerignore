@@ -2,11 +2,26 @@
 .dockerignore
 .DS_Store
 
+.coveragerc
+.editorconfig
+.pre-commit-config.yaml
+.pylintrc
+.pytest_cache
+.travis.yml
+
+_assets/
+_db.initial.tar.gz
+
+*.egg-info/
+
 build*.sh
+clean*.sh
 develop*.sh
 host*.sh
 publish*.sh
+restart*.sh
 run*.sh
+venv*.sh
 
 Dockerfile
 Procfile
@@ -22,7 +37,9 @@ docs/
 tests/
 virtualenv/
 
-__pycache__/
+__pycache__
 *.pyc
 
 cookie.jar
+pip-wheel-metadata/
+local_config.py.template

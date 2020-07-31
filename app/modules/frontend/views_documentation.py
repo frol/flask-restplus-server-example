@@ -28,6 +28,6 @@ def serve_swaggerui_static_assets(path, *args, **kwargs):
     This endpoint offers the home page html
     """
     if not current_app.debug:
-        log.warninig('Swagger-UI files are recommended to be served by NGINX')
+        log.warning('Swagger-UI files are recommended to be served by NGINX')
 
     return send_from_directory(documentation_blueprint.static_folder, path)
