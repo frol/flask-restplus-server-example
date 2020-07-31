@@ -46,7 +46,6 @@ class OAuth2Sessions(Resource):
     Login with Session.
     """
 
-    @api.login_required(oauth_scopes=['auth:write'])
     @api.parameters(parameters.CreateOAuth2SessionParameters())
     @api.response(code=HTTPStatus.FORBIDDEN)
     @api.response(code=HTTPStatus.CONFLICT)
@@ -80,7 +79,7 @@ class OAuth2Sessions(Resource):
 
         return message
 
-    @api.login_required(oauth_scopes=['auth:read'])
+    @api.login_required(oauth_scopes=['auth:write'])
     def delete(self):
         log.info('Logging out User via API: %r' % (current_user,))
         delete_session_oauth2_token()
