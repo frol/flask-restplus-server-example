@@ -2,5 +2,5 @@
 
 ./build.sh
 ./host.export.sh
-ssh houston '/opt/houston/host.run.sh'
+ssh -t houston '/opt/houston/host.run.sh'
 ./host.monitor.sh

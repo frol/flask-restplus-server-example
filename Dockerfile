@@ -6,7 +6,7 @@ WORKDIR "${INSTALL_PATH}"
 
 RUN apt-get update \
  # && curl -sL https://deb.nodesource.com/setup_14.x | bash - \
- # && apt-get update \
+ && apt-get update \
  && apt-get upgrade -y \
  && apt-get install -y \
         build-essential \

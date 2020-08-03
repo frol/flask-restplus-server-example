@@ -16,12 +16,13 @@ _db.initial.tar.gz
 
 build*.sh
 clean*.sh
+deploy*.sh
 develop*.sh
 host*.sh
+permissions*.sh
 publish*.sh
 restart*.sh
 run*.sh
-venv*.sh
 
 Dockerfile
 Procfile
