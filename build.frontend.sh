@@ -19,7 +19,7 @@ function parse_datetime() {
 # Update code
 cd _frontend/
 
-git checkout master
+git checkout develop
 git pull
 
 # Get current commit hash
@@ -40,7 +40,8 @@ npm install
 # Create API file, if it doesn't exist
 if [[ ! -f src/constants/apiKeys.js ]]
 then
-    echo "Copying apiKeysTemplate.js to apiKeys.js"
+    echo "Copying apiKeysTemplate.js to apiKeys.js..."
+    echo "You will need to edit _frontend/src/constants/apiKeys.js file to get the frontend to run properly."
     cp src/constants/apiKeysTemplate.js src/constants/apiKeys.js
 fi
 
