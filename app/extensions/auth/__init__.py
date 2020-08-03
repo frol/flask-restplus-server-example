@@ -4,4 +4,4 @@ Auth extension
 ==============
 """
 
-from .oauth2 import OAuth2Provider
+from .oauth2 import OAuth2Provider  # NOQA

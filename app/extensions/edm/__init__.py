@@ -8,8 +8,11 @@ import logging
 
 from flask import current_app, request, session, render_template  # NOQA
 from flask_login import current_user  # NOQA
+from app.extensions import db
 import requests
 from collections import namedtuple
+import utool as ut
+import types
 import json
 
 import pytz
@@ -73,7 +76,6 @@ class EDMManagerEndpointMixin(object):
     # fmt: on
 
     def _endpoint_fmtstr(self, tag, target='default'):
-        endpoint_url = self.uris[target]
         endpoint_tag_fmtstr = self._endpoint_tag_fmtstr(tag)
         assert endpoint_tag_fmtstr is not None, 'The endpoint tag was not recognized'
 
@@ -81,7 +83,7 @@ class EDMManagerEndpointMixin(object):
             endpoint_tag_fmtstr = endpoint_tag_fmtstr[2:]
             endpoint_tag_fmtstr = '%s/%s' % (self.ENDPOINT_PREFIX, endpoint_tag_fmtstr,)
 
-        endpoint_url_ = endpoint_url.strip('/')
+        endpoint_url_ = self.get_target_endpoint_url(target)
         endpoint_fmtstr = '%s/%s' % (endpoint_url_, endpoint_tag_fmtstr,)
         return endpoint_fmtstr
 
@@ -128,6 +130,36 @@ class EDMManagerUserMixin(object):
         response = self._get('user.data', guid, target=target)
         return response
 
+    def check_user_login(self, username, password):
+        self.ensure_initialed()
+
+        success = False
+        for target in self.targets:
+            # Create temporary session
+            temporary_session = requests.Session()
+            try:
+                response = self._get(
+                    'session.login',
+                    username,
+                    password,
+                    target=target,
+                    target_session=temporary_session,
+                )
+                assert response.success
+                assert response.message.key == 'success'
+
+                log.info('User authenticated via EDM (target = %r)' % (target,))
+                success = True
+                break
+            except Exception:
+                pass
+            finally:
+                # Cleanup temporary session
+                temporary_session.cookies.clear_session_cookies()
+                temporary_session.close()
+
+        return success
+
 
 class EDMManagerEncounterMixin(object):
     def get_encounters(self, target='default'):
@@ -148,15 +180,18 @@ class EDMManager(EDMManagerEndpointMixin, EDMManagerUserMixin):
     def __init__(self, app, pre_initialize=False, *args, **kwargs):
         super(EDMManager, self).__init__(*args, **kwargs)
         self.initialized = False
+
         self.app = app
+        self.targets = set([])
+
         app.edm = self
 
         if pre_initialize:
-            self._ensure_initialed()
+            self.ensure_initialed()
 
-    def _parse_config_edm_uris(self, app):
-        edm_uri_dict = app.config.get('EDM_URIS', None)
-        edm_authentication_dict = app.config.get('EDM_AUTHENTICATIONS', None)
+    def _parse_config_edm_uris(self):
+        edm_uri_dict = self.app.config.get('EDM_URIS', None)
+        edm_authentication_dict = self.app.config.get('EDM_AUTHENTICATIONS', None)
 
         assert edm_uri_dict is not None, 'Must specify EDM_URIS in config'
         message = 'Must specify EDM_AUTHENTICATIONS in the secret config'
@@ -225,55 +260,88 @@ class EDMManager(EDMManagerEndpointMixin, EDMManagerUserMixin):
             if key == 0:
                 uris['default'] = edm_uri_dict[key]
                 auths['default'] = edm_authentication_dict[key]
+                self.targets.add('default')
             uris[key] = edm_uri_dict[key]
             auths[key] = edm_authentication_dict[key]
+            self.targets.add(key)
 
         self.uris = uris
         self.auths = auths
 
-    def _init_sessions(self, app):
+    def _init_sessions(self):
         self.sessions = {}
         for target in self.uris:
             auth = self.auths[target]
 
-            username = auth.get('username', auth.get('user', None))
+            email = auth.get('username', auth.get('email', None))
             password = auth.get('password', auth.get('pass', None))
 
-            message = 'EDM Authentication for %s unspecified (username)' % (target,)
-            assert username is not None, message
+            message = 'EDM Authentication for %s unspecified (email)' % (target,)
+            assert email is not None, message
             message = 'EDM Authentication for %s unspecified (password)' % (target,)
             assert password is not None, message
 
             self.sessions[target] = requests.Session()
-            self._get('session.login', username, password, target=target)
+            self._get('session.login', email, password, target=target)
+            log.info('Created authenticated session for EDM target %r' % (target,))
 
-    def _ensure_initialed(self):
+    def ensure_initialed(self):
         if not self.initialized:
+            log.info('Initializing EDM')
             self.initialized = True
-            self._parse_config_edm_uris(self.app)
-            self._init_sessions(self.app)
+            self._parse_config_edm_uris()
+            self._init_sessions()
+            log.info('\t%s' % (ut.repr3(self.uris)))
+            log.info('EDM Manager is ready')
 
-    def _get(
+    def get_target_endpoint_url(self, target='default'):
+        endpoint_url = self.uris[target]
+        endpoint_url_ = endpoint_url.strip('/')
+        return endpoint_url_
+
+    def _request(
         self,
+        method,
         tag,
         *args,
+        endpoint=None,
         target='default',
+        target_session=None,
+        _pre_request_func=None,
         decode_as_object=True,
         decode_as_dict=False,
+        passthrough_kwargs={},
         verbose=True
     ):
-        self._ensure_initialed()
+        self.ensure_initialed()
 
-        endpoint_fmtstr = self._endpoint_fmtstr(tag, target=target)
-        endpoint = endpoint_fmtstr % args
+        method = method.lower()
+        assert method in ['get', 'post', 'delete', 'put']
+
+        if endpoint is None:
+            assert tag is not None
+            endpoint_fmtstr = self._endpoint_fmtstr(tag, target=target)
+            endpoint = endpoint_fmtstr % args
+
+        if tag is None:
+            assert endpoint is not None
 
         endpoint_encoded = requests.utils.quote(endpoint, safe='/?:=')
 
         if verbose:
             log.info('Sending request to: %r' % (endpoint_encoded,))
 
-        with self.sessions[target] as target_session:
-            response = target_session.get(endpoint_encoded)
+        if target_session is None:
+            target_session = self.sessions[target]
+
+        with target_session:
+            if _pre_request_func is not None:
+                target_session = _pre_request_func(target_session)
+
+            request_func = getattr(target_session, method, None)
+            assert request_func is not None
+
+            response = request_func(endpoint_encoded, **passthrough_kwargs)
 
         if response.ok:
             if decode_as_object and decode_as_dict:
@@ -289,6 +357,95 @@ class EDMManager(EDMManagerEndpointMixin, EDMManagerUserMixin):
                 response = response.json()
 
         return response
+
+    def _get(self, *args, **kwargs):
+        return self._request('get', *args, **kwargs)
+
+    def _post(self, *args, **kwargs):
+        return self._request('post', *args, **kwargs)
+
+    def get_passthrough(self, *args, **kwargs):
+        response = self._get(*args, **kwargs)
+        return response
+
+    def post_passthrough(self, *args, **kwargs):
+        response = self._post(*args, **kwargs)
+        return response
+
+
+class EDMObjectMixin(object):
+    def _process_edm_attribute(self, data, edm_attribute):
+        edm_attribute = edm_attribute.strip()
+        edm_attribute = edm_attribute.strip('.')
+        edm_attribute_list = edm_attribute.split('.')
+
+        num_components = len(edm_attribute_list)
+
+        if num_components == 0:
+            raise AttributeError()
+
+        edm_attribute_ = edm_attribute_list[0]
+        edm_attribute_ = edm_attribute_.strip()
+        data_ = getattr(data, edm_attribute_)
+
+        if num_components == 1:
+            return data_
+
+        edm_attribute_list_ = edm_attribute_list[1:]
+        edm_attribute_ = '.'.join(edm_attribute_list_)
+
+        return self._process_edm_attribute(data_, edm_attribute_)
+
+    def _process_edm_data(self, data, claimed_version):
+        with db.session.begin():
+            unmapped_attributes = list(
+                set(sorted(data._fields)) - set(self.EDM_ATTRIBUTE_MAPPING)
+            )
+            if len(unmapped_attributes) > 0:
+                log.warning('Unmapped attributes: %r' % (unmapped_attributes,))
+
+            found_version = None
+            for edm_attribute in self.EDM_ATTRIBUTE_MAPPING:
+                try:
+                    edm_value = self._process_edm_attribute(data, edm_attribute)
+
+                    attribute = self.EDM_ATTRIBUTE_MAPPING[edm_attribute]
+                    if attribute is None:
+                        log.warning(
+                            'Ignoring mapping for EDM attribute %r' % (edm_attribute,)
+                        )
+                        continue
+
+                    if edm_attribute in self.EDM_LOG_ATTRIBUTES:
+                        log.info(
+                            'Logging requested edm_attribute %r = %r'
+                            % (edm_attribute, edm_value,)
+                        )
+
+                    assert hasattr(self, attribute), 'User attribute not found'
+                    attribute_ = getattr(self, attribute)
+                    if isinstance(attribute_, (types.MethodType,)):
+                        attribute_(edm_value)
+                    else:
+                        setattr(self, attribute, edm_value)
+                        if edm_attribute == self.EDM_VERSION_ATTRIBUTE:
+                            found_version = edm_value
+                except AttributeError:
+                    log.warning('Could not find EDM attribute %r' % (edm_attribute,))
+                except KeyError:
+                    log.warning('Could not find EDM attribute %r' % (edm_attribute,))
+
+            if found_version is None:
+                self.version = claimed_version
+            else:
+                self.version = found_version
+
+            db.session.merge(self)
+
+        if found_version is None:
+            log.info('Updating to claimed version %r' % (claimed_version,))
+        else:
+            log.info('Updating to found version %r' % (found_version,))
 
 
 def init_app(app, **kwargs):

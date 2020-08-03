@@ -1,11 +1,12 @@
+
+brunette
+codecov >= 2.0.15
+coverage >= 4.3.4
 IPython
 mock
 
-## Optional packages
-# pytest-xdist
-# pytest-cov
-# coverage
-
 pre-commit
-pytest
+pytest >= 3.3.1
+pytest-cov
 swagger_spec_validator
+xdoctest >= 0.3.0

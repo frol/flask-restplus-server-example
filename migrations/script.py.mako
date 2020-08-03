@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """${message}
 
 Revision ID: ${up_revision}
@@ -15,6 +16,7 @@ import sqlalchemy as sa
 import sqlalchemy_utils
 
 import app
+import app.extensions
 
 ${imports if imports else ""}
 

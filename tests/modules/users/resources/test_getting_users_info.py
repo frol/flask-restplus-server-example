@@ -34,7 +34,7 @@ def test_getting_list_of_users_by_authorized_user(
     assert response.status_code == 200
     assert response.content_type == 'application/json'
     assert isinstance(response.json, list)
-    assert set(response.json[0].keys()) >= {'id', 'username'}
+    assert set(response.json[0].keys()) >= {'guid', 'email'}
 
 
 def test_getting_user_info_by_unauthorized_user(
@@ -42,7 +42,7 @@ def test_getting_user_info_by_unauthorized_user(
 ):
     # pylint: disable=invalid-name
     with flask_app_client.login(regular_user, auth_scopes=('users:read',)):
-        response = flask_app_client.get('/api/v1/users/%d' % admin_user.guid)
+        response = flask_app_client.get('/api/v1/users/%s' % admin_user.guid)
 
     assert response.status_code == 403
     assert response.content_type == 'application/json'
@@ -53,24 +53,24 @@ def test_getting_user_info_by_unauthorized_user(
 def test_getting_user_info_by_authorized_user(flask_app_client, regular_user, admin_user):
     # pylint: disable=invalid-name
     with flask_app_client.login(admin_user, auth_scopes=('users:read',)):
-        response = flask_app_client.get('/api/v1/users/%d' % regular_user.guid)
+        response = flask_app_client.get('/api/v1/users/%s' % regular_user.guid)
 
     assert response.status_code == 200
     assert response.content_type == 'application/json'
     assert isinstance(response.json, dict)
-    assert set(response.json.keys()) >= {'id', 'username'}
+    assert set(response.json.keys()) >= {'guid', 'email'}
     assert 'password' not in response.json.keys()
 
 
 def test_getting_user_info_by_owner(flask_app_client, regular_user):
     # pylint: disable=invalid-name
     with flask_app_client.login(regular_user, auth_scopes=('users:read',)):
-        response = flask_app_client.get('/api/v1/users/%d' % regular_user.guid)
+        response = flask_app_client.get('/api/v1/users/%s' % regular_user.guid)
 
     assert response.status_code == 200
     assert response.content_type == 'application/json'
     assert isinstance(response.json, dict)
-    assert set(response.json.keys()) >= {'id', 'username'}
+    assert set(response.json.keys()) >= {'guid', 'email'}
     assert 'password' not in response.json.keys()
 
 
@@ -82,5 +82,5 @@ def test_getting_user_me_info(flask_app_client, regular_user):
     assert response.status_code == 200
     assert response.content_type == 'application/json'
     assert isinstance(response.json, dict)
-    assert set(response.json.keys()) >= {'id', 'username'}
+    assert set(response.json.keys()) >= {'guid', 'email'}
     assert 'password' not in response.json.keys()

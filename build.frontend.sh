@@ -19,6 +19,7 @@ function parse_datetime() {
 # Update code
 cd _frontend/
 
+# git checkout master
 git checkout develop
 git pull
 

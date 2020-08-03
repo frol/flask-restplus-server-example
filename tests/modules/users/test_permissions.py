@@ -14,9 +14,9 @@ def test_DenyAbortMixin():
 
 
 def test_WriteAccessRule_authenticated_user(authenticated_user_instance):
-    authenticated_user_instance.is_staff = True
+    authenticated_user_instance.is_active = True
     assert permissions.rules.WriteAccessRule().check() is True
-    authenticated_user_instance.is_staff = False
+    authenticated_user_instance.is_active = False
     assert permissions.rules.WriteAccessRule().check() is False
 
 
@@ -82,10 +82,10 @@ def test_PasswordRequiredPermissionMixin():
 
 
 def test_WriteAccessPermission_authenticated_user(authenticated_user_instance):
-    authenticated_user_instance.is_staff = True
+    authenticated_user_instance.is_active = True
     with permissions.WriteAccessPermission():
         pass
-    authenticated_user_instance.is_staff = False
+    authenticated_user_instance.is_active = False
     with pytest.raises(HTTPException):
         with permissions.WriteAccessPermission():
             pass

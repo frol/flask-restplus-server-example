@@ -8,22 +8,19 @@ import logging
 
 from flask import url_for, current_app
 import sqlalchemy
-from sqlalchemy_utils import types as column_types, Timestamp
+from sqlalchemy_utils import types as column_types
 
-from flask_login import current_user
-from app.extensions import db
+from flask_login import current_user  # NOQA
+from app.extensions import db, TimestampViewed
+from app.extensions.edm import EDMObjectMixin
 from app.extensions.api.parameters import _get_is_static_role_property
-from app.modules.assets.models import Asset
 
-from datetime import datetime
+from app.modules.assets.models import Asset
 
 import pytz
 import uuid
 
-from werkzeug import security
-
 import tqdm
-import types
 
 log = logging.getLogger(__name__)
 
@@ -31,104 +28,72 @@ log = logging.getLogger(__name__)
 PST = pytz.timezone('US/Pacific')
 
 
-class TimestampViewed(Timestamp):
-    """Adds `viewed` column to a derived declarative model."""
-
-    viewed = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
-
-    def view(self):
-        self.updated = datetime.utcnow()
-
-
-class EDMObjectMixin(object):
-    def _process_edm_attribute(self, data, edm_attribute):
-        edm_attribute = edm_attribute.strip()
-        edm_attribute = edm_attribute.strip('.')
-        edm_attribute_list = edm_attribute.split('.')
-
-        num_components = len(edm_attribute_list)
-
-        if num_components == 0:
-            raise AttributeError()
-
-        edm_attribute_ = edm_attribute_list[0]
-        edm_attribute_ = edm_attribute_.strip()
-        data_ = getattr(data, edm_attribute_)
-
-        if num_components == 1:
-            return data_
-
-        edm_attribute_list_ = edm_attribute_list[1:]
-        edm_attribute_ = '.'.join(edm_attribute_list_)
-
-        return self._process_edm_attribute(data_, edm_attribute_)
-
-    def _process_edm_data(self, data, version):
-        with db.session.begin():
-            for edm_attribute in self.EDM_ATTRIBUTE_MAPPING:
-                try:
-                    edm_value = self._process_edm_attribute(data, edm_attribute)
-
-                    attribute = self.EDM_ATTRIBUTE_MAPPING.get(edm_attribute, None)
-                    assert attribute is not None
-                    assert hasattr(self, attribute), 'User attribute not found'
-
-                    attribute_ = getattr(self, attribute)
-
-                    if isinstance(attribute_, (types.MethodType,)):
-                        attribute_(edm_value)
-                    else:
-                        setattr(self, attribute, edm_value)
-                except AttributeError:
-                    log.warning('Could not find EDM attribute %r' % (edm_attribute,))
-
-            self.version = version
-            db.session.merge(self)
-
-
-class EDMUserMixin(EDMObjectMixin):
+class UserEDMMixin(EDMObjectMixin):
 
     # fmt: off
+    # The EDM attribute for the version, if reported
+    EDM_VERSION_ATTRIBUTE = 'version'
+
+    #
+    EDM_LOG_ATTRIBUTES = [
+        'emailAddress',
+    ]
+
     EDM_ATTRIBUTE_MAPPING = {
+        # Ignorerd
+        'id'                    : None,
+        'lastLogin'             : None,
+        'username'              : None,
+
+        # Attributes
         'acceptedUserAgreement' : 'accepted_user_agreement',
+        'affiliation'           : 'affiliation',
+        'emailAddress'          : 'email',
         'fullName'              : 'full_name',
+        'receiveEmails'         : 'receive_notification_emails',
+        'sharing'               : 'shares_data',
         'userURL'               : 'website',
-        'profileAsset.url'      : '_process_edm_profile_url',
+        'version'               : 'version',
+
+        # Functions
+        'organizations'         : '_process_edm_user_organization',
+        'profileImageUrl'       : '_process_edm_user_profile_url',
     }
     # fmt: on
 
     @classmethod
-    def edm_sync_users(cls, verbose=True):
+    def edm_sync_users(cls, verbose=True, refresh=False):
+        from app.modules.auth.models import _generate_salt
+
         edm_users = current_app.edm.get_users()
 
         if verbose:
             log.info('Checking %d EDM users against local cache...' % (len(edm_users),))
 
-        stale_users = []
         new_users = []
+        stale_users = []
         with db.session.begin():
             for guid in tqdm.tqdm(edm_users):
                 user = edm_users[guid]
                 version = user.get('version', None)
                 assert version is not None
+
                 user = User.query.filter(User.guid == guid).first()
+
                 if user is None:
-                    username = 'username-%s' % (guid,)
-                    email = '%s@localhost' % (username,)
-                    password = security.gen_salt(128)
+                    email = '%s@localhost' % (guid,)
+                    password = _generate_salt(128)
                     user = User(
                         guid=guid,
-                        username=username,
                         email=email,
                         password=password,
                         version=None,
                         is_active=True,
-                        is_staff=False,
-                        is_admin=False,
                     )
                     db.session.add(user)
                     new_users.append(user)
-                if user.version != version:
+
+                if user.version != version or refresh:
                     stale_users.append((user, version))
 
         if verbose:
@@ -137,24 +102,36 @@ class EDMUserMixin(EDMObjectMixin):
         if verbose:
             log.info('Updating %d stale users using EDM...' % (len(stale_users),))
 
+        updated_users = []
+        failed_users = []
         for user, version in tqdm.tqdm(stale_users):
-            user.edm_sync(version)
+            try:
+                user.edm_sync(version)
+                updated_users.append(user)
+            except sqlalchemy.exc.IntegrityError:
+                log.error('Error updating user %r' % (user,))
+                failed_users.append(user)
 
-        return edm_users, new_users, stale_users
+        return edm_users, new_users, updated_users, failed_users
 
     def edm_sync(self, version):
-        data = current_app.edm.get_user_data(self.guid)
+        response = current_app.edm.get_user_data(self.guid)
 
-        assert uuid.UUID(data.uuid) == self.guid
-        assert data.class_ in ['org.ecocean.User']
+        assert response.success
+        data = response.result
+
+        assert uuid.UUID(data.id) == self.guid
 
         self._process_edm_data(data, version)
 
-    def _process_edm_profile_url(self, url):
+    def _process_edm_user_profile_url(self, url):
         log.warning('User._process_edm_profile_url() not implemented yet')
 
+    def _process_edm_user_organization(self, org):
+        log.warning('User._process_edm_user_organization() not implemented yet')
 
-class User(db.Model, TimestampViewed, EDMUserMixin):
+
+class User(db.Model, TimestampViewed, UserEDMMixin):
     """
     User database model.
     """
@@ -195,12 +172,6 @@ class User(db.Model, TimestampViewed, EDMUserMixin):
     shares_data = db.Column(
         db.Boolean, default=True, nullable=False
     )  # can be migrated from BE field "sharing"
-
-    last_seen = db.Column(db.DateTime, nullable=True)
-    date_created = db.Column(db.DateTime, nullable=True)
-    last_modified = db.Column(
-        db.DateTime, nullable=True
-    )  # can be migrated from BE field "modified"
 
     default_identification_catalogue = db.Column(
         db.GUID, nullable=True
@@ -250,8 +221,7 @@ class User(db.Model, TimestampViewed, EDMUserMixin):
         return (
             '<{class_name}('
             'guid={self.guid}, '
-            "username=\"{self.username}\", "
-            "email=\"{self.email}\", "
+            'email="{self.email}", '
             'is_internal={self.is_internal}, '
             'is_admin={self.is_admin}, '
             'is_staff={self.is_staff}, '
@@ -273,30 +243,62 @@ class User(db.Model, TimestampViewed, EDMUserMixin):
         return suggested_password
 
     @classmethod
-    def find(cls, username=None, email=None, password=None):
-        assert (
-            username is None or email is None
-        ), 'Must specify only ONE (username or email) for User lookup'
+    def find(cls, email=None, password=None, edm_login_fallback=True):
+        # Look-up via email
 
-        # Look-up via username or email
-        if username is not None:
-            user = User.query.filter_by(username=username).first()
-        elif email is not None:
-            user = User.query.filter_by(email=email).first()
-        else:
-            user = None
+        if email is None:
+            return None
 
-        # If a password is specified, do a check
-        if user is not None and password is not None:
-            if user.password != password:
-                user = None
+        email_candidates = [
+            email,
+            '%s@localhost' % (email,),
+        ]
+        for email_candidate in email_candidates:
 
-        # Check for invalid
-        if not user:
-            user = None
+            user = cls.query.filter(User.email == email_candidate).first()
 
-        # Return User or None
-        return user
+            if password is None:
+                # If no password was provided to check, return any user account we find
+                if user is not None:
+                    return user
+            else:
+                # Check local Houston password first
+                if user is not None:
+                    # We found the user, check their provided password
+                    if user.password == password:
+                        return user
+
+                # As a fallback, check all EDMs if the user can login
+                if edm_login_fallback:
+                    # We want to check the EDM even if we don't have a local user record
+                    if current_app.edm.check_user_login(email_candidate, password):
+                        log.info('User authenticated via EDM: %r' % (email_candidate,))
+
+                        if user is not None:
+                            # We authenticated a local user against an EDM (but the local password failed)
+                            if user.password != password:
+                                # The user passed the login with an EDM, update local password
+                                log.warning(
+                                    "Updating user's local password: %r" % (user,)
+                                )
+                                user = user.set_password(password)
+                            return user
+                        else:
+                            log.danger(
+                                'The user authenticated via EDM but has no local user record'
+                            )
+                            # Try syncing all users from EDM
+                            cls.edm_sync_users()
+                            # If the user was just synced, go grab it (recursively) and return
+                            user = cls.find(email=email, edm_login_fallback=False)
+                            return user
+
+        # If we have gotten here, one of these things happened:
+        #    1) the user wasn't found
+        #    2) the user's password was provided and was incorrect
+        #    3) the user authenticated against the EDM but has no local user record
+
+        return None
 
     @property
     def is_authenticated(self):
@@ -327,7 +329,10 @@ class User(db.Model, TimestampViewed, EDMUserMixin):
             placeholder_guid = (self.guid % 7) + 1
             filename = 'images/placeholder_profile_%d.png' % (placeholder_guid,)
             return url_for('static', filename=filename)
-        return url_for('frontend.asset', code=asset.code)
+        return url_for('backend.asset', code=asset.code)
+
+    def get_id(self):
+        return self.guid
 
     def has_static_role(self, role):
         return (self.static_roles & role.mask) != 0
@@ -372,6 +377,20 @@ class User(db.Model, TimestampViewed, EDMUserMixin):
         from app.modules.auth.models import CodeTypes
 
         return self.get_codes(CodeTypes.recover, replace=True, replace_ttl=None)
+
+    def set_password(self, password=None):
+        if password is None:
+            # Generate a random password for the user
+            from app.modules.auth.models import _generate_salt
+
+            password = _generate_salt(128)
+
+        self.password = password
+        with db.session.begin():
+            db.session.merge(self)
+        db.session.refresh(self)
+
+        return self
 
     def lockout(self):
         from app.modules.auth.models import OAuth2Client, OAuth2Grant, OAuth2Token, Code

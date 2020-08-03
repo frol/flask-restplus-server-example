@@ -7,8 +7,8 @@ import pytest
     'http_method,http_path',
     (
         ('GET', '/api/v1/users/'),
-        ('GET', '/api/v1/users/1'),
-        ('PATCH', '/api/v1/users/1'),
+        ('GET', '/api/v1/users/11111111-1111-1111-1111-111111111111'),
+        ('PATCH', '/api/v1/users/11111111-1111-1111-1111-111111111111'),
         ('GET', '/api/v1/users/me'),
     ),
 )

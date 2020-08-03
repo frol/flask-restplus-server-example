@@ -101,6 +101,15 @@ class AdminRoleRule(ActiveUserRoleRule):
         return current_user.is_admin
 
 
+class StaffRoleRule(ActiveUserRoleRule):
+    """
+    Ensure that the current_user has an Admin role.
+    """
+
+    def check(self):
+        return current_user.is_staff
+
+
 class InternalRoleRule(ActiveUserRoleRule):
     """
     Ensure that the current_user has an Internal role.

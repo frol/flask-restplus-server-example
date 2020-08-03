@@ -1,5 +1,11 @@
-<h2 style="margin: 0px; font-weight: bold;">Hello, <span id="user-name-container"></span></h2>
+<div class="card">
+  <div class="card-header">
+    <b>Hello, {{ user.full_name }}</b>
+  </div>
 
-<a href="{{ url_for('backend.user_logout') }}">
-  <button id="logout" type="button">Sign Out</button>
-</a>
+  <div class="card-body">
+    <a href="{{ url_for('backend.user_logout') }}">
+      <button id="logout" class="btn btn-primary navbar-btn">Log out</button>
+    </a>
+  </div>
+</div>

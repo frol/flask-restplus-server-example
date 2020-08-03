@@ -1,16 +1,2 @@
-[tool.black]
-line-length = 90
-skip-string-normalization = true
-include = '\.pyi?$'
-exclude = '''
-/(
-    \.git,
-    \_assets,
-    \_db,
-    \_frontend,
-    clients,
-    deploy,
-    Houston.egg-info,
-    virtualenv
-)/
-'''
+[build-system]
+requires = ["setuptools>=42", "wheel", "setuptools_scm[toml]>=3.4", "scikit-build", "cmake", "ninja"]

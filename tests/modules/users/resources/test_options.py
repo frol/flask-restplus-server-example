@@ -3,9 +3,15 @@
 import pytest
 
 
+REPLACE_KEY = '<REPLACE_UUID>'
+
+
 @pytest.mark.parametrize(
     'path,status_code,expected_allowed_methods',
-    (('/api/v1/users/', 204, {'POST', 'OPTIONS'}), ('/api/v1/users/1', 401, None),),
+    (
+        ('/api/v1/users/', 204, {'POST', 'OPTIONS'}),
+        ('/api/v1/users/11111111-1111-1111-1111-111111111111', 401, None),
+    ),
 )
 def test_users_options_unauthorized(
     path, status_code, expected_allowed_methods, flask_app_client
@@ -20,14 +26,16 @@ def test_users_options_unauthorized(
 @pytest.mark.parametrize(
     'path,expected_allowed_methods',
     (
-        ('/api/v1/users/', {'POST', 'OPTIONS'}),
-        ('/api/v1/users/1', {'GET', 'OPTIONS', 'PATCH'}),
-        ('/api/v1/users/2', {'OPTIONS'}),
+        ('/api/v1/users/', {'GET', 'POST', 'OPTIONS'}),
+        ('/api/v1/users/%s' % (REPLACE_KEY,), {'GET', 'OPTIONS', 'PATCH'}),
     ),
 )
 def test_users_options_authorized(
     path, expected_allowed_methods, flask_app_client, regular_user
 ):
+    if REPLACE_KEY in path:
+        path = path.replace(REPLACE_KEY, '%s' % (regular_user.guid,))
+
     with flask_app_client.login(regular_user, auth_scopes=('users:write', 'users:read')):
         response = flask_app_client.options(path)
 

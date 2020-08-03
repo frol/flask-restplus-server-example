@@ -7,18 +7,24 @@ Auth resources
 
 import logging
 
-from flask_login import current_user
+from flask import current_app
+from flask_login import current_user, login_user, logout_user
 from flask_restplus_patched import Resource
 from flask_restplus._http import HTTPStatus
-from werkzeug import security
 
+from app.extensions import oauth2
 from app.extensions.api import Namespace, api_v1
 from app.extensions.api.parameters import PaginationParameters
 
 from . import schemas, parameters
 from .models import db, OAuth2Client
 
-import uuid
+from app.modules.users.models import User
+
+from app.modules.frontend.views import (
+    create_session_oauth2_token,
+    delete_session_oauth2_token,
+)
 
 log = logging.getLogger(__name__)
 api = Namespace('auth', description='Authentication')
@@ -29,17 +35,78 @@ def _generate_new_client(args):
         db.session, default_error_message='Failed to create a new OAuth2 client.'
     )
     with context:
-        new_oauth2_client = OAuth2Client(
-            user_guid=current_user.guid,
-            client_guid=uuid.uuid4(),
-            client_secret=security.gen_salt(64),
-            **args
-        )
+        new_oauth2_client = OAuth2Client(user_guid=current_user.guid, **args)
         db.session.add(new_oauth2_client)
     return new_oauth2_client
 
 
-@api.route('/clients/')
+@api.route('/sessions')
+class OAuth2Sessions(Resource):
+    """
+    Login with Session.
+    """
+
+    @api.parameters(parameters.CreateOAuth2SessionParameters())
+    @api.response(code=HTTPStatus.UNAUTHORIZED)
+    @api.doc(id='create_oauth_session')
+    def post(self, args):
+        """
+        Log-in via a new OAuth2 Session.
+        """
+        email = args['email']
+        password = args['password']
+
+        user = User.find(email=email, password=password)
+
+        failure = None
+        if user is not None:
+            if True not in [user.in_alpha, user.in_beta, user.is_staff, user.is_admin]:
+                failure = 'Account Not Authorized'
+            else:
+                status = login_user(user, remember=False)
+
+                if status:
+                    log.info('Logged in User via API: %r' % (user,))
+                    create_session_oauth2_token()
+                else:
+                    failure = 'Account Disabled'
+        else:
+            failure = 'Account Not Found'
+
+        if failure is None:
+            response = {
+                'success': True,
+                'message': 'Session Created',
+            }
+            code = HTTPStatus.OK
+        else:
+            response = {
+                'success': False,
+                'message': failure,
+            }
+            code = HTTPStatus.UNAUTHORIZED
+
+        return response, code
+
+    @api.login_required(oauth_scopes=['auth:write'])
+    def delete(self):
+        """
+        Log-out the active OAuth2 Session.
+        """
+        log.info('Logging out User via API: %r' % (current_user,))
+
+        delete_session_oauth2_token()
+        logout_user()
+
+        response = {
+            'success': True,
+            'message': 'Session Deleted',
+        }
+
+        return response
+
+
+@api.route('/clients')
 @api.login_required(oauth_scopes=['auth:read'])
 class OAuth2Clients(Resource):
     """
@@ -48,7 +115,6 @@ class OAuth2Clients(Resource):
 
     # @api.parameters(parameters.ListOAuth2ClientsParameters())
     @api.parameters(PaginationParameters())
-    # @api.response(schemas.BaseOAuth2ClientSchema(many=True))
     @api.response(schemas.DetailedOAuth2ClientSchema(many=True))
     def get(self, args):
         """
@@ -85,8 +151,63 @@ class OAuth2Clients(Resource):
         """
         Create a new OAuth2 Client.
 
-        Essentially, OAuth2 Client is a ``client_guid`` and ``client_secret``
+        Essentially, OAuth2 Client is a ``guid`` and ``secret``
         pair associated with a user.
         """
         new_oauth2_client = _generate_new_client(args)
         return new_oauth2_client
+
+
+@api.route('/tokens')
+# @api.login_required(oauth_scopes=['auth:read'], locations=('headers', 'session', 'form', ))
+class OAuth2Tokens(Resource):
+    """
+    Manipulations with OAuth2 clients.
+    """
+
+    @oauth2.token_handler
+    def post(self):
+        """
+        This endpoint is for exchanging/refreshing an access token.
+
+        Returns:
+            response (dict): a dictionary or None as the extra credentials for
+            creating the token response.
+        """
+        return None
+
+
+@api.route('/revoke')
+@api.login_required(oauth_scopes=['auth:read'])
+class OAuth2Revoke(Resource):
+    """
+    Manipulations with OAuth2 clients.
+    """
+
+    # @api.login_required(oauth_scopes=['auth:write'])
+    @oauth2.revoke_handler
+    def post(self):
+        """
+        This endpoint allows a user to revoke their access token.
+        """
+        return None
+
+
+@api.route('/recaptcha')
+class ReCaptchaPublicServerKey(Resource):
+    """
+    Use signup form helper for recaptcha.
+    """
+
+    @api.response(schemas.ReCaptchaPublicServerKeySchema())
+    def get(self):
+        """
+        Get recaptcha form keys.
+
+        This endpoint must be used in order to get a server reCAPTCHA public key which
+        must be used to receive a reCAPTCHA secret key for POST /<prefix>/users/ form.
+        """
+        response = {
+            'recaptcha_public_key': current_app.config.get('RECAPTCHA_PUBLIC_KEY', None),
+        }
+        return response

@@ -11,7 +11,7 @@ import pytz
 
 from sqlalchemy import or_, and_
 
-from flask import current_app
+from flask import current_app  # NOQA
 from flask_login import current_user
 from flask_restplus_patched import Resource
 from flask_restplus._http import HTTPStatus
@@ -40,6 +40,7 @@ class Users(Resource):
     """
 
     @api.login_required(oauth_scopes=['users:read'])
+    @api.permission_required(permissions.StaffRolePermission())
     @api.response(schemas.BaseUserSchema(many=True))
     @api.paginate(parameters.ListUserParameters())
     def get(self, args):
@@ -82,7 +83,7 @@ class Users(Resource):
         else:
             users = User.query
 
-        return users.order_by(User.last_name)
+        return users.order_by(User.guid)
 
     @api.parameters(parameters.CreateUserParameters())
     @api.response(schemas.DetailedUserSchema())
@@ -93,6 +94,8 @@ class Users(Resource):
         """
         Create a new user.
         """
+        from app.modules.auth.models import _generate_salt
+
         email = args.get('email', None)
         user = User.query.filter_by(email=email).first()
 
@@ -101,17 +104,10 @@ class Users(Resource):
                 code=HTTPStatus.CONFLICT, message='The email address is already in use.'
             )
 
-        args['username'] = args['email']
         if 'password' not in args:
-            args['password'] = args['email'] + '123'
+            args['password'] = _generate_salt(128)
 
-        args['is_internal'] = False
-        args['is_admin'] = False
-        args['is_staff'] = False
         args['is_active'] = True
-        args['date_created'] = datetime.datetime.now()
-        args['last_modified'] = datetime.datetime.now()
-        args['last_seen'] = datetime.datetime.now()
 
         context = api.commit_or_abort(
             db.session, default_error_message='Failed to create a new user.'
@@ -176,9 +172,6 @@ class UserByID(Resource):
         """
         Patch user details by ID.
         """
-
-        args['last_modified'] = datetime.datetime.now()
-
         context = api.commit_or_abort(
             db.session, default_error_message='Failed to update user details.'
         )
@@ -224,24 +217,6 @@ class UserArtworkByID(Resource):
         return user
 
 
-@api.route('/signup-form')
-class UserSignupForm(Resource):
-    """
-    Use signup form helpers.
-    """
-
-    @api.response(schemas.UserSignupFormSchema())
-    def get(self):
-        """
-        Get signup form keys.
-
-        This endpoint must be used in order to get a server reCAPTCHA public key which
-        must be used to receive a reCAPTCHA secret key for POST /users/ form.
-        """
-        # TODO:
-        return {'recaptcha_server_key': 'TODO'}
-
-
 @api.route('/me')
 @api.login_required(oauth_scopes=['users:read'])
 class UserMe(Resource):
@@ -265,17 +240,20 @@ class UserEDMSync(Resource):
     """
 
     # @api.response(schemas.DetailedUserSchema())
-    def get(self):
+    def get(self, refresh=False):
         """
         Get current user details.
         """
-        edm_users, new_users, stale_users = User.edm_sync_users()
+        edm_users, new_users, updated_users, failed_users = User.edm_sync_users(
+            refresh=refresh
+        )
 
         response = {
             'local': User.query.count(),
             'remote': len(edm_users),
             'added': len(new_users),
-            'updated': len(stale_users),
+            'updated': len(updated_users),
+            'failed': len(failed_users),
         }
 
         return response

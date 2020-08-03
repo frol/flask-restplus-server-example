@@ -2,7 +2,7 @@
 from __future__ import with_statement
 from alembic import context
 from sqlalchemy import engine_from_config, pool
-from logging.config import fileConfig
+from logging.config import fileConfig  # NOQA
 import logging
 
 # this is the Alembic Config object, which provides
@@ -65,7 +65,6 @@ def run_migrations_online():
     and associate a connection with the context.
 
     """
-
     # this callback is used to prevent an auto-migration from being generated
     # when there are no changes to the schema
     # reference: http://alembic.readthedocs.org/en/latest/cookbook.html

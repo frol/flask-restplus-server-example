@@ -7,7 +7,8 @@ from flask_restplus import Namespace as OriginalNamespace
 from flask_restplus.utils import merge, unpack
 from flask_restplus._http import HTTPStatus
 from webargs.flaskparser import parser as webargs_parser
-from werkzeug import cached_property, exceptions as http_exceptions
+from werkzeug import cached_property  # NOQA
+from werkzeug import exceptions as http_exceptions
 
 from .model import Model, DefaultHTTPErrorSchema
 
@@ -321,7 +322,7 @@ class Namespace(OriginalNamespace):
                 security={
                     # This is a temporary (namespace) configuration which gets
                     # overriden on a namespace registration (in `Api.add_namespace`).
-                    '__oauth__': {'type': 'oauth', 'scopes': _oauth_scopes,}
+                    '__oauth__': {'type': 'oauth', 'scopes': _oauth_scopes}
                 }
             )(
                 self.response(

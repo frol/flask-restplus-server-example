@@ -66,7 +66,7 @@ class BaseConfig(object):
             'type': 'oauth2',
             'flow': 'password',
             'scopes': {},
-            'tokenUrl': '/auth/oauth2/token',
+            'tokenUrl': '/api/v1/auth/tokens',
         },
     }
 
@@ -76,7 +76,11 @@ class BaseConfig(object):
         'auth',
         'frontend',
         'users',
+        'encounters',
+        'organizations',
+        'collaborations',
         'api',
+        'passthroughs',
     )
 
     STATIC_ROOT = os.path.join(PROJECT_ROOT, 'app', 'static')

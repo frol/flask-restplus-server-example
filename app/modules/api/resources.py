@@ -26,8 +26,8 @@ class Develop(Resource):
     @api.login_required(oauth_scopes=['users:read'])
     @api.permission_required(permissions.AdminRolePermission())
     def get(self):
-        '''
+        """
         from app.modules.auth.models import Codes
-        '''
+        """
         ut.embed()
         return True

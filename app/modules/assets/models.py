@@ -4,15 +4,14 @@ Assets database models
 --------------------
 """
 from flask import current_app
-from sqlalchemy_utils import Timestamp
 import os
 
-from app.extensions import db
+from app.extensions import db, TimestampViewed
 
 import uuid
 
 
-class Asset(db.Model, Timestamp):
+class Asset(db.Model, TimestampViewed):
     """
     Assets database model.
     """
@@ -28,7 +27,7 @@ class Asset(db.Model, Timestamp):
         return (
             '<{class_name}('
             'guid={self.guid}, '
-            "file=\"{self.code}{self.ext}\""
+            'file="{self.code}{self.ext}"'
             ')>'.format(class_name=self.__class__.__name__, self=self)
         )
 

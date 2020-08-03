@@ -6,11 +6,11 @@ API extension
 
 from copy import deepcopy
 
-from flask import Blueprint, current_app
+from flask import Blueprint, current_app  # NOQA
 
-from .api import Api
-from .namespace import Namespace
-from .http_exceptions import abort
+from .api import Api  # NOQA
+from .namespace import Namespace  # NOQA
+from .http_exceptions import abort  # NOQA
 
 import logging
 

@@ -16,6 +16,6 @@ def init_app(app, **kwargs):
     api_v1.add_oauth_scope('users:write', 'Provide write access to user details')
 
     # Touch underlying modules
-    from . import models, resources  # pylint: disable=unused-import
+    from . import models, resources  # NOQA
 
     api_v1.add_namespace(resources.api)

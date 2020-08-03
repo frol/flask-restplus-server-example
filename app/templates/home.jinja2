@@ -11,21 +11,37 @@
 {% endblock %}
 
 {% block content %}
-  <div>
-    <a class="navbar-brand" href="{{ url_for('backend.home') }}">
-      <img src="{{ url_for('backend.static', filename='images/icon.png', version=cachebuster) }}" width="50" height="50" alt="">
-      <h1>Houston</h1>
-      <h2>by Wild Me</h2>   
-    </a>
+
+  <div class="container">
+    <div class="row">
+      <div class="col-1 col-sm-1 col-md-1 col-lg-3 col-xl-4"></div>
+
+      <div class="col-10 col-sm-10 col-md-10 col-lg-6 col-xl-4">
+        <img class="mx-auto d-block" alt="Wild Me Houston" src="{{ url_for('backend.static', filename='images/icon.png', version=cachebuster) }}" style="width: 30%; margin-bottom: 25px;">
+
+        {% if current_user.is_authenticated %}
+          {% include "home.logout.jinja2" %}
+        {% else %}
+          {% include "home.login.jinja2" %}
+        {% endif %}
+      </div>
+
+      <div class="col-1 col-sm-1 col-md-1 col-lg-3 col-xl-4"></div>
+    </div>
   </div>
 
-  <div class="system-version">
-    Version {{ version }}
+  <div class="fixed-bottom">
+    <div class="row">
+      <div class="col-0 col-sm-0 col-md-0 col-lg-3 col-xl-4">
+      </div>
+      <div class="col-6 col-sm-6 col-md-6 col-lg-6 col-xl-4"></div>
+      <div class="col-6 col-sm-6 col-md-6 col-lg-3 col-xl-4">
+        <nav class="nav nav-pills flex-column flex-sm-row" style="margin: 10px;">
+          <a class="flex-sm-fill text-sm-center nav-link active" href="https://github.com/wildbookorg/houston">Version {{ version }}</a>
+        </nav>
+      </div>
+    </div>
   </div>
-
-  {% include "home.login.jinja2" %}
-
-  {% include "home.logout.jinja2" %}
 
 {% endblock %}
 
