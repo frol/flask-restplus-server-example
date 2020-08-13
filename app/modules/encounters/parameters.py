@@ -5,13 +5,13 @@ Input arguments (Parameters) for Encounters resources RESTful API
 """
 
 # from flask_marshmallow import base_fields
-from flask_restplus_patched import PostFormParameters, PatchJSONParameters
+from flask_restplus_patched import Parameters, PatchJSONParameters
 
 from . import schemas
 from .models import Encounter
 
 
-class CreateEncounterParameters(PostFormParameters, schemas.DetailedEncounterSchema):
+class CreateEncounterParameters(Parameters, schemas.DetailedEncounterSchema):
     class Meta(schemas.DetailedEncounterSchema.Meta):
         pass
 

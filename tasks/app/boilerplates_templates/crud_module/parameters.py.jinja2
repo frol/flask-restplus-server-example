@@ -5,13 +5,13 @@ Input arguments (Parameters) for {{ module_title }} resources RESTful API
 """
 
 from flask_marshmallow import base_fields
-from flask_restplus_patched import PostFormParameters, PatchJSONParameters
+from flask_restplus_patched import Parameters, PatchJSONParameters
 
 from . import schemas
 from .models import {{ model_name }}
 
 
-class Create{{ model_name }}Parameters(PostFormParameters, schemas.Detailed{{ model_name }}Schema):
+class Create{{ model_name }}Parameters(Parameters, schemas.Detailed{{ model_name }}Schema):
 
     class Meta(schemas.Detailed{{ model_name }}Schema.Meta):
         pass

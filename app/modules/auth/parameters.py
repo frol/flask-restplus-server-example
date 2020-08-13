@@ -6,7 +6,7 @@ Input arguments (Parameters) for Auth resources
 """
 from flask_login import current_user
 from flask_marshmallow import base_fields
-from flask_restplus_patched import PostFormParameters
+from flask_restplus_patched import Parameters
 from marshmallow import validates, ValidationError
 
 from app.extensions import api
@@ -22,12 +22,12 @@ class ListOAuth2ClientsParameters(PaginationParameters):
             raise ValidationError('It is only allowed to query your own OAuth2 clients.')
 
 
-class CreateOAuth2SessionParameters(PostFormParameters):
+class CreateOAuth2SessionParameters(Parameters):
     email = base_fields.Email(description='Example: root@gmail.com', required=True)
     password = base_fields.String(description='No rules yet', required=True)
 
 
-class CreateOAuth2ClientParameters(PostFormParameters):
+class CreateOAuth2ClientParameters(Parameters):
     redirect_uris = base_fields.List(base_fields.String, required=False)
     default_scopes = base_fields.List(base_fields.String, required=True)
 
