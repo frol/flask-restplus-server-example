@@ -58,7 +58,7 @@ class BaseConfig(object):
     DEBUG = False
     ERROR_404_HELP = False
 
-    PREFERRED_URL_SCHEME = 'https'
+    PREFERRED_URL_SCHEME = 'http'
     REVERSE_PROXY_SETUP = os.getenv('HOSTON_REVERSE_PROXY_SETUP', False)
 
     AUTHORIZATIONS = {
@@ -97,8 +97,8 @@ class BaseConfig(object):
     MAX_CONTENT_LENGTH = 16 * 1024 * 1024  # Maximum size of 16MB
 
     PERMANENT_SESSION_LIFETIME = datetime.timedelta(days=7)
-    SESSION_COOKIE_SECURE = True
-    SESSION_COOKIE_HTTPONLY = True
+    SESSION_COOKIE_SECURE = False
+    SESSION_COOKIE_HTTPONLY = False
     SESSION_REFRESH_EACH_REQUEST = True
 
     REMEMBER_COOKIE_DURATION = datetime.timedelta(days=14)
