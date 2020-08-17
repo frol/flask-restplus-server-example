@@ -107,7 +107,7 @@ def referral_login(email=None, password=None, remember=None, refer=None, *args, 
     return flask.redirect(redirect)
 
 
-@frontend_blueprint.route('/logout', methods=['GET'])
+@frontend_blueprint.route('/logout', methods=['POST'])
 @login_required
 def referral_logout(refer=None, *args, **kwargs):
     # pylint: disable=unused-argument
