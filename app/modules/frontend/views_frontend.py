@@ -9,11 +9,24 @@ More details are available here:
 * http://flask-oauthlib.readthedocs.org/en/latest/oauth2.html
 * http://lepture.com/en/2013/create-oauth-server
 """
-from flask import Blueprint, send_from_directory, current_app
+import flask
+from flask import Blueprint, send_from_directory, current_app, request
+from flask_login import login_user, logout_user, login_required, current_user
 import werkzeug
 import logging
 
-from .views import FRONTEND_STATIC_ROOT
+from app.modules.users.models import User
+
+from app.modules.auth.views import (
+    _url_for,
+    _is_safe_url,
+)
+
+from .views import (
+    FRONTEND_STATIC_ROOT,
+    create_session_oauth2_token,
+    delete_session_oauth2_token,
+)
 
 log = logging.getLogger(__name__)
 
@@ -38,6 +51,89 @@ def serve_frontent_static_assets(path=None, *args, **kwargs):
         return send_from_directory(frontend_blueprint.static_folder, path)
     except werkzeug.exceptions.NotFound:
         return serve_frontent_static_assets(path=None, *args, **kwargs)
+
+
+@frontend_blueprint.route('/login', methods=['POST'])
+def referral_login(email=None, password=None, remember=None, refer=None, *args, **kwargs):
+    # pylint: disable=unused-argument
+    """
+    This endpoint is the landing page for the logged-in user
+    """
+    if email is None:
+        email = request.form.get('email', None)
+    if password is None:
+        password = request.form.get('password', None)
+    if remember is None:
+        remember = request.form.get('remember', None)
+        remember = remember in ['true', 'on']
+    if refer is None:
+        refer = flask.request.args.get('next', request.form.get('next', None))
+
+    if refer in ['origin']:
+        refer = request.referrer
+
+    if refer is not None:
+        if not _is_safe_url(refer):
+            log.error('User gave insecure next URL: %r' % (refer,))
+            refer = None
+
+    failure_refer = 'frontend.serve_frontent_static_assets'
+
+    user = User.find(email=email, password=password)
+
+    redirect = _url_for(failure_refer)
+    if user is not None:
+        if True not in [user.in_alpha, user.in_beta, user.is_staff, user.is_admin]:
+            log.warning('User %r had a valid login, but is not a staff or beta member.',)
+            redirect = _url_for(failure_refer)
+        else:
+            status = login_user(user, remember=remember)
+
+            if status:
+                # User logged in organically.
+                log.info('Logged in User (remember = %s): %r' % (remember, user,))
+                create_session_oauth2_token()
+
+                if refer is not None:
+                    log.info('Sending user to requested next: %r' % (refer,))
+                    redirect = refer
+            else:
+                log.warning('Username or password unrecognized.')
+                redirect = _url_for(failure_refer)
+    else:
+        log.warning('Username or password unrecognized.')
+        redirect = _url_for(failure_refer)
+
+    return flask.redirect(redirect)
+
+
+@frontend_blueprint.route('/logout', methods=['GET'])
+@login_required
+def referral_logout(refer=None, *args, **kwargs):
+    # pylint: disable=unused-argument
+    """
+    This endpoint is the landing page for the logged-in user
+    """
+    if refer is None:
+        refer = flask.request.args.get('next')
+
+    if refer is not None:
+        if not _is_safe_url(refer):
+            refer = None
+
+    # Delete the Oauth2 token for this session
+    log.info('Logging out User: %r' % (current_user,))
+
+    delete_session_oauth2_token()
+
+    logout_user()
+
+    if refer is None:
+        redirect = _url_for('frontend.serve_frontent_static_assets')
+    else:
+        redirect = refer
+
+    return flask.redirect(redirect)
 
 
 @frontend_blueprint.errorhandler(404)

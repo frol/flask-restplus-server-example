@@ -49,7 +49,7 @@ def home(*args, **kwargs):
 
 
 @backend_blueprint.route('/login', methods=['POST'])
-def user_login(email=None, password=None, remember=None, *args, **kwargs):
+def user_login(email=None, password=None, remember=None, refer=None, *args, **kwargs):
     # pylint: disable=unused-argument
     """
     This endpoint is the landing page for the logged-in user
@@ -61,17 +61,25 @@ def user_login(email=None, password=None, remember=None, *args, **kwargs):
     if remember is None:
         remember = request.form.get('remember', None)
         remember = remember in ['true', 'on']
+    if refer is None:
+        refer = flask.request.args.get('next')
+
+    if refer is not None:
+        if not _is_safe_url(refer):
+            refer = None
+
+    failure_refer = 'backend.home'
 
     user = User.find(email=email, password=password)
 
-    redirect = _url_for('backend.home')
+    redirect = _url_for(failure_refer)
     if user is not None:
         if True not in [user.in_alpha, user.in_beta, user.is_staff, user.is_admin]:
             flash(
                 'Your login was correct, but Wildbook is in BETA at the moment and is invite-only.',
                 'danger',
             )
-            redirect = _url_for('backend.home')
+            redirect = _url_for(failure_refer)
         else:
             status = login_user(user, remember=remember)
 
@@ -81,18 +89,17 @@ def user_login(email=None, password=None, remember=None, *args, **kwargs):
                 flash('Logged in successfully.', 'success')
                 create_session_oauth2_token()
 
-                redirect_ = flask.request.args.get('next')
-                if redirect_ is not None and _is_safe_url(redirect_):
-                    redirect = redirect_
+                if refer is not None:
+                    redirect = refer
             else:
                 flash(
                     'We could not log you in, most likely due to your account being disabled.  Please speak to a staff member.',
                     'danger',
                 )
-                redirect = _url_for('backend.home')
+                redirect = _url_for(failure_refer)
     else:
         flash('Username or password unrecognized.', 'danger')
-        redirect = _url_for('backend.home')
+        redirect = _url_for(failure_refer)
 
     return flask.redirect(redirect)
 
