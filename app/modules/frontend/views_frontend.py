@@ -115,10 +115,14 @@ def referral_logout(refer=None, *args, **kwargs):
     This endpoint is the landing page for the logged-in user
     """
     if refer is None:
-        refer = flask.request.args.get('next')
+        refer = flask.request.args.get('next', request.form.get('next', None))
+
+    if refer in ['origin']:
+        refer = request.referrer
 
     if refer is not None:
         if not _is_safe_url(refer):
+            log.error('User gave insecure next URL: %r' % (refer,))
             refer = None
 
     # Delete the Oauth2 token for this session
