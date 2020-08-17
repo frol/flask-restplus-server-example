@@ -21,8 +21,10 @@ from app.modules.users.models import User
 
 
 def _url_for(value, *args, **kwargs):
-    kwargs['_external'] = 'https'
-    kwargs['_scheme'] = 'https'
+    # kwargs['_external'] = 'https'
+    # kwargs['_scheme'] = 'https'
+    kwargs['_external'] = 'http'
+    kwargs['_scheme'] = 'http'
     return url_for(value, *args, **kwargs)
 
 
