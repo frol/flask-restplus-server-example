@@ -60,6 +60,8 @@ from .email import mail  # NOQA
 
 from . import edm  # NOQA
 
+from . import submission  # NOQA
+
 from . import api  # NOQA
 
 import stripe  # NOQA
@@ -157,6 +159,7 @@ def init_app(app):
         oauth2,
         mail,
         edm,
+        submission,
     )
     for extension in extensions:
         extension.init_app(app)
