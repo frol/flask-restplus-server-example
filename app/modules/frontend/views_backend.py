@@ -43,9 +43,29 @@ def home(*args, **kwargs):
     """
     This endpoint offers the home page
     """
-    from app.version import version
+    from app.version import version as version_houston
+    from app.modules.frontend.resources import parse_frontend_versions
 
-    return _render_template('home.jinja2', version=version, user=current_user)
+    frontend_versions = parse_frontend_versions()
+    version_frontend = None
+    timestamp_frontend = None
+    for frontend_version in frontend_versions:
+        if frontend_versions[frontend_version].get('active'):
+            version_frontend = frontend_version
+            timestamp_frontend = frontend_versions[frontend_version].get('built')
+
+    commit_houston = version_houston.split('.')[-1]
+    commit_frontend = version_frontend
+
+    return _render_template(
+        'home.jinja2',
+        version_houston=version_houston,
+        version_frontend=version_frontend,
+        timestamp_frontend=timestamp_frontend,
+        commit_houston=commit_houston,
+        commit_frontend=commit_frontend,
+        user=current_user,
+    )
 
 
 @backend_blueprint.route('/login', methods=['POST'])

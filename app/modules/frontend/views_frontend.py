@@ -37,7 +37,7 @@ frontend_blueprint = Blueprint(
 
 @frontend_blueprint.route('/', defaults={'path': None}, methods=['GET'])
 @frontend_blueprint.route('/<path:path>', methods=['GET'])
-def serve_frontent_static_assets(path=None, *args, **kwargs):
+def home(path=None, *args, **kwargs):
     # pylint: disable=unused-argument
     """
     This endpoint offers the home page html
@@ -50,7 +50,7 @@ def serve_frontent_static_assets(path=None, *args, **kwargs):
     try:
         return send_from_directory(frontend_blueprint.static_folder, path)
     except werkzeug.exceptions.NotFound:
-        return serve_frontent_static_assets(path=None, *args, **kwargs)
+        return home(path=None, *args, **kwargs)
 
 
 @frontend_blueprint.route('/login', methods=['POST'])
@@ -77,7 +77,7 @@ def referral_login(email=None, password=None, remember=None, refer=None, *args, 
             log.error('User gave insecure next URL: %r' % (refer,))
             refer = None
 
-    failure_refer = 'frontend.serve_frontent_static_assets'
+    failure_refer = 'frontend.home'
 
     user = User.find(email=email, password=password)
 
@@ -133,7 +133,7 @@ def referral_logout(refer=None, *args, **kwargs):
     logout_user()
 
     if refer is None:
-        redirect = _url_for('frontend.serve_frontent_static_assets')
+        redirect = _url_for('frontend.home')
     else:
         redirect = refer
 
@@ -144,4 +144,4 @@ def referral_logout(refer=None, *args, **kwargs):
 def page_not_found(event):
     log.error('Handled 404')
     # note that we set the 404 status explicitly
-    return serve_frontent_static_assets('404.html'), 404
+    return home('404.html'), 404

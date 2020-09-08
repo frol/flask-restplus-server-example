@@ -32,12 +32,18 @@
 
   <div class="fixed-bottom">
     <div class="row">
-      <div class="col-0 col-sm-0 col-md-0 col-lg-3 col-xl-4">
-      </div>
-      <div class="col-6 col-sm-6 col-md-6 col-lg-6 col-xl-4"></div>
       <div class="col-6 col-sm-6 col-md-6 col-lg-3 col-xl-4">
         <nav class="nav nav-pills flex-column flex-sm-row" style="margin: 10px;">
-          <a class="flex-sm-fill text-sm-center nav-link active" href="https://github.com/wildbookorg/houston">Version {{ version }}</a>
+          <a class="flex-sm-fill text-sm-center nav-link active" target="_blank" href="https://github.com/WildbookOrg/wildbook-frontend/commit/{{ commit_frontend }}">Frontend Version {{ version_frontend }}</a>
+        </nav>
+        <div style="text-align: center; font-style: italic; margin-top: -5px; margin-bottom: 5px; color: #888; font-size: 12px;">{{ timestamp_frontend }}</div>
+      </div>
+
+      <div class="col-0 col-sm-0 col-md-0 col-lg-6 col-xl-4"></div>
+
+      <div class="col-6 col-sm-6 col-md-6 col-lg-3 col-xl-4">
+        <nav class="nav nav-pills flex-column flex-sm-row" style="margin: 10px;">
+          <a class="flex-sm-fill text-sm-center nav-link active" target="_blank" href="https://github.com/WildbookOrg/houston/commit/{{ commit_houston }}">Houston Version {{ version_houston }}</a>
         </nav>
       </div>
     </div>
