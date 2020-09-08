@@ -23,7 +23,7 @@ log = logging.getLogger(__name__)  # pylint: disable=invalid-name
 api = Namespace('frontends', description='Frontends')  # pylint: disable=invalid-name
 
 
-DATETIME_FMTSTR = '%Y%m%d-%H%M%S%Z'
+DATETIME_FMTSTR = '%Y%m%d-%H%M%S'
 PST = pytz.timezone('US/Pacific')
 
 
@@ -45,14 +45,21 @@ def parse_frontend_versions():
     for frontend_dist in frontend_dist_list:
         frontend_dist_ = frontend_dist.split('-')
         frontend_version = frontend_dist_[1]
-        frontend_timestamp = '-'.join(frontend_dist_[2:]).strip('/')
+        frontend_timestamp = frontend_dist_[2:]
 
         frontend_active = frontend_dist == frontend_link_latest
-        frontend_datetime = datetime.datetime.strptime(
-            frontend_timestamp, DATETIME_FMTSTR
-        )
-        frontend_datetime = frontend_datetime.replace(tzinfo=PST)
-        frontend_time = frontend_datetime.strftime('%B %d, %Y, %H:%M:%S %p Pacific')
+
+        try:
+            frontend_timestamp = '-'.join(frontend_timestamp)
+            frontend_timestamp = frontend_timestamp.strip('/')
+            frontend_timestamp = frontend_timestamp[:-3]
+            frontend_datetime = datetime.datetime.strptime(
+                frontend_timestamp, DATETIME_FMTSTR
+            )
+            frontend_datetime = frontend_datetime.replace(tzinfo=PST)
+            frontend_time = frontend_datetime.strftime('%B %d, %Y, %H:%M:%S %p Pacific')
+        except Exception:
+            frontend_time = 'Parse Error: %r' % (frontend_timestamp,)
 
         frontend_versions[frontend_version] = {
             'built': frontend_time,
