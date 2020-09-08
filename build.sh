@@ -1,5 +1,7 @@
 #!/bin/bash
 
+./clean.sh
+
 source virtualenv/houston3.7/bin/activate
 pip install -e .
 

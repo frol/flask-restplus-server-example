@@ -1,6 +1,6 @@
 #!/bin/bash
 
-/opt/houston/host.permissions.sh
+# /opt/houston/host.permissions.sh
 
 docker rm -f houston
 docker run -d -it --publish 3000:5000 --name houston -v /opt/houston/_db/:/opt/houston/_db/ --restart unless-stopped wildme/houston:latest
