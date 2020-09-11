@@ -7,7 +7,7 @@ RESTful API Submissions resources
 
 import logging
 
-# from flask_login import current_user
+from flask_login import current_user
 from flask_restplus_patched import Resource
 from flask_restplus._http import HTTPStatus
 
@@ -55,6 +55,7 @@ class Submissions(Resource):
             db.session, default_error_message='Failed to create a new Submission'
         )
         with context:
+            args['owner_guid'] = current_user.guid
             submission = Submission(**args)
             db.session.add(submission)
         return submission

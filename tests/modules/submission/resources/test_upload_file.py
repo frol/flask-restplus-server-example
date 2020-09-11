@@ -6,10 +6,6 @@ import json
 def test_upload_file_to_submission(flask_app_client, regular_user, db):
     # pylint: disable=invalid-name
     try:
-        import utool as ut
-
-        ut.embed()
-
         test_submission_major_type = 'test'
 
         with flask_app_client.login(regular_user, auth_scopes=('submissions:write',)):
@@ -31,11 +27,15 @@ def test_upload_file_to_submission(flask_app_client, regular_user, db):
         assert response.status_code == 200
         assert response.content_type == 'application/json'
         assert isinstance(response.json, dict)
-        assert set(response.json.keys()) >= {'guid', 'commit', 'submission_major_type'}
-        assert 'owner' not in response.json.keys()
+        assert set(response.json.keys()) >= {
+            'guid',
+            'commit',
+            'submission_major_type',
+            'owner_guid',
+        }
 
         assert temp_submission.commit is None
-        assert temp_submission.test_submission_major_type == test_submission_major_type
+        assert temp_submission.submission_major_type == test_submission_major_type
     except Exception as ex:
         raise ex
     finally:

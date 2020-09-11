@@ -19,9 +19,15 @@ class BaseSubmissionSchema(ModelSchema):
         model = Submission
         fields = (
             Submission.guid.key,
+            Submission.commit.key,
             Submission.submission_major_type.key,
+            Submission.title.key,
+            Submission.description.key,
         )
-        dump_only = (Submission.guid.key,)
+        dump_only = (
+            Submission.guid.key,
+            Submission.commit.key,
+        )
 
 
 class DetailedSubmissionSchema(BaseSubmissionSchema):
@@ -31,13 +37,12 @@ class DetailedSubmissionSchema(BaseSubmissionSchema):
 
     class Meta(BaseSubmissionSchema.Meta):
         fields = BaseSubmissionSchema.Meta.fields + (
-            Submission.title.key,
-            Submission.description.key,
-            Submission.owner.key,
+            Submission.owner_guid.key,
             Submission.created.key,
             Submission.updated.key,
         )
         dump_only = BaseSubmissionSchema.Meta.dump_only + (
+            Submission.owner_guid.key,
             Submission.created.key,
             Submission.updated.key,
         )

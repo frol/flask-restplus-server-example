@@ -10,7 +10,7 @@ from . import schemas
 from .models import Submission
 
 
-class CreateSubmissionParameters(Parameters, schemas.BaseSubmissionSchema):
+class CreateSubmissionParameters(Parameters, schemas.DetailedSubmissionSchema):
     class Meta(schemas.DetailedSubmissionSchema.Meta):
         pass
 

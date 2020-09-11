@@ -49,7 +49,7 @@ class Submission(db.Model, TimestampViewed):
         nullable=False,
     )
 
-    commit = db.Column(db.String(length=40), nullable=False, unique=True)
+    commit = db.Column(db.String(length=40), nullable=True, unique=True)
 
     title = db.Column(db.String(length=128), nullable=True)
     description = db.Column(db.String(length=255), nullable=True)
