@@ -20,19 +20,24 @@ class Asset(db.Model, TimestampViewed):
         db.GUID, default=uuid.uuid4, primary_key=True
     )  # pylint: disable=invalid-name
 
-    description =
-    metadata =
+    ext = db.Column(db.String, nullable=False)
+    mime_type = db.Column(db.String, nullable=False)
 
-    submission_guid =
-    submission
+    title = db.Column(db.String(length=128), nullable=True)
+    description = db.Column(db.String(length=255), nullable=True)
 
-    ext = db.Column(db.String(length=5), nullable=False)
+    meta = db.Column(db.JSON, nullable=True)
+
+    submission_guid = db.Column(
+        db.GUID, db.ForeignKey('submission.guid'), index=True, nullable=False
+    )
+    submission = db.relationship('Submission', backref=db.backref('assets'))
 
     def __repr__(self):
         return (
             '<{class_name}('
             'guid={self.guid}, '
-            'file="{self.code}{self.ext}"'
+            'file="{self.guid}{self.ext}"'
             ')>'.format(class_name=self.__class__.__name__, self=self)
         )
 

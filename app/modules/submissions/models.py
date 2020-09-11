@@ -4,11 +4,23 @@ Submissions database models
 --------------------
 """
 
-from sqlalchemy_utils import Timestamp
+import enum
+from flask import current_app
 
-from app.extensions import db
+from app.extensions import db, TimestampViewed
 
 import uuid
+import os
+
+
+class SubmissionMajorType(str, enum.Enum):
+    filesystem = 'filesystem'
+    archive = 'archive'
+    service = 'service'
+
+    unknown = 'unknown'
+    error = 'error'
+    reject = 'reject'
 
 
 class Submission(db.Model, TimestampViewed):
@@ -29,23 +41,24 @@ class Submission(db.Model, TimestampViewed):
         db.GUID, default=uuid.uuid4, primary_key=True
     )  # pylint: disable=invalid-name
 
-    _hash =
+    submission_major_type = db.Column(db.Enum(SubmissionMajorType), nullable=True)
 
-    title =
-    description =
-    metadata =
+    commit = db.Column(db.String(length=40), nullable=False, unique=True)
 
-    submitter_guid =
-    submitter =
+    title = db.Column(db.String(length=128), nullable=True)
+    description = db.Column(db.String(length=255), nullable=True)
 
-    owner_guid =
-    owner =
+    meta = db.Column(db.JSON, nullable=True)
+
+    owner_guid = db.Column(
+        db.GUID, db.ForeignKey('user.guid'), index=True, nullable=False
+    )
+    owner = db.relationship('User', backref=db.backref('submissions'))
 
     def __repr__(self):
         return (
             '<{class_name}('
             'guid={self.guid}, '
-            'file="{self.code}{self.ext}"'
             ')>'.format(class_name=self.__class__.__name__, self=self)
         )
 

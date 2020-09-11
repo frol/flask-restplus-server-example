@@ -9,6 +9,7 @@ import logging
 from flask import current_app, request, session, render_template  # NOQA
 from flask_login import current_user  # NOQA
 import gitlab
+import git  # NOQA
 
 import pytz
 

@@ -17,10 +17,7 @@ class BaseAssetSchema(ModelSchema):
     class Meta:
         # pylint: disable=missing-docstring
         model = Asset
-        fields = (
-            Asset.guid.key,
-            Asset.code.key,
-        )
+        fields = (Asset.guid.key,)
         dump_only = (Asset.guid.key,)
 
 
