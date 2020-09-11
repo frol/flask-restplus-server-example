@@ -61,9 +61,6 @@ class Submissions(Resource):
         repo, project = submission.init_repository()
         log.info('Initialized LOCAL  Repo: %r' % (repo.working_tree_dir,))
         log.info('Initialized REMOTE Repo: %r' % (project.web_url,))
-        import utool as ut
-
-        ut.embed()
         return submission
 
 

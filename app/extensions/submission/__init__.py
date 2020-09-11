@@ -158,11 +158,11 @@ class SubmissionManager(object):
 
         if not os.path.exists(submission_sub_path):
             os.mkdir(submission_sub_path)
-        Path(os.path.join(submission_sub_path, '.temp')).touch()
+        Path(os.path.join(submission_sub_path, '.touch')).touch()
 
         if not os.path.exists(submission_asset_path):
             os.mkdir(submission_asset_path)
-        Path(os.path.join(submission_asset_path, '.temp')).touch()
+        Path(os.path.join(submission_asset_path, '.touch')).touch()
 
         if not os.path.exists(submission_metadata_path):
             with open(submission_metadata_path, 'w') as submission_metadata_file:
