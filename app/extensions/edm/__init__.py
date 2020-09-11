@@ -288,11 +288,11 @@ class EDMManager(EDMManagerEndpointMixin, EDMManagerUserMixin):
     def ensure_initialed(self):
         if not self.initialized:
             log.info('Initializing EDM')
-            self.initialized = True
             self._parse_config_edm_uris()
             self._init_sessions()
             log.info('\t%s' % (ut.repr3(self.uris)))
             log.info('EDM Manager is ready')
+            self.initialized = True
 
     def get_target_endpoint_url(self, target='default'):
         endpoint_url = self.uris[target]

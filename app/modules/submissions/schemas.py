@@ -4,7 +4,6 @@ Serialization schemas for Submissions resources RESTful API
 ----------------------------------------------------
 """
 
-from flask_marshmallow import base_fields
 from flask_restplus_patched import ModelSchema
 
 from .models import Submission
@@ -20,11 +19,9 @@ class BaseSubmissionSchema(ModelSchema):
         model = Submission
         fields = (
             Submission.guid.key,
-            Submission.title.key,
+            Submission.submission_major_type.key,
         )
-        dump_only = (
-            Submission.guid.key,
-        )
+        dump_only = (Submission.guid.key,)
 
 
 class DetailedSubmissionSchema(BaseSubmissionSchema):
@@ -34,6 +31,9 @@ class DetailedSubmissionSchema(BaseSubmissionSchema):
 
     class Meta(BaseSubmissionSchema.Meta):
         fields = BaseSubmissionSchema.Meta.fields + (
+            Submission.title.key,
+            Submission.description.key,
+            Submission.owner.key,
             Submission.created.key,
             Submission.updated.key,
         )

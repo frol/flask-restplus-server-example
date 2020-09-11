@@ -7,7 +7,7 @@ RESTful API Submissions resources
 
 import logging
 
-from flask_login import current_user
+# from flask_login import current_user
 from flask_restplus_patched import Resource
 from flask_restplus._http import HTTPStatus
 
@@ -22,7 +22,7 @@ from .models import Submission
 
 
 log = logging.getLogger(__name__)  # pylint: disable=invalid-name
-api = Namespace('submissions', description="Submissions")  # pylint: disable=invalid-name
+api = Namespace('submissions', description='Submissions')  # pylint: disable=invalid-name
 
 
 @api.route('/')
@@ -52,8 +52,7 @@ class Submissions(Resource):
         Create a new instance of Submission.
         """
         context = api.commit_or_abort(
-            db.session,
-            default_error_message="Failed to create a new Submission"
+            db.session, default_error_message='Failed to create a new Submission'
         )
         with context:
             submission = Submission(**args)
@@ -64,8 +63,7 @@ class Submissions(Resource):
 @api.route('/<uuid:submission_guid>')
 @api.login_required(oauth_scopes=['submissions:read'])
 @api.response(
-    code=HTTPStatus.NOT_FOUND,
-    description="Submission not found.",
+    code=HTTPStatus.NOT_FOUND, description='Submission not found.',
 )
 @api.resolve_object_by_model(Submission, 'submission')
 class SubmissionByID(Resource):
@@ -90,11 +88,12 @@ class SubmissionByID(Resource):
         Patch Submission details by ID.
         """
         context = api.commit_or_abort(
-            db.session,
-            default_error_message="Failed to update Submission details."
+            db.session, default_error_message='Failed to update Submission details.'
         )
         with context:
-            parameters.PatchSubmissionDetailsParameters.perform_patch(args, obj=submission)
+            parameters.PatchSubmissionDetailsParameters.perform_patch(
+                args, obj=submission
+            )
             db.session.merge(submission)
         return submission
 
@@ -107,8 +106,7 @@ class SubmissionByID(Resource):
         Delete a Submission by ID.
         """
         context = api.commit_or_abort(
-            db.session,
-            default_error_message="Failed to delete the Submission."
+            db.session, default_error_message='Failed to delete the Submission.'
         )
         with context:
             db.session.delete(submission)

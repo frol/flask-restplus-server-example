@@ -20,8 +20,8 @@ class Asset(db.Model, TimestampViewed):
         db.GUID, default=uuid.uuid4, primary_key=True
     )  # pylint: disable=invalid-name
 
-    ext = db.Column(db.String, nullable=False)
-    mime_type = db.Column(db.String, nullable=False)
+    ext = db.Column(db.String, index=True, nullable=False)
+    mime_type = db.Column(db.String, index=True, nullable=False)
 
     title = db.Column(db.String(length=128), nullable=True)
     description = db.Column(db.String(length=255), nullable=True)

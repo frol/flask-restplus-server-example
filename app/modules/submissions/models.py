@@ -17,6 +17,7 @@ class SubmissionMajorType(str, enum.Enum):
     filesystem = 'filesystem'
     archive = 'archive'
     service = 'service'
+    test = 'test'
 
     unknown = 'unknown'
     error = 'error'
@@ -41,7 +42,12 @@ class Submission(db.Model, TimestampViewed):
         db.GUID, default=uuid.uuid4, primary_key=True
     )  # pylint: disable=invalid-name
 
-    submission_major_type = db.Column(db.Enum(SubmissionMajorType), nullable=True)
+    submission_major_type = db.Column(
+        db.Enum(SubmissionMajorType),
+        default=SubmissionMajorType.unknown,
+        index=True,
+        nullable=False,
+    )
 
     commit = db.Column(db.String(length=40), nullable=False, unique=True)
 

@@ -40,7 +40,7 @@ class SubmissionManager(object):
     def ensure_initialed(self):
         if not self.initialized:
             assert self.gl is None
-            logging.info('Logging into Submission GitLab...')
+            log.info('Logging into Submission GitLab...')
             remote_uri = self.app.config.get('GITLAB_REMOTE_URI', None)
             remote_personal_access_token = self.app.config.get(
                 'GITLAB_REMOTE_LOGIN_PAT', None
@@ -50,7 +50,8 @@ class SubmissionManager(object):
                 remote_uri, private_token=remote_personal_access_token
             )
             self.gl.auth()
-            logging.info('Logged in: %r' % (self.gl,))
+            log.info('Logged in: %r' % (self.gl,))
+            self.initialized = True
 
 
 def init_app(app, **kwargs):
