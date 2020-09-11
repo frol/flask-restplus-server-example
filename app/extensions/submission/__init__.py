@@ -9,7 +9,10 @@ import logging
 from flask import current_app, request, session, render_template  # NOQA
 from flask_login import current_user  # NOQA
 import gitlab
-import git  # NOQA
+import git
+import json
+import os
+from pathlib import Path
 
 import pytz
 
@@ -65,6 +68,9 @@ class SubmissionManager(object):
                         {'name': remote_namespace, 'path': path}
                     )
                     namespace = self.gl.namespaces.get(id=group.id)
+                    namespaces = self.gl.namespaces.list(search=remote_namespace)
+                assert len(namespaces) == 1
+                namespace = namespaces[0]
 
             self.namespace = namespace
             log.info('Using namespace: %r' % (self.namespace,))
@@ -72,32 +78,103 @@ class SubmissionManager(object):
             self.initialized = True
 
     def init_repository(self, submission, remote=True):
+        project = None
+
         if remote:
             self.ensure_initialed()
 
-            description = ' - '.join([submission.title, submission.description])
-            project = self.gl.projects.create(
-                {
-                    'path': str(submission.guid),
-                    'description': description,
-                    'emails_disabled': True,
-                    'namespace_id': self.namespace.id,
-                    'visibility': 'private',
-                    'merge_method': 'rebase_merge',
-                    'lfs_enabled': True,
-                    # 'tag_list': [],
-                }
-            )
-            remote_url = project.web_url
-        else:
-            remote_url = None
+            projects = self.gl.projects.list(search=str(submission.guid))
+            if len(projects) == 1:
+                project_ = projects[0]
+                if project_.path == str(submission.guid):
+                    if project_.namespace['id'] == self.namespace.id:
+                        args = (
+                            project_.namespace['name'],
+                            project_.path,
+                        )
+                        log.info(
+                            'Found existing remote project in GitLab: %r / %r' % args
+                        )
+                        project = project_
+
+            if project is None:
+                args = (
+                    self.namespace,
+                    submission.guid,
+                )
+                log.info('Creating remote project in GitLab: %r / %r' % args)
+                description = ' - '.join([submission.title, submission.description])
+                project = self.gl.projects.create(
+                    {
+                        'path': str(submission.guid),
+                        'description': description,
+                        'emails_disabled': True,
+                        'namespace_id': self.namespace.id,
+                        'visibility': 'private',
+                        'merge_method': 'rebase_merge',
+                        'lfs_enabled': True,
+                        # 'tag_list': [],
+                    }
+                )
 
         # Initialize local repo
-        print(remote_url)
+        submissions_database_path = self.app.config.get('SUBMISSIONS_DATABASE_PATH', None)
+        assert submissions_database_path is not None
+        assert os.path.exists(submissions_database_path)
 
-        import utool as ut
+        submission_path = os.path.join(submissions_database_path, str(submission.guid))
 
-        ut.embed()
+        submission_git_path = os.path.join(submission_path, '.git')
+        submission_sub_path = os.path.join(submission_path, '_submission')
+        submission_asset_path = os.path.join(submission_path, '_assets')
+        submission_metadata_path = os.path.join(submission_path, 'metadata.json')
+
+        # Submission Repo Structure:
+        #     _db/submissions/<submission GUID>/
+        #         - .git/
+        #         - _submission/
+        #         - - <user's uploaded data>
+        #         - _assets/
+        #         - - <symlinks into _submission/ folder> with name <asset GUID >.ext --> ../_submissions/path/to/asset/original_name.ext
+        #         - metadata.json
+
+        if not os.path.exists(submission_path):
+            log.info('Creating submissions structure: %r' % (submission_path,))
+            os.mkdir(submission_path)
+
+        # Create the repo
+        if not os.path.exists(submission_git_path):
+            repo = git.Repo.init(submission_path)
+            assert len(repo.remotes) == 0
+        else:
+            repo = git.Repo(submission_path)
+
+        if project is not None:
+            if len(repo.remotes) == 0:
+                origin = repo.create_remote('origin', project.web_url)
+            else:
+                origin = repo.remotes.origin
+            assert origin.url == project.web_url
+
+        if not os.path.exists(submission_sub_path):
+            os.mkdir(submission_sub_path)
+        Path(os.path.join(submission_sub_path, '.temp')).touch()
+
+        if not os.path.exists(submission_asset_path):
+            os.mkdir(submission_asset_path)
+        Path(os.path.join(submission_asset_path, '.temp')).touch()
+
+        if not os.path.exists(submission_metadata_path):
+            with open(submission_metadata_path, 'w') as submission_metadata_file:
+                json.dump({}, submission_metadata_file)
+
+        with open(submission_metadata_path, 'r') as submission_metadata_file:
+            submission_metadata = json.load(submission_metadata_file)
+
+        with open(submission_metadata_path, 'w') as submission_metadata_file:
+            json.dump(submission_metadata, submission_metadata_file)
+
+        return repo, project
 
 
 def init_app(app, **kwargs):

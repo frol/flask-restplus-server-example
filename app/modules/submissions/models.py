@@ -29,13 +29,13 @@ class Submission(db.Model, TimestampViewed):
     Submission database model.
 
     Submission Structure:
-        _submissions/<submission GUID>/
-        - .git/
-        - _submission/
-        - - <user's uploaded data>
-        - _assets/
-        - - <symlinks into _submission/ folder> with name <asset GUID >.ext --> ../_submissions/path/to/asset/original_name.ext
-        - metadata.json
+        _db/submissions/<submission GUID>/
+            - .git/
+            - _submission/
+            - - <user's uploaded data>
+            - _assets/
+            - - <symlinks into _submission/ folder> with name <asset GUID >.ext --> ../_submissions/path/to/asset/original_name.ext
+            - metadata.json
     """
 
     guid = db.Column(
