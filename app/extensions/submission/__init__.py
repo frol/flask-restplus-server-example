@@ -25,7 +25,7 @@ PST = pytz.timezone('US/Pacific')
 
 
 class SubmissionManager(object):
-    def __init__(self, app, pre_initialize=True, *args, **kwargs):
+    def __init__(self, app, pre_initialize=False, *args, **kwargs):
         super(SubmissionManager, self).__init__(*args, **kwargs)
         self.initialized = False
 
@@ -52,6 +52,14 @@ class SubmissionManager(object):
             self.gl.auth()
             log.info('Logged in: %r' % (self.gl,))
             self.initialized = True
+
+    def init_repository(self, submission, local=True, remote=True):
+        if remote:
+            self.ensure_initialed()
+
+        import utool as ut
+
+        ut.embed()
 
 
 def init_app(app, **kwargs):
