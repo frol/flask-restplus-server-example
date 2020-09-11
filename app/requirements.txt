@@ -32,6 +32,8 @@ Pillow
 premailer
 
 pygeocoder
+python-gitlab
+
 scikit-build
 
 sentry-sdk>=0.10.2

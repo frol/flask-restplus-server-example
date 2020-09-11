@@ -1,32 +1,36 @@
 # -*- coding: utf-8 -*-
 """
-Assets database models
+Submissions database models
 --------------------
 """
-from flask import current_app
-import os
 
-from app.extensions import db, TimestampViewed
+from sqlalchemy_utils import Timestamp
+
+from app.extensions import db
 
 import uuid
 
 
-class Asset(db.Model, TimestampViewed):
+class Submission(db.Model, TimestampViewed):
     """
-    Assets database model.
+    Submission database model.
     """
 
     guid = db.Column(
         db.GUID, default=uuid.uuid4, primary_key=True
     )  # pylint: disable=invalid-name
 
+    _hash =
+
+    title =
     description =
     metadata =
 
-    submission_guid =
-    submission
+    submitter_guid =
+    submitter =
 
-    ext = db.Column(db.String(length=5), nullable=False)
+    owner_guid =
+    owner =
 
     def __repr__(self):
         return (
@@ -38,7 +42,7 @@ class Asset(db.Model, TimestampViewed):
 
     @property
     def absolute_filepath(self):
-        asset_path = current_app.config.get('ASSET_DATABASE_PATH', None)
+        asset_path = current_app.config.get('SUBMISSION_DATABASE_PATH', None)
         asset_filname = '%s%s' % (self.code, self.ext,)
         asset_filepath = os.path.join(asset_path, asset_filname,)
 

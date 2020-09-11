@@ -72,6 +72,7 @@ class BaseConfig(object):
 
     ENABLED_MODULES = (
         # THIS ORDERING IS VERY SPECIFIC AND INFLUENCES WHICH MODULES CAN DEPEND ON EACH OTHER
+        'submissions',
         'assets',
         'auth',
         'frontend',
