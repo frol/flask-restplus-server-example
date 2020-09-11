@@ -58,6 +58,7 @@ class Submissions(Resource):
             args['owner_guid'] = current_user.guid
             submission = Submission(**args)
             db.session.add(submission)
+        submission.init_repository()
         return submission
 
 
