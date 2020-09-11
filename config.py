@@ -39,6 +39,8 @@ class BaseConfig(object):
     PROJECT_ROOT = PROJECT_ROOT
     PROJECT_DATABASE_PATH = PROJECT_DATABASE_PATH
 
+    SUBMISSIONS_DATABASE_PATH = os.path.join(PROJECT_DATABASE_PATH, 'submissions')
+
     ASSET_DATABASE_PATH = os.path.join(PROJECT_DATABASE_PATH, 'assets')
     ASSET_ALLOWED_EXTS = [
         '.jpg',
