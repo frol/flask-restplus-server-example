@@ -116,7 +116,14 @@ class EDMConfig(object):
     }
 
 
-class ProductionConfig(BaseConfig, EDMConfig, SecretProductionConfig):
+class SubmissionGitLabRemoteConfig(object):
+    GITLAB_REMOTE_URI = 'https://sub.dyn.wildme.io/'
+    GITLAB_NAMESPACE = 'TEST'
+
+
+class ProductionConfig(
+    BaseConfig, EDMConfig, SubmissionGitLabRemoteConfig, SecretProductionConfig
+):
     TESTING = False
 
     BASE_URL = 'https://hoston.dyn.wildme.io/'
@@ -130,7 +137,9 @@ class ProductionConfig(BaseConfig, EDMConfig, SecretProductionConfig):
     SENTRY_DSN = 'https://140fc4d010bb43b28417ab57b0e41b44@sentry.dyn.wildme.io/3'
 
 
-class DevelopmentConfig(BaseConfig, EDMConfig, SecretDevelopmentConfig):
+class DevelopmentConfig(
+    BaseConfig, EDMConfig, SubmissionGitLabRemoteConfig, SecretDevelopmentConfig
+):
     DEBUG = True
 
     BASE_URL = 'https://wildme.ngrok.io/'
