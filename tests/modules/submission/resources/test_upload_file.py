@@ -3,24 +3,25 @@
 import json
 
 
-def test_upload_file_to_submission(flask_app_client, regular_user, db):
+def test_create_open_submission(flask_app_client, regular_user, db):
     # pylint: disable=invalid-name
     try:
-        test_submission_major_type = 'test'
+
+        from app.modules.submissions.models import Submission, SubmissionMajorType
+
+        test_major_type = SubmissionMajorType.test
 
         with flask_app_client.login(regular_user, auth_scopes=('submissions:write',)):
             response = flask_app_client.post(
                 '/api/v1/submissions/',
                 data=json.dumps(
                     {
-                        'submission_major_type': test_submission_major_type,
+                        'major_type': test_major_type,
                         'title': 'Test Submission',
                         'description': 'This is a test submission, please ignore',
                     }
                 ),
             )
-
-        from app.modules.submissions.models import Submission
 
         temp_submission = Submission.query.get(response.json['guid'])
 
@@ -30,12 +31,12 @@ def test_upload_file_to_submission(flask_app_client, regular_user, db):
         assert set(response.json.keys()) >= {
             'guid',
             'commit',
-            'submission_major_type',
+            'major_type',
             'owner_guid',
         }
 
         assert temp_submission.commit is None
-        assert temp_submission.submission_major_type == test_submission_major_type
+        assert temp_submission.major_type == test_major_type
     except Exception as ex:
         raise ex
     finally:

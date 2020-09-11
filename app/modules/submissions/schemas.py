@@ -20,7 +20,7 @@ class BaseSubmissionSchema(ModelSchema):
         fields = (
             Submission.guid.key,
             Submission.commit.key,
-            Submission.submission_major_type.key,
+            Submission.major_type.key,
             Submission.title.key,
             Submission.description.key,
         )

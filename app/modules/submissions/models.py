@@ -42,7 +42,7 @@ class Submission(db.Model, TimestampViewed):
         db.GUID, default=uuid.uuid4, primary_key=True
     )  # pylint: disable=invalid-name
 
-    submission_major_type = db.Column(
+    major_type = db.Column(
         db.Enum(SubmissionMajorType),
         default=SubmissionMajorType.unknown,
         index=True,
