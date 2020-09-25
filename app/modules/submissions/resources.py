@@ -63,6 +63,33 @@ class Submissions(Resource):
         log.info('Initialized REMOTE Repo: %r' % (project.web_url,))
         return submission
 
+@api.route('/streamlined')
+@api.login_required(oauth_scopes=['submissions:write'])
+class SubmissionsStreamlined(Resource):
+    """
+    Manipulations with Submissions + File add/commit.
+    """
+
+    @api.parameters(parameters.CreateSubmissionParameters())
+    @api.response(schemas.DetailedSubmissionSchema())
+    @api.response(code=HTTPStatus.CONFLICT)
+    def post(self, args):
+        """
+        Create a new instance of Submission.
+        """
+        context = api.commit_or_abort(
+            db.session, default_error_message='Failed to create a new Submission'
+        )
+        with context:
+            args['owner_guid'] = current_user.guid
+            submission = Submission(**args)
+            db.session.add(submission)
+        repo, project = submission.init_repository()
+        log.info('Initialized LOCAL  Repo: %r' % (repo.working_tree_dir,))
+        log.info('Initialized REMOTE Repo: %r' % (project.web_url,))
+        for file in request.files:
+            ############## mv into local repo & commit to submission
+        return submission
 
 @api.route('/<uuid:submission_guid>')
 @api.login_required(oauth_scopes=['submissions:read'])
