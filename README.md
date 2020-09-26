@@ -8,7 +8,7 @@
 
 ![Houston](https://raw.githubusercontent.com/frol/flask-restplus-server-example/master/docs/static/Flask_RESTplus_Example_API.png)
 
-Wildbook - Houston Backend Server
+Wild Me - Houston Backend Server
 ======================================================
 
 This project showcases my vision on how the RESTful API server should be
