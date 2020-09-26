@@ -29,8 +29,6 @@ The goals that were achived in this example:
 I had to patch Flask-RESTplus (see `flask_restplus_patched` folder), so it can
 handle Marshmallow schemas and Webargs arguments.
 
-Here is how it looks at this point of time ([live demo](http://flask-restplus-example-server.herokuapp.com/api/v1/)):
-
 <!--
 ![Flask RESTplus Example API](https://raw.githubusercontent.com/frol/flask-restplus-server-example/master/docs/static/Flask_RESTplus_Example_API.png)
  -->
