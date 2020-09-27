@@ -6,7 +6,9 @@ RESTful API Submissions resources
 """
 
 import logging
+import os
 
+from flask import request, current_app
 from flask_login import current_user
 from flask_restplus_patched import Resource
 from flask_restplus._http import HTTPStatus
@@ -87,8 +89,15 @@ class SubmissionsStreamlined(Resource):
         repo, project = submission.init_repository()
         log.info('Initialized LOCAL  Repo: %r' % (repo.working_tree_dir,))
         log.info('Initialized REMOTE Repo: %r' % (project.web_url,))
-        for file in request.files:
-            ############## mv into local repo & commit to submission
+        for file in request.files.getlist('files'):
+            file.save(os.path.join(repo.working_tree_dir, file.filename))
+            repo.index.add(file.filename)
+            log.info('Wrote file and added to local repo: %r' % (file.filename,))
+        repo.index.commit('Initial commit via SubmissionsStreamlined')
+        ############## TODO need to figure out how to authenticate git here!!
+        #remote_personal_access_token = current_app.config.get('GITLAB_REMOTE_LOGIN_PAT', None)
+        #os.environ['GIT_PASSWORD'] = remote_personal_access_token   .... :( 
+        #repo.git.push('--set-upstream', repo.remotes.origin, repo.head.ref)
         return submission
 
 @api.route('/<uuid:submission_guid>')
