@@ -102,7 +102,12 @@ class Submission(db.Model, TimestampViewed):
         """
         Traverse the files in the _submission/ folder and add/update symlinks
         for any relevant files we identify
+
+        Ref:
+            https://pypi.org/project/python-magic/
         """
+        import magic
+
         pass
 
     def git_push(self):
