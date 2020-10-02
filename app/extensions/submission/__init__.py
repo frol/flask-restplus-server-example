@@ -176,6 +176,21 @@ class SubmissionManager(object):
 
         return repo, project
 
+    def get_repository(self, submission):
+        submissions_database_path = self.app.config.get('SUBMISSIONS_DATABASE_PATH', None)
+        assert submissions_database_path is not None
+        assert os.path.exists(submissions_database_path)
+
+        submission_path = os.path.join(submissions_database_path, str(submission.guid))
+        submission_git_path = os.path.join(submission_path, '.git')
+
+        if not os.path.exists(submission_git_path):
+            repo = None
+        else:
+            repo = git.Repo(submission_path)
+
+        return repo
+
 
 def init_app(app, **kwargs):
     # pylint: disable=unused-argument

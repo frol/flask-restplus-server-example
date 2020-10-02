@@ -71,6 +71,9 @@ class Submission(db.Model, TimestampViewed):
     def init_repository(self):
         return current_app.sub.init_repository(self)
 
+    def get_repository(self):
+        return current_app.sub.get_repository(self)
+
     @property
     def absolute_filepath(self):
         asset_path = current_app.config.get('SUBMISSION_DATABASE_PATH', None)

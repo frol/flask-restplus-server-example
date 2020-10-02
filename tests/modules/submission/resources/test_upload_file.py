@@ -89,7 +89,7 @@ def test_submission_streamlined(flask_app_client, regular_user, db):
         }
 
         # is this the right way to get (local) repo ??
-        repo, project = temp_submission.init_repository()
+        repo = temp_submission.get_repository()
 
         # ### compares file in local repo
         for filename in test_image_list:
