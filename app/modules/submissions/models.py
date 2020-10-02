@@ -86,14 +86,24 @@ class Submission(db.Model, TimestampViewed):
         upload_file.save(file_repo_path)
         log.info('Wrote file upload and added to local repo: %r' % (file_repo_path,))
 
-    def git_commit(self, message):
+    def git_commit(self, message, update=True):
         repo = self.get_repository()
 
         repo.index.add('_assets/')
         repo.index.add('_submission/')
         repo.index.add('metadata.json')
 
+        if update:
+            self.update_asset_symlinks()
+
         repo.index.commit(message)
+
+    def update_asset_symlinks(self):
+        """
+        Traverse the files in the _submission/ folder and add/update symlinks
+        for any relevant files we identify
+        """
+        pass
 
     def git_push(self):
         repo = self.get_repository()
