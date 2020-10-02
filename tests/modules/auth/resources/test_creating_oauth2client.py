@@ -6,7 +6,10 @@ import six
 
 @pytest.mark.parametrize(
     'auth_scopes,redirect_uris',
-    ((['auth:write'], ['http://1', 'http://2']), (['auth:write', 'auth:read'], None),),
+    (
+        (['auth:write'], ['http://1', 'http://2']),
+        (['auth:write', 'auth:read'], None),
+    ),
 )
 def test_creating_oauth2_client(
     flask_app_client, regular_user, db, auth_scopes, redirect_uris
@@ -53,7 +56,13 @@ def test_creating_oauth2_client(
 
 
 @pytest.mark.parametrize(
-    'auth_scopes', ([], ['auth:read'], ['auth:read', 'user:read'], ['user:read'],)
+    'auth_scopes',
+    (
+        [],
+        ['auth:read'],
+        ['auth:read', 'user:read'],
+        ['user:read'],
+    ),
 )
 def test_creating_oauth2_client_by_unauthorized_user_must_fail(
     flask_app_client, regular_user, auth_scopes

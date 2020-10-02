@@ -63,7 +63,8 @@ class Encounters(Resource):
 @api.route('/<uuid:encounter_guid>')
 @api.login_required(oauth_scopes=['encounters:read'])
 @api.response(
-    code=HTTPStatus.NOT_FOUND, description='Encounter not found.',
+    code=HTTPStatus.NOT_FOUND,
+    description='Encounter not found.',
 )
 @api.resolve_object_by_model(Encounter, 'encounter')
 class EncounterByID(Resource):

@@ -56,7 +56,7 @@ class CreateUserParameters(Parameters, schemas.BaseUserSchema):
 
     @validates_schema
     def validate_captcha(self, data):
-        """"
+        """ "
         Check reCAPTCHA if necessary.
 
         NOTE: we remove 'recaptcha_key' from data once checked because we don't need it

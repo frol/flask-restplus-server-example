@@ -60,7 +60,9 @@ from invoke.executor import Executor  # NOQA
 from . import app  # NOQA
 
 # NOTE: `namespace` or `ns` name is required!
-namespace = Collection(app,)
+namespace = Collection(
+    app,
+)
 
 
 def invoke_execute(context, command_name, **kwargs):

@@ -65,7 +65,8 @@ class Organizations(Resource):
 @api.route('/<uuid:organization_guid>')
 @api.login_required(oauth_scopes=['organizations:read'])
 @api.response(
-    code=HTTPStatus.NOT_FOUND, description='Organization not found.',
+    code=HTTPStatus.NOT_FOUND,
+    description='Organization not found.',
 )
 @api.resolve_object_by_model(Organization, 'organization')
 class OrganizationByID(Resource):

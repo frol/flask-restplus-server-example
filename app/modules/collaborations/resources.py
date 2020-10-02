@@ -65,7 +65,8 @@ class Collaborations(Resource):
 @api.route('/<uuid:collaboration_guid>')
 @api.login_required(oauth_scopes=['collaborations:read'])
 @api.response(
-    code=HTTPStatus.NOT_FOUND, description='Collaboration not found.',
+    code=HTTPStatus.NOT_FOUND,
+    description='Collaboration not found.',
 )
 @api.resolve_object_by_model(Collaboration, 'collaboration')
 class CollaborationByID(Resource):

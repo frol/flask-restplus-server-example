@@ -48,7 +48,9 @@ class AutoAuthFlaskClient(FlaskClient):
             from app.modules.auth.models import OAuth2Client, OAuth2Token
 
             oauth2_client = OAuth2Client(
-                secret='SECRET', user=self._user, default_scopes=[],
+                secret='SECRET',
+                user=self._user,
+                default_scopes=[],
             )
 
             oauth2_bearer_token = OAuth2Token(

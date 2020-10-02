@@ -33,7 +33,10 @@ from .views import (
 log = logging.getLogger(__name__)
 
 backend_blueprint = Blueprint(
-    'backend', __name__, url_prefix='/houston', static_folder=HOUSTON_STATIC_ROOT,
+    'backend',
+    __name__,
+    url_prefix='/houston',
+    static_folder=HOUSTON_STATIC_ROOT,
 )  # pylint: disable=invalid-name
 
 
@@ -105,7 +108,13 @@ def user_login(email=None, password=None, remember=None, refer=None, *args, **kw
 
             if status:
                 # User logged in organically.
-                log.info('Logged in User (remember = %s): %r' % (remember, user,))
+                log.info(
+                    'Logged in User (remember = %s): %r'
+                    % (
+                        remember,
+                        user,
+                    )
+                )
                 flash('Logged in successfully.', 'success')
                 create_session_oauth2_token()
 

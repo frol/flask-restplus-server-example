@@ -55,10 +55,19 @@ def process_file_upload(square=False):
 
         # Sanity check
         asset_filename = secure_filename(asset_filename)
-        asset_filepath = os.path.join(asset_path, asset_filename,)
+        asset_filepath = os.path.join(
+            asset_path,
+            asset_filename,
+        )
 
-        final_asset_filepath = '%s%s' % (asset_code, FINAL_EXT,)
-        final_asset_filepath = os.path.join(asset_path, final_asset_filepath,)
+        final_asset_filepath = '%s%s' % (
+            asset_code,
+            FINAL_EXT,
+        )
+        final_asset_filepath = os.path.join(
+            asset_path,
+            final_asset_filepath,
+        )
 
         # Check if we have a database asset with that code (very unlikely)
         existing_asset = Asset.query.filter_by(code=asset_code).first()
@@ -150,7 +159,8 @@ class Assets(Resource):
 @api.route('/<uuid:asset_guid>')
 @api.login_required(oauth_scopes=['assets:read'])
 @api.response(
-    code=HTTPStatus.NOT_FOUND, description='Asset not found.',
+    code=HTTPStatus.NOT_FOUND,
+    description='Asset not found.',
 )
 @api.resolve_object_by_model(Asset, 'asset')
 class AssetByID(Resource):

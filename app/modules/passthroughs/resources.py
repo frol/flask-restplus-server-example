@@ -55,7 +55,10 @@ def _request_passthrough(target, path, request_func, passthrough_kwargs):
         raise BadRequest('The specified target %r is invalid.' % (target,))
 
     endpoint_url_ = current_app.edm.get_target_endpoint_url(target)
-    endpoint = '%s/%s' % (endpoint_url_, path,)
+    endpoint = '%s/%s' % (
+        endpoint_url_,
+        path,
+    )
 
     headers = passthrough_kwargs.get('headers', {})
     allowed_header_key_list = [

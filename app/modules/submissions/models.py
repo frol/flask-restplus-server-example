@@ -74,8 +74,14 @@ class Submission(db.Model, TimestampViewed):
     @property
     def absolute_filepath(self):
         asset_path = current_app.config.get('SUBMISSION_DATABASE_PATH', None)
-        asset_filname = '%s%s' % (self.code, self.ext,)
-        asset_filepath = os.path.join(asset_path, asset_filname,)
+        asset_filname = '%s%s' % (
+            self.code,
+            self.ext,
+        )
+        asset_filepath = os.path.join(
+            asset_path,
+            asset_filname,
+        )
 
         asset_filepath = os.path.abspath(asset_filepath)
         assert os.path.exists(asset_filepath)

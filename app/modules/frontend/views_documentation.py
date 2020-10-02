@@ -17,7 +17,9 @@ from .views import DOCUMENTATION_STATIC_ROOT
 log = logging.getLogger(__name__)
 
 documentation_blueprint = Blueprint(
-    'swagger-ui', __name__, static_folder=DOCUMENTATION_STATIC_ROOT,
+    'swagger-ui',
+    __name__,
+    static_folder=DOCUMENTATION_STATIC_ROOT,
 )  # pylint: disable=invalid-name
 
 

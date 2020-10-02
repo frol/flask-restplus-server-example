@@ -218,7 +218,14 @@ class Namespace(OriginalNamespace):
 
         return wrapper
 
-    def login_required(self, oauth_scopes, locations=('headers', 'session',)):
+    def login_required(
+        self,
+        oauth_scopes,
+        locations=(
+            'headers',
+            'session',
+        ),
+    ):
         """
         A decorator which restricts access for authorized users only.
 
@@ -415,7 +422,8 @@ class Namespace(OriginalNamespace):
                 description='**PERMISSIONS: %s**\n\n' % permission_description
             )(
                 self.response(
-                    code=HTTPStatus.FORBIDDEN.value, description=permission_description,
+                    code=HTTPStatus.FORBIDDEN.value,
+                    description=permission_description,
                 )(protected_func)
             )
 

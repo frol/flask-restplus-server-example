@@ -89,7 +89,11 @@ def test_User_find_with_password(
     patch_User_password_scheme, db
 ):  # pylint: disable=unused-argument
     def create_user(email, password):
-        user = models.User(email=email, password=password, full_name='any any any',)
+        user = models.User(
+            email=email,
+            password=password,
+            full_name='any any any',
+        )
         return user
 
     user1 = create_user('user1@localhost', 'user1password')

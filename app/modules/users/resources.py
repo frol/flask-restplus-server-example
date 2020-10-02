@@ -63,7 +63,9 @@ class Users(Resource):
             for term in search:
                 codes = (
                     Code.query.filter_by(code_type=CodeTypes.checkin)
-                    .filter(Code.accept_code.contains(term),)
+                    .filter(
+                        Code.accept_code.contains(term),
+                    )
                     .all()
                 )
                 code_users = set([])
@@ -140,7 +142,8 @@ class Users(Resource):
 @api.route('/<uuid:user_guid>')
 @api.login_required(oauth_scopes=['users:read'])
 @api.response(
-    code=HTTPStatus.NOT_FOUND, description='User not found.',
+    code=HTTPStatus.NOT_FOUND,
+    description='User not found.',
 )
 @api.resolve_object_by_model(User, 'user')
 class UserByID(Resource):
@@ -186,7 +189,8 @@ class UserByID(Resource):
 @api.route('/picture/<uuid:user_guid>')
 @api.login_required(oauth_scopes=['assets:read', 'users:read'])
 @api.response(
-    code=HTTPStatus.NOT_FOUND, description='User not found.',
+    code=HTTPStatus.NOT_FOUND,
+    description='User not found.',
 )
 @api.resolve_object_by_model(User, 'user')
 class UserArtworkByID(Resource):

@@ -8,7 +8,12 @@ from ._utils import app_context_task
 
 @app_context_task(help={'email': 'temp@localhost'})
 def create_user(
-    context, email, is_internal=False, is_admin=False, is_staff=False, is_active=True,
+    context,
+    email,
+    is_internal=False,
+    is_admin=False,
+    is_staff=False,
+    is_active=True,
 ):
     """
     Create a new user.
@@ -50,7 +55,10 @@ def create_oauth2_client(context, email, guid, secret, default_scopes=None):
         default_scopes = list(api_v1.authorizations['oauth2_password']['scopes'].keys())
 
     oauth2_client = OAuth2Client(
-        guid=guid, secret=secret, user=user, default_scopes=default_scopes,
+        guid=guid,
+        secret=secret,
+        user=user,
+        default_scopes=default_scopes,
     )
 
     from app.extensions import db

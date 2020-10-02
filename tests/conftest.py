@@ -69,7 +69,10 @@ def admin_user(temp_db_instance_helper):
 @pytest.yield_fixture(scope='session')
 def regular_user(temp_db_instance_helper):
     for _ in temp_db_instance_helper(
-        utils.generate_user_instance(email='test@localhost', is_active=True,)
+        utils.generate_user_instance(
+            email='test@localhost',
+            is_active=True,
+        )
     ):
         yield _
 

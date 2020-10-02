@@ -4,7 +4,13 @@ import pytest
 import uuid
 
 
-@pytest.mark.parametrize('auth_scopes', (['auth:read'], ['auth:read', 'auth:write'],))
+@pytest.mark.parametrize(
+    'auth_scopes',
+    (
+        ['auth:read'],
+        ['auth:read', 'auth:write'],
+    ),
+)
 def test_getting_list_of_oauth2_clients_by_authorized_user(
     flask_app_client, regular_user, regular_user_oauth2_client, auth_scopes
 ):
@@ -19,7 +25,14 @@ def test_getting_list_of_oauth2_clients_by_authorized_user(
     assert uuid.UUID(response.json[0]['guid']) == regular_user_oauth2_client.guid
 
 
-@pytest.mark.parametrize('auth_scopes', ([], ['users:read'], ['auth:write'],))
+@pytest.mark.parametrize(
+    'auth_scopes',
+    (
+        [],
+        ['users:read'],
+        ['auth:write'],
+    ),
+)
 def test_getting_list_of_oauth2_clients_by_unauthorized_user_must_fail(
     flask_app_client, regular_user, auth_scopes
 ):

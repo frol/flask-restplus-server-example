@@ -81,10 +81,16 @@ class EDMManagerEndpointMixin(object):
 
         if endpoint_tag_fmtstr.startswith('//'):
             endpoint_tag_fmtstr = endpoint_tag_fmtstr[2:]
-            endpoint_tag_fmtstr = '%s/%s' % (self.ENDPOINT_PREFIX, endpoint_tag_fmtstr,)
+            endpoint_tag_fmtstr = '%s/%s' % (
+                self.ENDPOINT_PREFIX,
+                endpoint_tag_fmtstr,
+            )
 
         endpoint_url_ = self.get_target_endpoint_url(target)
-        endpoint_fmtstr = '%s/%s' % (endpoint_url_, endpoint_tag_fmtstr,)
+        endpoint_fmtstr = '%s/%s' % (
+            endpoint_url_,
+            endpoint_tag_fmtstr,
+        )
         return endpoint_fmtstr
 
     def _endpoint_tag_fmtstr(self, tag):
@@ -419,7 +425,10 @@ class EDMObjectMixin(object):
                     if edm_attribute in self.EDM_LOG_ATTRIBUTES:
                         log.info(
                             'Logging requested edm_attribute %r = %r'
-                            % (edm_attribute, edm_value,)
+                            % (
+                                edm_attribute,
+                                edm_value,
+                            )
                         )
 
                     assert hasattr(self, attribute), 'User attribute not found'

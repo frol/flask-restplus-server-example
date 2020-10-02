@@ -13,7 +13,9 @@ def init_app(app, **kwargs):
     Init Submissions module.
     """
     api_v1.add_oauth_scope('submissions:read', 'Provide access to Submissions details')
-    api_v1.add_oauth_scope('submissions:write', 'Provide write access to Submissions details')
+    api_v1.add_oauth_scope(
+        'submissions:write', 'Provide write access to Submissions details'
+    )
 
     # Touch underlying modules
     from . import models, resources  # NOQA

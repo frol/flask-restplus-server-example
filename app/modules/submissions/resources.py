@@ -121,7 +121,9 @@ class SubmissionsStreamlined(Resource):
         # PUSH
         log.info('Pushing to authorized URL: %r' % (original_url,))
         repo.git.push('--set-upstream', repo.remotes.origin, repo.head.ref)
-        log.info('...pushed to %s' % (repo.head.ref),)
+        log.info(
+            '...pushed to %s' % (repo.head.ref),
+        )
 
         # Reset URL on remote
         repo.remotes.origin.set_url(original_url)
@@ -132,7 +134,8 @@ class SubmissionsStreamlined(Resource):
 @api.route('/<uuid:submission_guid>')
 @api.login_required(oauth_scopes=['submissions:read'])
 @api.response(
-    code=HTTPStatus.NOT_FOUND, description='Submission not found.',
+    code=HTTPStatus.NOT_FOUND,
+    description='Submission not found.',
 )
 @api.resolve_object_by_model(Submission, 'submission')
 class SubmissionByID(Resource):

@@ -171,7 +171,10 @@ class OAuth2Grant(db.Model):
     user = db.relationship('User')
 
     client_guid = db.Column(
-        db.GUID, db.ForeignKey('oauth2_client.guid'), index=True, nullable=False,
+        db.GUID,
+        db.ForeignKey('oauth2_client.guid'),
+        index=True,
+        nullable=False,
     )
     client = db.relationship('OAuth2Client')
 
@@ -213,7 +216,10 @@ class OAuth2Token(db.Model):
     )  # pylint: disable=invalid-name
 
     client_guid = db.Column(
-        db.GUID, db.ForeignKey('oauth2_client.guid'), index=True, nullable=False,
+        db.GUID,
+        db.ForeignKey('oauth2_client.guid'),
+        index=True,
+        nullable=False,
     )
     client = db.relationship('OAuth2Client')
 
@@ -429,7 +435,12 @@ class Code(db.Model, Timestamp):
     @classmethod
     def find(cls, code):
         matched_codes = (
-            Code.query.filter(or_(Code.accept_code == code, Code.reject_code == code,))
+            Code.query.filter(
+                or_(
+                    Code.accept_code == code,
+                    Code.reject_code == code,
+                )
+            )
             .order_by(cls.created.desc())
             .all()
         )

@@ -4,7 +4,15 @@ import pytest
 
 
 @pytest.mark.parametrize(
-    'auth_scopes', (('users:write',), ('users:read',), ('users:read', 'users:write',),)
+    'auth_scopes',
+    (
+        ('users:write',),
+        ('users:read',),
+        (
+            'users:read',
+            'users:write',
+        ),
+    ),
 )
 def test_getting_list_of_users_by_unauthorized_user_must_fail(
     flask_app_client, regular_user, auth_scopes
@@ -22,7 +30,14 @@ def test_getting_list_of_users_by_unauthorized_user_must_fail(
 
 
 @pytest.mark.parametrize(
-    'auth_scopes', (('users:read',), ('users:read', 'users:write',),)
+    'auth_scopes',
+    (
+        ('users:read',),
+        (
+            'users:read',
+            'users:write',
+        ),
+    ),
 )
 def test_getting_list_of_users_by_authorized_user(
     flask_app_client, admin_user, auth_scopes

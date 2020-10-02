@@ -22,23 +22,40 @@ DOCUMENTATION_CLIENT_SECRET = (
 def init_users():
     with db.session.begin():
         root_user = User(
-            email='root@localhost', password='q', is_active=True, is_admin=True,
+            email='root@localhost',
+            password='q',
+            is_active=True,
+            is_admin=True,
         )
         db.session.add(root_user)
 
-        docs_user = User(email='documentation@localhost', password='w', is_active=True,)
+        docs_user = User(
+            email='documentation@localhost',
+            password='w',
+            is_active=True,
+        )
         db.session.add(docs_user)
 
         staff_member = User(
-            email='staff@localhost', password='w', is_active=True, is_staff=True,
+            email='staff@localhost',
+            password='w',
+            is_active=True,
+            is_staff=True,
         )
         db.session.add(staff_member)
 
-        regular_user = User(email='test@localhost', password='w', is_active=True,)
+        regular_user = User(
+            email='test@localhost',
+            password='w',
+            is_active=True,
+        )
         db.session.add(regular_user)
 
         internal_user = User(
-            email='internal@localhost', password='q', is_active=True, is_internal=True,
+            email='internal@localhost',
+            password='q',
+            is_active=True,
+            is_internal=True,
         )
         db.session.add(internal_user)
 
