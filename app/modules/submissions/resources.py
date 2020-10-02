@@ -52,6 +52,27 @@ class Submissions(Resource):
     def post(self, args):
         """
         Create a new instance of Submission.
+
+        CommandLine:
+            EMAIL='test@localhost'
+            PASSWORD='test'
+            TIMESTAMP=$(date '+%Y%m%d-%H%M%S%Z')
+            curl \
+                -X POST \
+                -c cookie.jar \
+                -F email=${EMAIL} \
+                -F password=${PASSWORD} \
+                https://houston.dyn.wildme.io/api/v1/auth/sessions | jq
+            curl \
+                -X GET \
+                -b cookie.jar \
+                https://houston.dyn.wildme.io/api/v1/users/me | jq
+            curl \
+                -X POST \
+                -b cookie.jar \
+                -F title="Test Submission" \
+                -F description="This is a test submission (via CURL), please ignore" \
+                https://houston.dyn.wildme.io/api/v1/submissions/ | jq
         """
         context = api.commit_or_abort(
             db.session, default_error_message='Failed to create a new Submission'
@@ -77,8 +98,31 @@ class SubmissionsStreamlined(Resource):
     @api.response(schemas.DetailedSubmissionSchema())
     @api.response(code=HTTPStatus.CONFLICT)
     def post(self, args):
-        """
+        r"""
         Create a new instance of Submission.
+
+        CommandLine:
+            EMAIL='test@localhost'
+            PASSWORD='test'
+            TIMESTAMP=$(date '+%Y%m%d-%H%M%S%Z')
+            curl \
+                -X POST \
+                -c cookie.jar \
+                -F email=${EMAIL} \
+                -F password=${PASSWORD} \
+                https://houston.dyn.wildme.io/api/v1/auth/sessions | jq
+            curl \
+                -X GET \
+                -b cookie.jar \
+                https://houston.dyn.wildme.io/api/v1/users/me | jq
+            curl \
+                -X POST \
+                -b cookie.jar \
+                -F title="Test Submission" \
+                -F description="This is a test submission (via CURL), please ignore" \
+                -F files="@tests/submissions/test-000/zebra.jpg" \
+                -F files="@tests/submissions/test-000/fluke.jpg" \
+                https://houston.dyn.wildme.io/api/v1/submissions/streamlined | jq
         """
         context = api.commit_or_abort(
             db.session, default_error_message='Failed to create a new Submission'
