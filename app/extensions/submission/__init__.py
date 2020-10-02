@@ -146,6 +146,13 @@ class SubmissionManager(object):
         if not os.path.exists(submission_git_path):
             repo = git.Repo.init(submission_path)
             assert len(repo.remotes) == 0
+            gitlab_remote_public_name = self.app.config.get(
+                'GITLAB_REMOTE_PUBLIC_NAME', None
+            )
+            gitlab_remote_email = self.app.config.get('GITLAB_REMOTE_EMAIL', None)
+            assert None not in [gitlab_remote_public_name, gitlab_remote_email]
+            repo.git.config('user.name', gitlab_remote_public_name)
+            repo.git.config('user.email', gitlab_remote_email)
         else:
             repo = git.Repo(submission_path)
 
