@@ -6,9 +6,8 @@ RESTful API Submissions resources
 """
 
 import logging
-import os
 
-from flask import request, current_app
+from flask import request
 from flask_login import current_user
 from flask_restplus_patched import Resource
 from flask_restplus._http import HTTPStatus
@@ -50,7 +49,7 @@ class Submissions(Resource):
     @api.response(schemas.DetailedSubmissionSchema())
     @api.response(code=HTTPStatus.CONFLICT)
     def post(self, args):
-        """
+        r"""
         Create a new instance of Submission.
 
         CommandLine:
@@ -82,8 +81,6 @@ class Submissions(Resource):
             submission = Submission(**args)
             db.session.add(submission)
         repo, project = submission.init_repository()
-        log.info('Initialized LOCAL  Repo: %r' % (repo.working_tree_dir,))
-        log.info('Initialized REMOTE Repo: %r' % (project.web_url,))
         return submission
 
 
@@ -134,43 +131,12 @@ class SubmissionsStreamlined(Resource):
 
         repo, project = submission.init_repository()
 
-        log.info('Initialized LOCAL  Repo: %r' % (repo.working_tree_dir,))
-        log.info('Initialized REMOTE Repo: %r' % (project.web_url,))
+        for upload_file in request.files.getlist('files'):
+            submission.git_write_upload_file(upload_file)
 
-        for file in request.files.getlist('files'):
-            file_repo_path = os.path.join(
-                repo.working_tree_dir, '_submission', file.filename
-            )
-            file.save(file_repo_path)
-            log.info('Wrote file and added to local repo: %r' % (file_repo_path,))
+        submission.git_commit('Initial commit via %s' % (request.url_rule,))
 
-        repo.index.add('_assets/')
-        repo.index.add('_submission/')
-        repo.index.add('metadata.json')
-
-        repo.index.commit('Initial commit via %s' % (request.url_rule,))
-
-        # Get remote URL
-        original_url = repo.remotes.origin.url
-
-        # Update remote URL with PAT
-        remote_personal_access_token = current_app.config.get(
-            'GITLAB_REMOTE_LOGIN_PAT', None
-        )
-        push_url = original_url.replace(
-            'https://', 'https://oauth2:%s@' % (remote_personal_access_token,)
-        )
-        repo.remotes.origin.set_url(push_url)
-
-        # PUSH
-        log.info('Pushing to authorized URL: %r' % (original_url,))
-        repo.git.push('--set-upstream', repo.remotes.origin, repo.head.ref)
-        log.info(
-            '...pushed to %s' % (repo.head.ref),
-        )
-
-        # Reset URL on remote
-        repo.remotes.origin.set_url(original_url)
+        submission.git_push()
 
         return submission
 

@@ -288,7 +288,9 @@ class EDMManager(EDMManagerEndpointMixin, EDMManagerUserMixin):
             assert password is not None, message
 
             self.sessions[target] = requests.Session()
-            self._get('session.login', email, password, target=target)
+            self._get(
+                'session.login', email, password, target=target, ensure_initialized=False
+            )
             log.info('Created authenticated session for EDM target %r' % (target,))
 
     def ensure_initialed(self):
@@ -317,9 +319,11 @@ class EDMManager(EDMManagerEndpointMixin, EDMManagerUserMixin):
         decode_as_object=True,
         decode_as_dict=False,
         passthrough_kwargs={},
+        ensure_initialized=True,
         verbose=True
     ):
-        self.ensure_initialed()
+        if ensure_initialized:
+            self.ensure_initialed()
 
         method = method.lower()
         assert method in ['get', 'post', 'delete', 'put']

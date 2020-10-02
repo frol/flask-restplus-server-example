@@ -118,6 +118,8 @@ class EDMConfig(object):
 
 class SubmissionGitLabRemoteConfig(object):
     GITLAB_REMOTE_URI = 'https://sub.dyn.wildme.io/'
+    GITLAB_PUBLIC_NAME = 'Houston'
+    GITLAB_EMAIL = 'dev@wildme.org'
     GITLAB_NAMESPACE = 'TEST'
 
 

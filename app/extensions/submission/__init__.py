@@ -118,11 +118,7 @@ class SubmissionManager(object):
                 )
 
         # Initialize local repo
-        submissions_database_path = self.app.config.get('SUBMISSIONS_DATABASE_PATH', None)
-        assert submissions_database_path is not None
-        assert os.path.exists(submissions_database_path)
-
-        submission_path = os.path.join(submissions_database_path, str(submission.guid))
+        submission_path = submission.get_absolute_path()
 
         submission_git_path = os.path.join(submission_path, '.git')
         submission_sub_path = os.path.join(submission_path, '_submission')
@@ -146,10 +142,8 @@ class SubmissionManager(object):
         if not os.path.exists(submission_git_path):
             repo = git.Repo.init(submission_path)
             assert len(repo.remotes) == 0
-            gitlab_remote_public_name = self.app.config.get(
-                'GITLAB_REMOTE_PUBLIC_NAME', None
-            )
-            gitlab_remote_email = self.app.config.get('GITLAB_REMOTE_EMAIL', None)
+            gitlab_remote_public_name = self.app.config.get('GITLAB_PUBLIC_NAME', None)
+            gitlab_remote_email = self.app.config.get('GITLAB_EMAIL', None)
             assert None not in [gitlab_remote_public_name, gitlab_remote_email]
             repo.git.config('user.name', gitlab_remote_public_name)
             repo.git.config('user.email', gitlab_remote_email)
@@ -181,20 +175,19 @@ class SubmissionManager(object):
         with open(submission_metadata_path, 'w') as submission_metadata_file:
             json.dump(submission_metadata, submission_metadata_file)
 
+        log.info('Initialized LOCAL  Repo: %r' % (repo.working_tree_dir,))
+        log.info('Initialized REMOTE Repo: %r' % (project.web_url,))
+
         return repo, project
 
     def get_repository(self, submission):
-        submissions_database_path = self.app.config.get('SUBMISSIONS_DATABASE_PATH', None)
-        assert submissions_database_path is not None
-        assert os.path.exists(submissions_database_path)
-
-        submission_path = os.path.join(submissions_database_path, str(submission.guid))
+        submission_path = submission.get_absolute_path()
         submission_git_path = os.path.join(submission_path, '.git')
 
-        if not os.path.exists(submission_git_path):
-            repo = None
-        else:
+        if os.path.exists(submission_git_path):
             repo = git.Repo(submission_path)
+        else:
+            repo = None
 
         return repo
 
