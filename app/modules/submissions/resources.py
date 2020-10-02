@@ -65,6 +65,7 @@ class Submissions(Resource):
         log.info('Initialized REMOTE Repo: %r' % (project.web_url,))
         return submission
 
+
 @api.route('/streamlined')
 @api.login_required(oauth_scopes=['submissions:write'])
 class SubmissionsStreamlined(Resource):
@@ -86,19 +87,47 @@ class SubmissionsStreamlined(Resource):
             args['owner_guid'] = current_user.guid
             submission = Submission(**args)
             db.session.add(submission)
+
         repo, project = submission.init_repository()
+
         log.info('Initialized LOCAL  Repo: %r' % (repo.working_tree_dir,))
         log.info('Initialized REMOTE Repo: %r' % (project.web_url,))
+
         for file in request.files.getlist('files'):
-            file.save(os.path.join(repo.working_tree_dir, file.filename))
-            repo.index.add(file.filename)
-            log.info('Wrote file and added to local repo: %r' % (file.filename,))
-        repo.index.commit('Initial commit via SubmissionsStreamlined')
-        ############## TODO need to figure out how to authenticate git here!!
-        #remote_personal_access_token = current_app.config.get('GITLAB_REMOTE_LOGIN_PAT', None)
-        #os.environ['GIT_PASSWORD'] = remote_personal_access_token   .... :( 
-        #repo.git.push('--set-upstream', repo.remotes.origin, repo.head.ref)
+            file_repo_path = os.path.join(
+                repo.working_tree_dir, '_submission', file.filename
+            )
+            file.save(file_repo_path)
+            log.info('Wrote file and added to local repo: %r' % (file_repo_path,))
+
+        repo.index.add('_assets/')
+        repo.index.add('_submission/')
+        repo.index.add('metadata.json')
+
+        repo.index.commit('Initial commit via %s' % (request.url_rule,))
+
+        # Get remote URL
+        original_url = repo.remotes.origin.url
+
+        # Update remote URL with PAT
+        remote_personal_access_token = current_app.config.get(
+            'GITLAB_REMOTE_LOGIN_PAT', None
+        )
+        push_url = original_url.replace(
+            'https://', 'https://oauth2:%s@' % (remote_personal_access_token,)
+        )
+        repo.remotes.origin.set_url(push_url)
+
+        # PUSH
+        log.info('Pushing to authorized URL: %r' % (original_url,))
+        repo.git.push('--set-upstream', repo.remotes.origin, repo.head.ref)
+        log.info('...pushed to %s' % (repo.head.ref),)
+
+        # Reset URL on remote
+        repo.remotes.origin.set_url(original_url)
+
         return submission
+
 
 @api.route('/<uuid:submission_guid>')
 @api.login_required(oauth_scopes=['submissions:read'])
