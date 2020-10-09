@@ -8,6 +8,8 @@ from os.path import join, basename
 
 def test_create_open_submission(flask_app_client, regular_user, db):
     # pylint: disable=invalid-name
+    temp_submission = None
+
     try:
 
         from app.modules.submissions.models import Submission, SubmissionMajorType
@@ -44,14 +46,15 @@ def test_create_open_submission(flask_app_client, regular_user, db):
         raise ex
     finally:
         # Restore original state
-        with db.session.begin():
-            db.session.delete(temp_submission)
+        if temp_submission is not None:
+            temp_submission.delete()
 
 
 def test_submission_streamlined(flask_app_client, regular_user, db):
     # pylint: disable=invalid-name
-    try:
+    temp_submission = None
 
+    try:
         from app.modules.submissions.models import Submission, SubmissionMajorType
 
         test_major_type = SubmissionMajorType.test
@@ -88,24 +91,22 @@ def test_submission_streamlined(flask_app_client, regular_user, db):
             'owner_guid',
         }
 
-        # is this the right way to get (local) repo ??
         repo = temp_submission.get_repository()
 
-        # ### compares file in local repo
+        # compares file in local repo
         for filename in test_image_list:
             local_filepath = join(test_root, filename)
             repo_filepath = join(repo.working_tree_dir, '_submission', filename)
             assert filecmp.cmp(local_filepath, repo_filepath)
-        # ## TODO other tests?  confirm commit, confirm remote has files, etc?????  (once i get push working!)
 
-        assert temp_submission.commit is None
+        assert temp_submission.commit == repo.head.object.hexsha
         assert temp_submission.major_type == test_major_type
     except Exception as ex:
         raise ex
     finally:
         # Restore original state
-        with db.session.begin():
-            db.session.delete(temp_submission)
+        if temp_submission is not None:
+            temp_submission.delete()
 
 
 def _upload_content(path):

@@ -40,6 +40,34 @@ class BaseConfig(object):
     PROJECT_DATABASE_PATH = PROJECT_DATABASE_PATH
 
     SUBMISSIONS_DATABASE_PATH = os.path.join(PROJECT_DATABASE_PATH, 'submissions')
+    SUBMISSIONS_MIME_TYPE_WHITELIST = [
+        'application/json',
+        'application/ld+json',
+        'application/msword',
+        'application/octet-stream',
+        'application/ogg',
+        'application/pdf',
+        'application/rtf',
+        'application/vnd.ms-excel',
+        'application/vnd.oasis.opendocument.spreadsheet',
+        'application/vnd.oasis.opendocument.text',
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'application/xml',
+        'image/bmp',
+        'image/gif',
+        'image/jpeg',
+        'image/png',
+        'image/tiff',
+        'image/webp',
+        'text/csv',
+        'text/javascript',
+        'text/plain',
+        'text/xml',
+        'video/mpeg',
+        'video/ogg',
+        'video/webm',
+    ]
 
     ASSET_DATABASE_PATH = os.path.join(PROJECT_DATABASE_PATH, 'assets')
     ASSET_ALLOWED_EXTS = [

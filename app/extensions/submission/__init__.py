@@ -13,6 +13,7 @@ import git
 import json
 import os
 from pathlib import Path
+import utool as ut
 
 import pytz
 
@@ -37,6 +38,9 @@ class SubmissionManager(object):
 
         self.gl = None
         self.namespace = None
+
+        self.mime_type_whitelist = None
+        self.mime_type_whitelist_guid = None
 
         if pre_initialize:
             self.ensure_initialed()
@@ -74,6 +78,36 @@ class SubmissionManager(object):
 
             self.namespace = namespace
             log.info('Using namespace: %r' % (self.namespace,))
+
+            # Populate MIME type white-list for submission assets
+            submissions_mime_type_whitelist = self.app.config.get(
+                'SUBMISSIONS_MIME_TYPE_WHITELIST', []
+            )
+            submissions_mime_type_whitelist = sorted(
+                list(map(str, submissions_mime_type_whitelist))
+            )
+
+            self.mime_type_whitelist = set(submissions_mime_type_whitelist)
+            self.mime_type_whitelist_guid = ut.hashable_to_uuid(
+                submissions_mime_type_whitelist
+            )
+
+            mime_type_whitelist_mapping_filepath = os.path.join(
+                self.app.config.get('PROJECT_DATABASE_PATH'),
+                'mime.whitelist.%s.json' % (self.mime_type_whitelist_guid,),
+            )
+            if not os.path.exists(mime_type_whitelist_mapping_filepath):
+                log.info(
+                    'Creating new MIME whitelist manifest: %r'
+                    % (mime_type_whitelist_mapping_filepath,)
+                )
+                with open(mime_type_whitelist_mapping_filepath, 'w') as mime_type_file:
+                    mime_type_whitelist_dict = {
+                        str(self.mime_type_whitelist_guid): sorted(
+                            list(self.mime_type_whitelist)
+                        ),
+                    }
+                    mime_type_file.write(json.dumps(mime_type_whitelist_dict))
 
             self.initialized = True
 

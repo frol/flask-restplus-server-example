@@ -28,7 +28,7 @@ class DetailedAssetSchema(BaseAssetSchema):
 
     class Meta(BaseAssetSchema.Meta):
         fields = BaseAssetSchema.Meta.fields + (
-            Asset.ext.key,
+            Asset.extension.key,
             Asset.created.key,
             Asset.updated.key,
         )

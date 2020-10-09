@@ -145,6 +145,42 @@ db.GUID = GUID
 ##########################################################################################
 
 
+def parallel(worker_func, args_list, kwargs_list=None, thread=True, workers=None):
+    from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
+    import multiprocessing
+    import tqdm
+
+    args_list = list(args_list)
+
+    if workers is None:
+        workers = multiprocessing.cpu_count()
+
+    if kwargs_list is None:
+        kwargs_list = [{}] * len(args_list)
+
+    executor = ThreadPoolExecutor if thread else ProcessPoolExecutor
+
+    with executor(max_workers=workers) as pool:
+        futures, results = [], []
+
+        with tqdm.tqdm(total=len(args_list)) as progress:
+            for args, kwargs in zip(args_list, kwargs_list):
+                future = pool.submit(worker_func, *args, **kwargs)
+                future.add_done_callback(lambda p: progress.update())
+                futures.append(future)
+
+        for future in tqdm.tqdm(futures):
+            result = future.result()
+            results.append(result)
+
+        pool.shutdown(True)
+
+    return results
+
+
+##########################################################################################
+
+
 def init_app(app):
     """
     Application extensions initialization.
