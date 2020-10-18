@@ -9,6 +9,13 @@ from flask import Flask
 from werkzeug.contrib.fixers import ProxyFix
 import logging
 
+import sentry_sdk
+from sentry_sdk.integrations.flask import FlaskIntegration
+
+sentry_sdk.init(
+    dsn='https://140fc4d010bb43b28417ab57b0e41b44@sentry.dyn.wildme.io/3',
+    integrations=[FlaskIntegration()],
+)
 
 log = logging.getLogger(__name__)
 
