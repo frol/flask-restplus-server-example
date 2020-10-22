@@ -124,6 +124,8 @@ class ProductionConfig(BaseConfig, EDMConfig, SecretProductionConfig):
         'parham@wildme.org',
     ]
 
+    SENTRY_DSN = 'https://140fc4d010bb43b28417ab57b0e41b44@sentry.dyn.wildme.io/3'
+
 
 class DevelopmentConfig(BaseConfig, EDMConfig, SecretDevelopmentConfig):
     DEBUG = True
@@ -139,6 +141,7 @@ class DevelopmentConfig(BaseConfig, EDMConfig, SecretDevelopmentConfig):
     ]
 
     SECRET_KEY = 'DEVELOPMENT_SECRET_KEY'
+    SENTRY_DSN = None
 
 
 class TestingConfig(DevelopmentConfig):
