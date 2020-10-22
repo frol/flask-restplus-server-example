@@ -12,11 +12,6 @@ import logging
 import sentry_sdk
 from sentry_sdk.integrations.flask import FlaskIntegration
 
-sentry_sdk.init(
-    dsn='https://140fc4d010bb43b28417ab57b0e41b44@sentry.dyn.wildme.io/3',
-    integrations=[FlaskIntegration()],
-)
-
 log = logging.getLogger(__name__)
 
 
@@ -67,6 +62,14 @@ def create_app(flask_config_name=None, **kwargs):
             )
             sys.exit(1)
         raise
+
+    # if specified, setup sentry for exception reporting and runtime telemetry
+    sentry_dsn = app.config.get('SENTRY_DSN', None)
+    if sentry_dsn is not None:
+        sentry_sdk.init(
+            dsn=sentry_dsn,
+            integrations=[FlaskIntegration()],
+        )
 
     if app.config['REVERSE_PROXY_SETUP']:
         app.wsgi_app = ProxyFix(app.wsgi_app)
