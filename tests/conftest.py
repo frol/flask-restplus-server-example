@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import pytest
+import uuid
 
 from tests import utils
 
@@ -89,3 +90,8 @@ def internal_user(temp_db_instance_helper):
         )
     ):
         yield _
+
+
+@pytest.yield_fixture(scope='session')
+def test_submission_uuid(flask_app):
+    return uuid.UUID('ce91ad6e-3cc9-48e8-a4f0-ac74f55dfbf0')

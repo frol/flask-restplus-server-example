@@ -27,7 +27,9 @@ class Namespace(BaseNamespace):
 
     WEBARGS_PARSER = CustomWebargsParser()
 
-    def resolve_object_by_model(self, model, object_arg_name, identity_arg_names=None):
+    def resolve_object_by_model(
+        self, model, object_arg_name, identity_arg_names=None, return_not_found=False
+    ):
         """
         A helper decorator to resolve DB record instance by id.
 
@@ -56,14 +58,25 @@ class Namespace(BaseNamespace):
             identity_arg_names = ('%s_guid' % object_arg_name,)
         elif not isinstance(identity_arg_names, (list, tuple)):
             identity_arg_names = (identity_arg_names,)
+
+        def _resolver(kwargs):
+            query_func = model.query.get if return_not_found else model.query.get_or_404
+            identity_args = [
+                kwargs.pop(identity_arg_name) for identity_arg_name in identity_arg_names
+            ]
+            response = query_func(identity_args)
+            return (
+                (
+                    response,
+                    identity_args,
+                )
+                if return_not_found
+                else response
+            )
+
         return self.resolve_object(
             object_arg_name,
-            resolver=lambda kwargs: model.query.get_or_404(
-                [
-                    kwargs.pop(identity_arg_name)
-                    for identity_arg_name in identity_arg_names
-                ]
-            ),
+            resolver=_resolver,
         )
 
     def model(self, name=None, model=None, **kwargs):

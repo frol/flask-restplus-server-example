@@ -225,6 +225,11 @@ class SubmissionManager(object):
 
         return repo
 
+    def ensure_submission(self, submission_uuid, slim=False, fetch=True):
+        import utool as ut
+
+        ut.embed()
+
 
 def init_app(app, **kwargs):
     # pylint: disable=unused-argument

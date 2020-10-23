@@ -6,8 +6,10 @@ RESTful API Submissions resources
 """
 
 import logging
+import werkzeug
+import uuid
 
-from flask import request
+from flask import request, current_app
 from flask_login import current_user
 from flask_restplus_patched import Resource
 from flask_restplus._http import HTTPStatus
@@ -147,7 +149,7 @@ class SubmissionsStreamlined(Resource):
     code=HTTPStatus.NOT_FOUND,
     description='Submission not found.',
 )
-@api.resolve_object_by_model(Submission, 'submission')
+@api.resolve_object_by_model(Submission, 'submission', return_not_found=True)
 class SubmissionByID(Resource):
     """
     Manipulations with a specific Submission.
@@ -157,7 +159,29 @@ class SubmissionByID(Resource):
     def get(self, submission):
         """
         Get Submission details by ID.
+
+        If submission is not found locally in database, a None submission
+        will be returned.
+
+        In this event, check SubmissionManager for remote Submission
+        by UUID, if not found, throw 404 as intended
         """
+        submission, submission_guids = submission
+
+        if submission is not None:
+            return submission
+
+        # We did not find the submission by its UUID in the Houston databse
+        # We now need to check the SubmissionManager for the existence of that repo
+        submission_guid = submission_guids[0]
+        assert isinstance(submission_guid, uuid.UUID)
+
+        submission = current_app.sub.ensure_submission(submission_guid)
+
+        if submission is None:
+            # We have checked the submission manager and cannot find this submission, raise 404 manually
+            raise werkzeug.exceptions.NotFound
+
         return submission
 
     @api.login_required(oauth_scopes=['submissions:write'])
