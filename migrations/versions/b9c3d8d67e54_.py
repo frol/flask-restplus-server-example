@@ -26,8 +26,10 @@ def upgrade():
         batch_op.alter_column('magic_signiture', nullable=True)
 
     with op.batch_alter_table('submission', schema=None) as batch_op:
-        batch_op.add_column(sa.Column('commit_houston_api_version', sa.String(), nullable=False))
-        batch_op.add_column(sa.Column('commit_mime_whitelist_guid', app.extensions.GUID(), nullable=False))
+        batch_op.add_column(sa.Column('commit_houston_api_version', sa.String(), nullable=True))
+        batch_op.alter_column('commit_houston_api_version', nullable=False)
+        batch_op.add_column(sa.Column('commit_mime_whitelist_guid', app.extensions.GUID(), nullable=True))
+        batch_op.alter_column('commit_mime_whitelist_guid', nullable=False)
         batch_op.create_index(batch_op.f('ix_submission_commit_houston_api_version'), ['commit_houston_api_version'], unique=False)
         batch_op.create_index(batch_op.f('ix_submission_commit_mime_whitelist_guid'), ['commit_mime_whitelist_guid'], unique=False)
 
