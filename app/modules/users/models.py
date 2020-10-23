@@ -284,7 +284,7 @@ class User(db.Model, TimestampViewed, UserEDMMixin):
                                 user = user.set_password(password)
                             return user
                         else:
-                            log.danger(
+                            log.critical(
                                 'The user authenticated via EDM but has no local user record'
                             )
                             # Try syncing all users from EDM
