@@ -21,7 +21,6 @@ class BaseSubmissionSchema(ModelSchema):
             Submission.guid.key,
             Submission.commit.key,
             Submission.major_type.key,
-            Submission.title.key,
             Submission.description.key,
         )
         dump_only = (

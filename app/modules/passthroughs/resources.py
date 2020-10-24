@@ -95,7 +95,7 @@ def _request_passthrough(target, path, request_func, passthrough_kwargs):
     return response
 
 
-@edm_pass.route('/<string:target>/', defaults={'path': None})
+@edm_pass.route('/<string:target>/', defaults={'path': None}, doc=False)
 @edm_pass.route('/<string:target>/<path:path>')
 @edm_pass.login_required(oauth_scopes=['passthroughs:read'])
 class EDMPassthroughs(Resource):

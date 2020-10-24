@@ -15,6 +15,8 @@ from app.version import version
 import logging
 import tqdm
 import uuid
+import json
+import git
 import os
 
 
@@ -33,6 +35,35 @@ def compute_xxhash64_digest_filepath(filepath):
     except Exception:
         digest = None
     return digest
+
+
+class GitLabPAT(object):
+    def __init__(self, repo=None, url=None):
+        assert repo is not None or url is not None, 'Must specify one of repo or url'
+
+        self.repo = repo
+        if url is None:
+            assert repo is not None
+            url = repo.remotes.origin.url
+        self.original_url = url
+
+        remote_personal_access_token = current_app.config.get(
+            'GITLAB_REMOTE_LOGIN_PAT', None
+        )
+        self.authenticated_url = self.original_url.replace(
+            'https://', 'https://oauth2:%s@' % (remote_personal_access_token,)
+        )
+
+    def __enter__(self):
+        # Update remote URL with PAT
+        if self.repo is not None:
+            self.repo.remotes.origin.set_url(self.authenticated_url)
+        return self
+
+    def __exit__(self, type, value, traceback):
+        if self.repo is not None:
+            self.repo.remotes.origin.set_url(self.original_url)
+        return True
 
 
 class SubmissionMajorType(str, enum.Enum):
@@ -75,7 +106,6 @@ class Submission(db.Model, TimestampViewed):
     commit_mime_whitelist_guid = db.Column(db.GUID, index=True, nullable=True)
     commit_houston_api_version = db.Column(db.String, index=True, nullable=True)
 
-    title = db.Column(db.String(length=128), nullable=True)
     description = db.Column(db.String(length=255), nullable=True)
 
     meta = db.Column(db.JSON, nullable=True)
@@ -92,8 +122,8 @@ class Submission(db.Model, TimestampViewed):
             ')>'.format(class_name=self.__class__.__name__, self=self)
         )
 
-    def init_repository(self):
-        return current_app.sub.init_repository(self)
+    def ensure_repository(self):
+        return current_app.sub.ensure_repository(self)
 
     def get_repository(self):
         return current_app.sub.get_repository(self)
@@ -115,18 +145,76 @@ class Submission(db.Model, TimestampViewed):
         if update:
             self.update_asset_symlinks()
 
+        submission_path = self.get_absolute_path()
+        submission_metadata_path = os.path.join(submission_path, 'metadata.json')
+
+        assert os.path.exists(submission_metadata_path)
+        with open(submission_metadata_path, 'r') as submission_metadata_file:
+            submission_metadata = json.load(submission_metadata_file)
+
+        submission_metadata['commit_mime_whitelist_guid'] = str(
+            current_app.sub.mime_type_whitelist_guid
+        )
+        submission_metadata['commit_houston_api_version'] = str(version)
+
+        with open(submission_metadata_path, 'w') as submission_metadata_file:
+            json.dump(submission_metadata, submission_metadata_file)
+
         repo.index.add('_assets/')
         repo.index.add('_submission/')
         repo.index.add('metadata.json')
 
         commit = repo.index.commit(message)
 
-        with db.session.begin():
-            self.commit = commit.hexsha
-            self.commit_mime_whitelist_guid = current_app.sub.mime_type_whitelist_guid
-            self.commit_houston_api_version = version
-            db.session.merge(self)
-        db.session.refresh(self)
+        self.update_metadata_from_commit(commit)
+
+    def git_push(self):
+        repo = self.get_repository()
+        assert repo is not None
+
+        with GitLabPAT(repo):
+            log.info('Pushing to authorized URL')
+            repo.git.push('--set-upstream', repo.remotes.origin, repo.head.ref)
+            log.info('...pushed to %s' % (repo.head.ref,))
+
+        return repo
+
+    def git_pull(self):
+        repo = self.get_repository()
+        assert repo is not None
+
+        with GitLabPAT(repo):
+            log.info('Pulling from authorized URL')
+            repo.git.pull(repo.remotes.origin, repo.head.ref)
+            log.info('...pulled')
+
+        self.update_metadata_from_repo(repo)
+
+        return repo
+
+    def git_clone(self, project):
+        repo = self.get_repository()
+        assert repo is None
+
+        submission_abspath = self.get_absolute_path()
+        gitlab_url = project.web_url
+
+        with GitLabPAT(url=gitlab_url) as glpat:
+            args = (
+                gitlab_url,
+                submission_abspath,
+            )
+            log.info('Cloning remote submission:\n\tremote: %r\n\tlocal:  %r' % args)
+            glpat.repo = git.Repo.clone_from(glpat.authenticated_url, submission_abspath)
+            log.info('...cloned')
+
+        repo = self.get_repository()
+        assert repo is not None
+
+        self.update_metadata_from_project(project)
+        self.update_metadata_from_repo(repo)
+
+        return repo
 
     def realize_submission(self):
         """
@@ -312,30 +400,42 @@ class Submission(db.Model, TimestampViewed):
                 deleted_asset.delete()
         db.session.refresh(self)
 
-    def git_push(self):
+    def update_metadata_from_project(self, project):
+        # Update any local metadata from sub
+        for tag in project.tag_list:
+            tag = tag.strip().split(':')
+            if len(tag) == 2:
+                key, value = tag
+                key_ = key.lower()
+                value_ = value.lower()
+                if key_ == 'type':
+                    default_major_type = SubmissionMajorType.unknown
+                    self.major_type = getattr(
+                        SubmissionMajorType, value_, default_major_type
+                    )
+
+        self.description = project.description
+        with db.session.begin():
+            db.session.merge(self)
+        db.session.refresh(self)
+
+    def update_metadata_from_repo(self, repo):
         repo = self.get_repository()
+        assert repo is not None
 
-        # Get remote URL
-        original_url = repo.remotes.origin.url
+        if len(repo.branches) > 0:
+            commit = repo.branches.master.commit
+            self.update_metadata_from_commit(commit)
 
-        # Update remote URL with PAT
-        remote_personal_access_token = current_app.config.get(
-            'GITLAB_REMOTE_LOGIN_PAT', None
-        )
-        push_url = original_url.replace(
-            'https://', 'https://oauth2:%s@' % (remote_personal_access_token,)
-        )
-        repo.remotes.origin.set_url(push_url)
+        return repo
 
-        # PUSH
-        log.info('Pushing to authorized URL: %r' % (original_url,))
-        repo.git.push('--set-upstream', repo.remotes.origin, repo.head.ref)
-        log.info(
-            '...pushed to %s' % (repo.head.ref),
-        )
-
-        # Reset URL on remote
-        repo.remotes.origin.set_url(original_url)
+    def update_metadata_from_commit(self, commit):
+        with db.session.begin():
+            self.commit = commit.hexsha
+            self.commit_mime_whitelist_guid = current_app.sub.mime_type_whitelist_guid
+            self.commit_houston_api_version = version
+            db.session.merge(self)
+        db.session.refresh(self)
 
     def get_absolute_path(self):
         submissions_database_path = current_app.config.get(

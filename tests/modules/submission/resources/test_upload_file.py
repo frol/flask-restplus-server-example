@@ -11,7 +11,6 @@ def test_create_open_submission(flask_app_client, regular_user, db):
     temp_submission = None
 
     try:
-
         from app.modules.submissions.models import Submission, SubmissionMajorType
 
         test_major_type = SubmissionMajorType.test
@@ -22,7 +21,6 @@ def test_create_open_submission(flask_app_client, regular_user, db):
                 data=json.dumps(
                     {
                         'major_type': test_major_type,
-                        'title': 'Test Submission',
                         'description': 'This is a test submission, please ignore',
                     }
                 ),
@@ -71,7 +69,6 @@ def test_submission_streamlined(flask_app_client, regular_user, db):
                 '/api/v1/submissions/streamlined',
                 data=dict(
                     major_type=test_major_type,
-                    title='Test Submission',
                     description='Test Submission (streamlined)',
                     files=files,
                 ),

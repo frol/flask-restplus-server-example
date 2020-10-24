@@ -19,4 +19,4 @@ class PatchSubmissionDetailsParameters(PatchJSONParameters):
     # pylint: disable=abstract-method,missing-docstring
     OPERATION_CHOICES = (PatchJSONParameters.OP_REPLACE,)
 
-    PATH_CHOICES = tuple('/%s' % field for field in (Submission.title.key,))
+    PATH_CHOICES = tuple('/%s' % field for field in (Submission.description.key,))

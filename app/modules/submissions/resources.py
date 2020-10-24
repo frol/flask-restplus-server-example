@@ -71,7 +71,6 @@ class Submissions(Resource):
             curl \
                 -X POST \
                 -b cookie.jar \
-                -F title="Test Submission" \
                 -F description="This is a test submission (via CURL), please ignore" \
                 https://houston.dyn.wildme.io/api/v1/submissions/ | jq
         """
@@ -82,7 +81,7 @@ class Submissions(Resource):
             args['owner_guid'] = current_user.guid
             submission = Submission(**args)
             db.session.add(submission)
-        repo, project = submission.init_repository()
+        repo, project = submission.ensure_repository()
         return submission
 
 
@@ -117,7 +116,6 @@ class SubmissionsStreamlined(Resource):
             curl \
                 -X POST \
                 -b cookie.jar \
-                -F title="Test Submission" \
                 -F description="This is a test submission (via CURL), please ignore" \
                 -F files="@tests/submissions/test-000/zebra.jpg" \
                 -F files="@tests/submissions/test-000/fluke.jpg" \
@@ -131,7 +129,7 @@ class SubmissionsStreamlined(Resource):
             submission = Submission(**args)
             db.session.add(submission)
 
-        repo, project = submission.init_repository()
+        repo, project = submission.ensure_repository()
 
         for upload_file in request.files.getlist('files'):
             submission.git_write_upload_file(upload_file)

@@ -38,6 +38,10 @@ def temp_db_instance_helper(db):
         primary_key = mapper.primary_key[0]
         kwargs = {primary_key.name: mapper.primary_key_from_instance(instance)[0]}
         instance.__class__.query.filter_by(**kwargs).delete()
+        try:
+            instance.__class__.commit()
+        except Exception:
+            pass
 
     return temp_db_instance_manager
 
@@ -95,3 +99,13 @@ def internal_user(temp_db_instance_helper):
 @pytest.yield_fixture(scope='session')
 def test_submission_uuid(flask_app):
     return uuid.UUID('ce91ad6e-3cc9-48e8-a4f0-ac74f55dfbf0')
+
+
+@pytest.yield_fixture(scope='session')
+def test_empty_submission_uuid(flask_app):
+    return uuid.UUID('ce91ad6e-3cc9-48e8-a4f0-ac74f55dfbf1')
+
+
+@pytest.yield_fixture(scope='session')
+def test_clone_submission_uuid(flask_app):
+    return uuid.UUID('290950fb-49a8-496a-adf4-e925010f79ce')
