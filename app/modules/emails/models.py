@@ -13,10 +13,9 @@ import logging
 import enum
 
 from flask import current_app, request
-from sqlalchemy_utils import Timestamp
 from app.extensions.email import Email  # , _format_datetime
 
-from app.extensions import db
+from app.extensions import db, HoustonModel
 
 import datetime
 import pytz
@@ -38,12 +37,10 @@ class EmailTypes(str, enum.Enum):
     receipt = 'receipt'
 
 
-class EmailRecord(db.Model, Timestamp):
+class EmailRecord(db.Model, HoustonModel):
     """
     OAuth2 Access Tokens storage model.
     """
-
-    __tablename__ = 'email'
 
     guid = db.Column(
         db.GUID, default=uuid.uuid4, primary_key=True

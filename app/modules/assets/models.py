@@ -6,12 +6,12 @@ Assets database models
 from flask import current_app
 import os
 
-from app.extensions import db, TimestampViewed
+from app.extensions import db, HoustonModel
 
 import uuid
 
 
-class Asset(db.Model, TimestampViewed):
+class Asset(db.Model, HoustonModel):
     """
     Assets database model.
     """

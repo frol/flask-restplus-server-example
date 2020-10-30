@@ -7,7 +7,7 @@ Submissions database models
 import enum
 from flask import current_app
 
-from app.extensions import db, TimestampViewed, parallel
+from app.extensions import db, HoustonModel, parallel
 
 from app.modules.assets.models import Asset
 from app.version import version
@@ -77,7 +77,7 @@ class SubmissionMajorType(str, enum.Enum):
     reject = 'reject'
 
 
-class Submission(db.Model, TimestampViewed):
+class Submission(db.Model, HoustonModel):
     """
     Submission database model.
 

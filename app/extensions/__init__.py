@@ -131,7 +131,57 @@ class TimestampViewed(Timestamp):
     viewed = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
 
     def view(self):
-        self.updated = datetime.utcnow()
+        self.viewed = datetime.utcnow()
+
+
+class GhostModel(object):
+    """
+    A completely transient model that allows for Houston to wrap EDM or ACM
+    responses into a model and allows for serialization of results with
+    Rest-PLUS.
+
+    REST API Read Access : YES
+    Houston Exists Check : NO
+    Houston Read Access  : NO
+    """
+
+
+class FeatherModel(GhostModel, TimestampViewed):
+    """
+    A light-weight model that 1) stores critical information concerning security
+    and permissions or 2) gives Houston insight on frequently-cached information
+    so that it can quickly resolve requests itself without needing to query the
+    EDM or ACM.
+
+    A FeatherModel inherits from SQLAlchemy.Model and creates a local SQL* table
+    in the local Houston database.  All models in Houston also derive from the
+    TimestampViewed class, which is an extension of sqlalchemy_utils.models.Timestamp
+    to add an additional `viewed` attribute to complement `created` and`updated`.
+
+    A FeatherModel is required to have external metadata and information that is
+    stored in a different component.  In general, FeatherModels must be kept
+    up-to-date with their responsible external component (e.g. with a version).
+
+    IMPORTANT: If all of the information for a FeatherModel lives inside
+    Houston's database, it should be converted into a HoustonModel.
+
+    REST API Read Access : YES
+    Houston Exists Check : YES
+    Houston Read Access  : YES
+    """
+
+
+class HoustonModel(FeatherModel):
+    """
+    A permanent model that stores information for objects in Houston only.  A
+    HoustonModel is a fully-fledged database ORM object that has full CRUD
+    support and does not need to interface with an external component for any
+    information or metadata.
+
+    REST API Read Access : YES
+    Houston Exists Check : YES
+    Houston Read Access  : YES
+    """
 
 
 ##########################################################################################

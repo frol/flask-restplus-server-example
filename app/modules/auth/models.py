@@ -13,11 +13,10 @@ import logging
 import enum
 
 from sqlalchemy import or_
-from sqlalchemy_utils import Timestamp
 from sqlalchemy_utils.types import ScalarListType
 from werkzeug import security
 
-from app.extensions import db
+from app.extensions import db, HoustonModel
 from app.modules.users.models import User
 
 import datetime
@@ -270,12 +269,10 @@ class OAuth2Token(db.Model):
         return expired
 
 
-class Code(db.Model, Timestamp):
+class Code(db.Model, HoustonModel):
     """
     OAuth2 Access Tokens storage model.
     """
-
-    __tablename__ = 'code'
 
     guid = db.Column(
         db.GUID, default=uuid.uuid4, primary_key=True

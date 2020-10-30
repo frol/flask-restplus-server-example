@@ -4,12 +4,12 @@ Encounters database models
 --------------------
 """
 
-from app.extensions import db, TimestampViewed
+from app.extensions import db, FeatherModel
 
 import uuid
 
 
-class Encounter(db.Model, TimestampViewed):
+class Encounter(db.Model, FeatherModel):
     """
     Encounters database model.
     """

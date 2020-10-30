@@ -4,14 +4,12 @@ Collaborations database models
 --------------------
 """
 
-from sqlalchemy_utils import Timestamp
-
-from app.extensions import db
+from app.extensions import db, HoustonModel
 
 import uuid
 
 
-class Collaboration(db.Model, Timestamp):
+class Collaboration(db.Model, HoustonModel):
     """
     Collaborations database model.
     """

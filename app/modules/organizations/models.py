@@ -4,14 +4,12 @@ Organizations database models
 --------------------
 """
 
-from sqlalchemy_utils import Timestamp
-
-from app.extensions import db
+from app.extensions import db, HoustonModel
 
 import uuid
 
 
-class Organization(db.Model, Timestamp):
+class Organization(db.Model, HoustonModel):
     """
     Organizations database model.
     """
