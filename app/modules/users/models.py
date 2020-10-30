@@ -11,7 +11,7 @@ import sqlalchemy
 from sqlalchemy_utils import types as column_types
 
 from flask_login import current_user  # NOQA
-from app.extensions import db, HoustonModel
+from app.extensions import db, FeatherModel
 from app.extensions.edm import EDMObjectMixin
 from app.extensions.api.parameters import _get_is_static_role_property
 
@@ -131,9 +131,13 @@ class UserEDMMixin(EDMObjectMixin):
         log.warning('User._process_edm_user_organization() not implemented yet')
 
 
-class User(db.Model, HoustonModel, UserEDMMixin):
+class User(db.Model, FeatherModel, UserEDMMixin):
     """
     User database model.
+
+    TODO:
+    * Upgrade to HoustonModel after full transition for Users out of EDM is
+      complete
     """
 
     guid = db.Column(

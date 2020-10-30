@@ -3,7 +3,8 @@
 Assets database models
 --------------------
 """
-from flask import current_app
+# from flask import current_app
+from functools import total_ordering
 import os
 
 from app.extensions import db, HoustonModel
@@ -11,6 +12,7 @@ from app.extensions import db, HoustonModel
 import uuid
 
 
+@total_ordering
 class Asset(db.Model, HoustonModel):
     """
     Assets database model.
@@ -57,21 +59,17 @@ class Asset(db.Model, HoustonModel):
             ')>'.format(class_name=self.__class__.__name__, self=self)
         )
 
-    @property
-    def absolute_filepath(self):
-        asset_path = current_app.config.get('ASSET_DATABASE_PATH', None)
-        asset_filname = '%s%s' % (
-            self.code,
-            self.extension,
-        )
-        asset_filepath = os.path.join(
-            asset_path,
-            asset_filname,
-        )
+    def __eq__(self, other):
+        return self.guid == other.guid
 
-        asset_filepath = os.path.abspath(asset_filepath)
-        assert os.path.exists(asset_filepath)
-        return asset_filepath
+    def __ne__(self, other):
+        return not (self == other)
+
+    def __lt__(self, other):
+        return str(self.guid) < str(other.guid)
+
+    def __hash__(self):
+        return hash(self.guid)
 
     def get_symlink(self):
         submission_abspath = self.submission.get_absolute_path()

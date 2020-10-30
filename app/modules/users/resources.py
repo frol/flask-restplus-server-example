@@ -23,7 +23,6 @@ from . import permissions, schemas, parameters
 from .models import db, User
 
 from app.modules.auth.models import Code, CodeTypes
-from app.modules.assets.resources import process_file_upload
 
 
 log = logging.getLogger(__name__)
@@ -182,41 +181,6 @@ class UserByID(Resource):
             parameters.PatchUserDetailsParameters.perform_patch(args, user)
             db.session.merge(user)
         db.session.refresh(user)
-
-        return user
-
-
-@api.route('/picture/<uuid:user_guid>')
-@api.login_required(oauth_scopes=['assets:read', 'users:read'])
-@api.response(
-    code=HTTPStatus.NOT_FOUND,
-    description='User not found.',
-)
-@api.resolve_object_by_model(User, 'user')
-class UserArtworkByID(Resource):
-    """
-    Manipulations with a specific User.
-    """
-
-    @api.login_required(oauth_scopes=['assets:write', 'users:write'])
-    @api.permission_required(
-        permissions.OwnerModifyRolePermission,
-        kwargs_on_request=lambda kwargs: {'obj': kwargs['user']},
-    )
-    @api.permission_required(permissions.WriteAccessPermission())
-    @api.response(schemas.DetailedUserSchema())
-    @api.response(code=HTTPStatus.CONFLICT)
-    def post(self, user):
-        """
-        Create a new instance of Asset.
-        """
-        asset = process_file_upload(square=True)
-        context = api.commit_or_abort(
-            db.session, default_error_message='Failed to update User details.'
-        )
-        with context:
-            user.profile_asset_guid = asset.guid
-            db.session.merge(user)
 
         return user
 

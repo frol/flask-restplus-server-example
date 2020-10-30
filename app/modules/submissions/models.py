@@ -214,6 +214,9 @@ class Submission(db.Model, HoustonModel):
         self.update_metadata_from_project(project)
         self.update_metadata_from_repo(repo)
 
+        # Traverse the repo and create Asset objects in database
+        self.update_asset_symlinks()
+
         return repo
 
     def realize_submission(self):
@@ -271,6 +274,7 @@ class Submission(db.Model, HoustonModel):
                     basename = os.path.basename(filepath)
                     _, extension = os.path.splitext(basename)
                     extension = extension.lower()
+                    extension = extension.strip('.')
 
                     if basename.startswith('.'):
                         # Skip hidden files
@@ -340,16 +344,46 @@ class Submission(db.Model, HoustonModel):
             )
             file_data['semantic_guid'] = ut.hashable_to_uuid(semantic_guid_data)
 
+        # Delete all existing symlinks
+        existing_filepath_guid_mapping = {}
+        existing_asset_symlinks = ut.glob(os.path.join(assets_path, '*'))
+        for existing_asset_symlink in existing_asset_symlinks:
+            basename = os.path.basename(existing_asset_symlink)
+            if basename in ['.touch']:
+                continue
+            existing_asset_target = os.readlink(existing_asset_symlink)
+            existing_asset_target_ = os.path.abspath(
+                os.path.join(assets_path, existing_asset_target)
+            )
+            if os.path.exists(existing_asset_target_):
+                uuid_str, _ = os.path.splitext(basename)
+                uuid_str = uuid_str.strip().strip('.')
+                try:
+                    existing_filepath_guid_mapping[existing_asset_target_] = uuid.UUID(
+                        uuid_str
+                    )
+                except Exception:
+                    pass
+            os.remove(existing_asset_symlink)
+
         # Add new or update any existing Assets found in the Submission
         asset_submission_filepath_list = [
             file_data.pop('filepath', None) for file_data in files
         ]
         assets = []
         with db.session.begin():
-            for file_data in files:
+            for file_data, asset_submission_filepath in zip(
+                files, asset_submission_filepath_list
+            ):
                 semantic_guid = file_data.get('semantic_guid', None)
                 asset = Asset.query.filter(Asset.semantic_guid == semantic_guid).first()
                 if asset is None:
+                    # Check if we can recycle existing GUID from symlink
+                    recycle_guid = existing_filepath_guid_mapping.get(
+                        asset_submission_filepath, None
+                    )
+                    if recycle_guid is not None:
+                        file_data['guid'] = recycle_guid
                     # Create record if asset is new
                     asset = Asset(**file_data)
                     db.session.add(asset)
@@ -362,14 +396,6 @@ class Submission(db.Model, HoustonModel):
                         setattr(asset, key, value)
                     db.session.merge(asset)
                 assets.append(asset)
-
-        # Delete all existing symlinks
-        existing_asset_symlinks = ut.glob(os.path.join(assets_path, '*'))
-        for existing_asset_symlink in existing_asset_symlinks:
-            basename = os.path.basename(existing_asset_symlink)
-            if basename in ['.touch']:
-                continue
-            os.remove(existing_asset_symlink)
 
         # Update all symlinks for each Asset
         for asset, asset_submission_filepath in zip(
@@ -454,19 +480,3 @@ class Submission(db.Model, HoustonModel):
         db.session.refresh(self)
         with db.session.begin():
             db.session.delete(self)
-
-    @property
-    def absolute_filepath(self):
-        asset_path = current_app.config.get('SUBMISSION_DATABASE_PATH', None)
-        asset_filname = '%s%s' % (
-            self.guid,
-            self.extension,
-        )
-        asset_filepath = os.path.join(
-            asset_path,
-            asset_filname,
-        )
-
-        asset_filepath = os.path.abspath(asset_filepath)
-        assert os.path.exists(asset_filepath)
-        return asset_filepath

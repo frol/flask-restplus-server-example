@@ -81,6 +81,7 @@ def test_ensure_clone_submission_by_uuid(
 
     try:
         from app.modules.submissions.models import Submission, SubmissionMajorType
+        from app.modules.assets.models import Asset
 
         with flask_app_client.login(regular_user, auth_scopes=('submissions:read',)):
             response = flask_app_client.get(
@@ -102,6 +103,19 @@ def test_ensure_clone_submission_by_uuid(
         )
         assert temp_submission.commit_houston_api_version == '0.1.0.8b208226'
         assert temp_submission.description == 'Test Submission (streamlined)'
+
+        # Checks that there are two valid Assets in the database
+        assert len(temp_submission.assets) == 2
+        temp_assets = sorted(temp_submission.assets)
+        expected_guid_list = [
+            uuid.UUID('3abc03a8-39c8-42c4-bedb-e08ccc485396'),
+            uuid.UUID('aee00c38-137e-4392-a4d9-92b545a9efb0'),
+        ]
+        for asset, expected_guid in zip(temp_assets, expected_guid_list):
+            db_asset = Asset.query.get(asset.guid)
+            assert asset == db_asset
+            assert asset.guid == expected_guid
+
     except Exception as ex:
         raise ex
     finally:
