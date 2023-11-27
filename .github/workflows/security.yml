@@ -10,11 +10,17 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
      
-      - name: Checkout code
+      - name: App Threat(SAST)
         uses: AppThreat/sast-scan-action@master
         with:
           type: "python"
-      
+          
+      - name: Upload App Threat(SAST)  
+        uses: actions/upload-artifact@v1
+        with:
+          name: SAST_Report
+          path: reports
+
       - name: Set up Docker
         uses: docker/setup-buildx-action@v1
 
@@ -24,5 +30,11 @@ jobs:
       - name: ZAP Scan(DAST)
         uses: zaproxy/action-full-scan@v0.8.0
         with:
-          target: 'http://127.0.0.1:5000'
+          target: 'http://127.0.0.1:5000/api/v1/'
+      
+      - name: Upload App Threat(DAST)  
+        uses: actions/upload-artifact@v1
+        with:
+          name: DAST_Report
+          path: zap_scan
 
