@@ -1,4 +1,4 @@
-name: Deploy Dockerized Python App
+name: Security Scan
 
 on:
   push
@@ -36,5 +36,5 @@ jobs:
         uses: actions/upload-artifact@v1
         with:
           name: DAST_Report
-          path: zap_scan
+          path: report.html
 
