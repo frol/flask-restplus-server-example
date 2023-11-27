@@ -15,10 +15,9 @@ jobs:
 
       - name: Run Docker container
         run: docker run -d --publish 5000:5000 frolvlad/flask-restplus-server-example
+      
+      - name: ZAP Scan(DAST)
+        uses: zaproxy/action-full-scan@v0.8.0
+        with:
+          target: 'http://127.0.0.1:5000'
 
-      - name: Test Deployed App
-        run: |
-          # Aguarde alguns segundos para garantir que a aplicação está em execução
-          sleep 10
-          # Teste o endpoint usando curl
-          curl http://127.0.0.1:5000/api/v1/
