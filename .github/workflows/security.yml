@@ -9,7 +9,12 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
-
+     
+      - name: Checkout code
+        uses: AppThreat/sast-scan-action@master
+        with:
+          type: "python"
+      
       - name: Set up Docker
         uses: docker/setup-buildx-action@v1
 
